@@ -34,7 +34,7 @@ describe('ThreeXUI Constructor', () => {
 
     test('should configure axios instance with security headers', () => {
         const client = new ThreeXUI('https://example.com', 'user', 'pass');
-        
+
         expect(client.api.defaults.timeout).toBe(30000);
         expect(client.api.defaults.maxRedirects).toBe(5);
         expect(client.api.defaults.headers['User-Agent']).toBe('3xui-api-client/1.0.0');
@@ -96,14 +96,14 @@ describe('ThreeXUI Module Export', () => {
 describe('API Coverage Validation', () => {
     test('should implement all 19 documented API routes', () => {
         const client = new ThreeXUI('https://example.com', 'user', 'pass');
-        
+
         const expectedMethods = [
             // Authentication (1)
             'login',
             // Inbound Management (5)
             'getInbounds', 'getInbound', 'addInbound', 'updateInbound', 'deleteInbound',
             // Client Management (7)
-            'addClient', 'updateClient', 'deleteClient', 'getClientTrafficsByEmail', 
+            'addClient', 'updateClient', 'deleteClient', 'getClientTrafficsByEmail',
             'getClientTrafficsById', 'getClientIps', 'clearClientIps',
             // Traffic Management (4)
             'resetClientTraffic', 'resetAllTraffics', 'resetAllClientTraffics', 'deleteDepletedClients',
@@ -117,4 +117,4 @@ describe('API Coverage Validation', () => {
 
         expect(expectedMethods).toHaveLength(19);
     });
-}); 
+});

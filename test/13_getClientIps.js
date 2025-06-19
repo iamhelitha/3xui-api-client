@@ -10,9 +10,9 @@ async function test13_getClientIps(testState, rl) {
 
     try {
         console.log('🌐 Getting client IPs...');
-        
+
         const email = await askQuestion('Enter client email to get IPs: ');
-        
+
         if (!email.trim()) {
             return {
                 success: false,
@@ -20,11 +20,11 @@ async function test13_getClientIps(testState, rl) {
                 error: 'Email is required'
             };
         }
-        
+
         console.log(`   Getting IPs for: ${email}`);
-        
+
         const result = await testState.client.getClientIps(email);
-        
+
         // Return the raw API response
         return result;
     } catch (error) {
@@ -36,4 +36,4 @@ async function test13_getClientIps(testState, rl) {
     }
 }
 
-module.exports = test13_getClientIps; 
+module.exports = test13_getClientIps;

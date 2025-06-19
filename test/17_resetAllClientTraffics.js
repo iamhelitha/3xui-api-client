@@ -10,9 +10,9 @@ async function test17_resetAllClientTraffics(testState, rl) {
 
     try {
         console.log('🔄 Resetting all client traffics in specific inbound...');
-        
+
         const inboundIdInput = await askQuestion('Enter inbound ID to reset all client traffics: ');
-        
+
         if (!inboundIdInput.trim()) {
             return {
                 success: false,
@@ -20,7 +20,7 @@ async function test17_resetAllClientTraffics(testState, rl) {
                 error: 'Missing inbound ID'
             };
         }
-        
+
         const inboundId = parseInt(inboundIdInput);
         if (isNaN(inboundId)) {
             return {
@@ -29,13 +29,13 @@ async function test17_resetAllClientTraffics(testState, rl) {
                 error: 'Inbound ID must be a number'
             };
         }
-        
+
         console.log(`⚠️  WARNING: This will reset traffic for ALL clients in inbound ${inboundId}!`);
-        
+
         const confirmation1 = await askQuestion(`Are you sure you want to reset all client traffics in inbound ${inboundId}? (yes/y/no/n): `);
-        
+
         const isConfirmed1 = confirmation1.toLowerCase().startsWith('y') || confirmation1.toLowerCase() === 'yes';
-        
+
         if (!isConfirmed1) {
             return {
                 success: false,
@@ -43,9 +43,9 @@ async function test17_resetAllClientTraffics(testState, rl) {
                 cancelled: true
             };
         }
-        
+
         const confirmation2 = await askQuestion(`Type "RESET INBOUND ${inboundId}" to confirm: `);
-        
+
         if (confirmation2 !== `RESET INBOUND ${inboundId}`) {
             return {
                 success: false,
@@ -53,11 +53,11 @@ async function test17_resetAllClientTraffics(testState, rl) {
                 cancelled: true
             };
         }
-        
+
         console.log(`   Resetting all client traffics in inbound ${inboundId}...`);
-        
+
         const result = await testState.client.resetAllClientTraffics(inboundId);
-        
+
         // Return the raw API response
         return result;
     } catch (error) {
@@ -69,4 +69,4 @@ async function test17_resetAllClientTraffics(testState, rl) {
     }
 }
 
-module.exports = test17_resetAllClientTraffics; 
+module.exports = test17_resetAllClientTraffics;

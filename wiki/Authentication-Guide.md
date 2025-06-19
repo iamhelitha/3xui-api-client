@@ -412,8 +412,17 @@ await debugClient.login();
 
 ---
 
-## Next Steps
+## Navigation
 
-- [Inbound Management](Inbound-Management.md) - Working with server configurations
-- [Security Best Practices](Security-Best-Practices.md) - Secure your implementation  
-- [Server-Side Implementation](Server-Side-Implementation.md) - Production deployment guide 
+| Previous | Next |
+|----------|------|
+| [← Home](Home.md) | [Inbound Management →](Inbound-Management.md) |
+
+## Related Documentation
+
+- [Inbound Management](Inbound-Management.md) - VPN server configuration
+- [Client Management](Client-Management.md) - User account operations  
+- [Traffic Management](Traffic-Management.md) - Data monitoring & control
+- [System Operations](System-Operations.md) - Admin operations
+
+*Last updated: January 2025* 

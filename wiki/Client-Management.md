@@ -688,4 +688,23 @@ async function automatedClientCleanup() {
 
 // Run cleanup every hour
 setInterval(automatedClientCleanup, 3600000);
+```
+
+---
+
+## Navigation
+
+| Previous | Next |
+|----------|------|
+| [← Inbound Management](Inbound-Management.md) | [Traffic Management →](Traffic-Management.md) |
+
+## Related Documentation
+
+- [Authentication Guide](Authentication-Guide.md) - Connection & session management
+- [Inbound Management](Inbound-Management.md) - VPN server configuration
+- [Traffic Management](Traffic-Management.md) - Data monitoring & control
+- [System Operations](System-Operations.md) - Admin operations
+- [Home](Home.md) - Main documentation page
+
+*Last updated: January 2025*
 ``` 

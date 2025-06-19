@@ -10,9 +10,9 @@ async function test18_deleteDepletedClients(testState, rl) {
 
     try {
         console.log('🗑️  Deleting depleted clients...');
-        
+
         const inboundIdInput = await askQuestion('Enter inbound ID to delete depleted clients from: ');
-        
+
         if (!inboundIdInput.trim()) {
             return {
                 success: false,
@@ -20,7 +20,7 @@ async function test18_deleteDepletedClients(testState, rl) {
                 error: 'Missing inbound ID'
             };
         }
-        
+
         const inboundId = parseInt(inboundIdInput);
         if (isNaN(inboundId)) {
             return {
@@ -29,13 +29,13 @@ async function test18_deleteDepletedClients(testState, rl) {
                 error: 'Inbound ID must be a number'
             };
         }
-        
+
         console.log(`⚠️  WARNING: This will delete clients who have exceeded their traffic limits in inbound ${inboundId}!`);
-        
+
         const confirmation = await askQuestion(`Are you sure you want to delete depleted clients from inbound ${inboundId}? (yes/y/no/n): `);
-        
+
         const isConfirmed = confirmation.toLowerCase().startsWith('y') || confirmation.toLowerCase() === 'yes';
-        
+
         if (!isConfirmed) {
             return {
                 success: false,
@@ -43,11 +43,11 @@ async function test18_deleteDepletedClients(testState, rl) {
                 cancelled: true
             };
         }
-        
+
         console.log(`   Deleting depleted clients from inbound ${inboundId}...`);
-        
+
         const result = await testState.client.deleteDepletedClients(inboundId);
-        
+
         // Return the raw API response
         return result;
     } catch (error) {
@@ -59,4 +59,4 @@ async function test18_deleteDepletedClients(testState, rl) {
     }
 }
 
-module.exports = test18_deleteDepletedClients; 
+module.exports = test18_deleteDepletedClients;

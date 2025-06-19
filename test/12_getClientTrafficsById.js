@@ -10,9 +10,9 @@ async function test12_getClientTrafficsById(testState, rl) {
     try {
         console.log('🆔 Getting client traffics by client UUID...');
         console.log('   Note: This API expects a client UUID (like from VLESS/VMESS), not a numeric ID');
-        
+
         const clientUuid = await askQuestion('Enter client UUID to check traffics: ');
-        
+
         if (!clientUuid.trim()) {
             return {
                 success: false,
@@ -20,15 +20,15 @@ async function test12_getClientTrafficsById(testState, rl) {
                 error: 'Client UUID is required'
             };
         }
-        
+
         console.log(`   Checking traffics for UUID: ${clientUuid}`);
-        
+
         // Call the API and return raw response
         const result = await testState.client.getClientTrafficsById(clientUuid);
-        
+
         // Return the raw API response
         return result;
-        
+
     } catch (error) {
         return {
             success: false,
@@ -38,4 +38,4 @@ async function test12_getClientTrafficsById(testState, rl) {
     }
 }
 
-module.exports = test12_getClientTrafficsById; 
+module.exports = test12_getClientTrafficsById;

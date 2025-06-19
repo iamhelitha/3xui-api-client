@@ -776,4 +776,23 @@ class AutomatedMaintenance {
     }
   }
 }
+```
+
+---
+
+## Navigation
+
+| Previous | Next |
+|----------|------|
+| [← Client Management](Client-Management.md) | [System Operations →](System-Operations.md) |
+
+## Related Documentation
+
+- [Authentication Guide](Authentication-Guide.md) - Connection & session management
+- [Inbound Management](Inbound-Management.md) - VPN server configuration
+- [Client Management](Client-Management.md) - User account operations
+- [System Operations](System-Operations.md) - Admin operations
+- [Home](Home.md) - Main documentation page
+
+*Last updated: January 2025*
 ``` 

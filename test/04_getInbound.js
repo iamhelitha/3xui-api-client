@@ -2,16 +2,16 @@
 async function test04_getInbound(testState) {
     try {
         console.log('🔍 Finding a valid inbound by trying IDs starting from 0...');
-        
+
         let foundInbound = null;
         let attemptedId = 0;
         const maxAttempts = 20; // Prevent infinite loop
-        
+
         while (attemptedId < maxAttempts) {
             try {
                 console.log(`   Trying ID: ${attemptedId}`);
                 const result = await testState.client.getInbound(attemptedId);
-                
+
                 if (result.success && result.obj) {
                     console.log(`✅ Found valid inbound with ID: ${attemptedId}`);
                     foundInbound = result;
@@ -22,18 +22,18 @@ async function test04_getInbound(testState) {
                 // Continue to next ID if this one fails
                 console.log(`   ID ${attemptedId}: ${error.message}`);
             }
-            
+
             attemptedId++;
         }
-        
+
         if (foundInbound) {
             // Return the raw API response from the successful call
             return foundInbound;
         } else {
             return {
                 success: false,
-                message: `No valid inbound found after trying IDs 0-${maxAttempts-1}`,
-                attemptedIds: `0-${maxAttempts-1}`,
+                message: `No valid inbound found after trying IDs 0-${maxAttempts - 1}`,
+                attemptedIds: `0-${maxAttempts - 1}`,
                 attemptsRequired: maxAttempts
             };
         }
@@ -46,4 +46,4 @@ async function test04_getInbound(testState) {
     }
 }
 
-module.exports = test04_getInbound; 
+module.exports = test04_getInbound;

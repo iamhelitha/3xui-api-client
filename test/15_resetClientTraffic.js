@@ -10,10 +10,10 @@ async function test15_resetClientTraffic(testState, rl) {
 
     try {
         console.log('🔄 Resetting client traffic...');
-        
+
         const inboundIdInput = await askQuestion('Enter inbound ID: ');
         const email = await askQuestion('Enter client email to reset traffic: ');
-        
+
         if (!inboundIdInput.trim() || !email.trim()) {
             return {
                 success: false,
@@ -21,7 +21,7 @@ async function test15_resetClientTraffic(testState, rl) {
                 error: 'Missing required parameters'
             };
         }
-        
+
         const inboundId = parseInt(inboundIdInput);
         if (isNaN(inboundId)) {
             return {
@@ -30,12 +30,12 @@ async function test15_resetClientTraffic(testState, rl) {
                 error: 'Inbound ID must be a number'
             };
         }
-        
+
         const confirmation = await askQuestion(`Are you sure you want to reset traffic for ${email} in inbound ${inboundId}? (yes/y/no/n): `);
-        
+
         // More flexible confirmation check
         const isConfirmed = confirmation.toLowerCase().startsWith('y') || confirmation.toLowerCase() === 'yes';
-        
+
         if (!isConfirmed) {
             return {
                 success: false,
@@ -43,11 +43,11 @@ async function test15_resetClientTraffic(testState, rl) {
                 cancelled: true
             };
         }
-        
+
         console.log(`   Resetting traffic for: ${email} in inbound ${inboundId}`);
-        
+
         const result = await testState.client.resetClientTraffic(inboundId, email);
-        
+
         // Return the raw API response
         return result;
     } catch (error) {
@@ -59,4 +59,4 @@ async function test15_resetClientTraffic(testState, rl) {
     }
 }
 
-module.exports = test15_resetClientTraffic; 
+module.exports = test15_resetClientTraffic;

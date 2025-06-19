@@ -390,8 +390,18 @@ for (const config of inboundConfigs) {
 
 ---
 
-## Next Steps
+## Navigation
 
-- [Client Management Guide](Client-Management.md) - Add users to your inbounds
-- [Security Best Practices](Security-Best-Practices.md) - Secure your server
-- [Troubleshooting](Troubleshooting.md) - Common issues and solutions 
+| Previous | Next |
+|----------|------|
+| [← Authentication Guide](Authentication-Guide.md) | [Client Management →](Client-Management.md) |
+
+## Related Documentation
+
+- [Authentication Guide](Authentication-Guide.md) - Connection & session management
+- [Client Management](Client-Management.md) - User account operations  
+- [Traffic Management](Traffic-Management.md) - Data monitoring & control
+- [System Operations](System-Operations.md) - Admin operations
+- [Home](Home.md) - Main documentation page
+
+*Last updated: January 2025* 

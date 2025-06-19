@@ -36,7 +36,7 @@ const rl = readline.createInterface({
     output: process.stdout
 });
 
-function waitForEnter(message = "Press Enter to continue...") {
+function waitForEnter(message = 'Press Enter to continue...') {
     return new Promise((resolve) => {
         rl.question(`\n${message}\n`, () => {
             resolve();
@@ -63,20 +63,20 @@ function printRawResponse(result) {
     console.log(JSON.stringify(result, null, 2));
 }
 
-async function handleTestResult(testFunction, testState, testNumber, testName) {
+async function handleTestResult(testFunction, testState, _testNumber, _testName) {
     let result;
     let attempt = 1;
-    
+
     while (true) {
         try {
             // Pass the readline interface to tests that need user input
             result = await testFunction(testState, rl);
             printRawResponse(result);
-            
+
             // Determine if test passed based on actual API response
             const apiSuccess = result.success !== false && !result.error;
             const testPassed = apiSuccess && !result.cancelled;
-            
+
             if (testPassed) {
                 console.log('✅ Test passed successfully');
                 return true;
@@ -91,10 +91,10 @@ async function handleTestResult(testFunction, testState, testNumber, testName) {
                 if (result.cancelled) {
                     console.log('   (Operation was cancelled by user)');
                 }
-                
+
                 // Ask user what to do with failed test
                 const action = await askQuestion('\n❓ Test failed. What would you like to do?\n   (r)etry / (s)kip / (q)uit: ');
-                
+
                 if (action.toLowerCase() === 'r' || action.toLowerCase() === 'retry') {
                     attempt++;
                     console.log(`\n🔄 Retrying test (attempt ${attempt})...`);
@@ -113,9 +113,9 @@ async function handleTestResult(testFunction, testState, testNumber, testName) {
         } catch (error) {
             console.log('💥 Test threw an exception:');
             console.log(error.message);
-            
+
             const action = await askQuestion('\n❓ Test threw an error. What would you like to do?\n   (r)etry / (s)kip / (q)uit: ');
-            
+
             if (action.toLowerCase() === 'r' || action.toLowerCase() === 'retry') {
                 attempt++;
                 console.log(`\n🔄 Retrying test (attempt ${attempt})...`);
@@ -142,7 +142,7 @@ async function runMainTests() {
     console.log('👤 Username:', process.env.XUI_USERNAME);
     console.log('=' .repeat(60));
 
-    await waitForEnter("Press Enter to START testing...");
+    await waitForEnter('Press Enter to START testing...');
 
     try {
         // Initialize client
@@ -154,16 +154,16 @@ async function runMainTests() {
 
         // Main test sequence (steps 1-10)
         const mainTests = [
-            { test: test01_login, name: "Login Authentication", number: "01" },
-            { test: test02_getInbounds, name: "Get Inbounds List", number: "02" },
-            { test: test03_getOnlineClients, name: "Get Online Clients", number: "03" },
-            { test: test04_getInbound, name: "Get Specific Inbound", number: "04" },
-            { test: test05_addInbound, name: "Add New Inbound", number: "05" },
-            { test: test06_updateInbound, name: "Update Inbound", number: "06" },
-            { test: test07_addClient, name: "Add Client to Inbound", number: "07" },
-            { test: test08_updateClient, name: "Update Client", number: "08" },
-            { test: test09_deleteClient, name: "Delete Client", number: "09" },
-            { test: test10_deleteInbound, name: "Delete Inbound", number: "10" }
+            { test: test01_login, name: 'Login Authentication', number: '01' },
+            { test: test02_getInbounds, name: 'Get Inbounds List', number: '02' },
+            { test: test03_getOnlineClients, name: 'Get Online Clients', number: '03' },
+            { test: test04_getInbound, name: 'Get Specific Inbound', number: '04' },
+            { test: test05_addInbound, name: 'Add New Inbound', number: '05' },
+            { test: test06_updateInbound, name: 'Update Inbound', number: '06' },
+            { test: test07_addClient, name: 'Add Client to Inbound', number: '07' },
+            { test: test08_updateClient, name: 'Update Client', number: '08' },
+            { test: test09_deleteClient, name: 'Delete Client', number: '09' },
+            { test: test10_deleteInbound, name: 'Delete Inbound', number: '10' }
         ];
 
         // Run main test sequence
@@ -175,15 +175,15 @@ async function runMainTests() {
 
         // Additional tests (steps 11-19) - with user confirmation
         const additionalTests = [
-            { test: test11_getClientTrafficsByEmail, name: "Get Client Traffics by Email", number: "11" },
-            { test: test12_getClientTrafficsById, name: "Get Client Traffics by ID", number: "12" },
-            { test: test13_getClientIps, name: "Get Client IPs", number: "13" },
-            { test: test14_clearClientIps, name: "Clear Client IPs", number: "14" },
-            { test: test15_resetClientTraffic, name: "Reset Client Traffic", number: "15" },
-            { test: test16_resetAllTraffics, name: "Reset All Traffics", number: "16" },
-            { test: test17_resetAllClientTraffics, name: "Reset All Client Traffics", number: "17" },
-            { test: test18_deleteDepletedClients, name: "Delete Depleted Clients", number: "18" },
-            { test: test19_createBackup, name: "Create Backup", number: "19" }
+            { test: test11_getClientTrafficsByEmail, name: 'Get Client Traffics by Email', number: '11' },
+            { test: test12_getClientTrafficsById, name: 'Get Client Traffics by ID', number: '12' },
+            { test: test13_getClientIps, name: 'Get Client IPs', number: '13' },
+            { test: test14_clearClientIps, name: 'Clear Client IPs', number: '14' },
+            { test: test15_resetClientTraffic, name: 'Reset Client Traffic', number: '15' },
+            { test: test16_resetAllTraffics, name: 'Reset All Traffics', number: '16' },
+            { test: test17_resetAllClientTraffics, name: 'Reset All Client Traffics', number: '17' },
+            { test: test18_deleteDepletedClients, name: 'Delete Depleted Clients', number: '18' },
+            { test: test19_createBackup, name: 'Create Backup', number: '19' }
         ];
 
         console.log('\n' + '='.repeat(60));
@@ -228,4 +228,4 @@ if (require.main === module) {
     runMainTests();
 }
 
-module.exports = { runMainTests, testState }; 
+module.exports = { runMainTests, testState };

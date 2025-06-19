@@ -844,4 +844,23 @@ class HAMonitoring {
     // Send to monitoring service, email, SMS, etc.
     console.log('🚨 FAILOVER ALERT:', alert);
   }
-} 
+}
+```
+
+---
+
+## Navigation
+
+| Previous | Next |
+|----------|------|
+| [← Traffic Management](Traffic-Management.md) | [Home →](Home.md) |
+
+## Related Documentation
+
+- [Authentication Guide](Authentication-Guide.md) - Connection & session management
+- [Inbound Management](Inbound-Management.md) - VPN server configuration
+- [Client Management](Client-Management.md) - User account operations
+- [Traffic Management](Traffic-Management.md) - Data monitoring & control
+- [Home](Home.md) - Main documentation page
+
+*Last updated: January 2025* 

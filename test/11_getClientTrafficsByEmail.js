@@ -10,9 +10,9 @@ async function test11_getClientTrafficsByEmail(testState, rl) {
 
     try {
         console.log('📧 Getting client traffics by email...');
-        
+
         const email = await askQuestion('Enter client email to check traffics: ');
-        
+
         if (!email.trim()) {
             return {
                 success: false,
@@ -20,11 +20,11 @@ async function test11_getClientTrafficsByEmail(testState, rl) {
                 error: 'Email is required'
             };
         }
-        
+
         console.log(`   Checking traffics for: ${email}`);
-        
+
         const result = await testState.client.getClientTrafficsByEmail(email);
-        
+
         // Return the raw API response
         return result;
     } catch (error) {
@@ -36,4 +36,4 @@ async function test11_getClientTrafficsByEmail(testState, rl) {
     }
 }
 
-module.exports = test11_getClientTrafficsByEmail; 
+module.exports = test11_getClientTrafficsByEmail;

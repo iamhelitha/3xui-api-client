@@ -2,9 +2,9 @@
 async function test02_getInbounds(testState) {
     try {
         console.log('📋 Getting inbounds list...');
-        
+
         const result = await testState.client.getInbounds();
-        
+
         // Return the raw API response
         return result;
     } catch (error) {
@@ -16,4 +16,4 @@ async function test02_getInbounds(testState) {
     }
 }
 
-module.exports = test02_getInbounds; 
+module.exports = test02_getInbounds;

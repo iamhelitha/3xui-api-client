@@ -53,6 +53,21 @@ module.exports = [
         }
     },
     {
+        files: ['*.mjs'],
+        languageOptions: {
+            ecmaVersion: 2021,
+            sourceType: 'module',
+            globals: {
+                console: 'readonly',
+                process: 'readonly',
+                Buffer: 'readonly',
+                __dirname: 'readonly',
+                __filename: 'readonly',
+                URLSearchParams: 'readonly'
+            }
+        }
+    },
+    {
         files: ['test/**/*.js', 'tests/**/*.js'],
         languageOptions: {
             globals: {
@@ -70,4 +85,4 @@ module.exports = [
             'no-console': 'off'
         }
     }
-]; 
+];

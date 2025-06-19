@@ -16,12 +16,12 @@ async function test07_addClient(testState) {
                 error: 'Missing created inbound'
             };
         }
-        
+
         console.log(`👤 Adding client to inbound ID: ${testState.createdInbound.id}...`);
-        
+
         const clientId = generateUUID();
         const email = `client_${Date.now()}@example.com`;
-        
+
         const clientConfig = {
             id: testState.createdInbound.id,
             settings: JSON.stringify({
@@ -32,17 +32,17 @@ async function test07_addClient(testState) {
                     totalGB: 0,
                     expiryTime: 0,
                     enable: true,
-                    tgId: "",
-                    subId: ""
+                    tgId: '',
+                    subId: ''
                 }]
             })
         };
-        
+
         console.log(`   Client UUID: ${clientId}`);
         console.log(`   Client Email: ${email}`);
-        
+
         const result = await testState.client.addClient(clientConfig);
-        
+
         if (result.success) {
             // Store created client for later tests
             testState.createdClient = {
@@ -52,7 +52,7 @@ async function test07_addClient(testState) {
             };
             console.log('✅ Client added successfully');
         }
-        
+
         // Return the raw API response
         return result;
     } catch (error) {
@@ -64,4 +64,4 @@ async function test07_addClient(testState) {
     }
 }
 
-module.exports = test07_addClient; 
+module.exports = test07_addClient;

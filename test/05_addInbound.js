@@ -14,11 +14,11 @@ function generateUUID() {
 async function test05_addInbound(testState) {
     try {
         console.log('➕ Creating new inbound...');
-        
+
         const port = generateRandomPort();
         const clientId = generateUUID();
         const email = `test_${Date.now()}@example.com`;
-        
+
         const inboundConfig = {
             up: 0,
             down: 0,
@@ -26,60 +26,60 @@ async function test05_addInbound(testState) {
             remark: `Test_Inbound_${Date.now()}`,
             enable: true,
             expiryTime: 0,
-            listen: "",
+            listen: '',
             port: port,
-            protocol: "vless",
+            protocol: 'vless',
             settings: JSON.stringify({
                 clients: [{
                     id: clientId,
                     email: email
                 }],
-                decryption: "none"
+                decryption: 'none'
             }),
             streamSettings: JSON.stringify({
-                network: "tcp",
-                security: "reality",
+                network: 'tcp',
+                security: 'reality',
                 realitySettings: {
                     show: false,
-                    dest: "google.com:443",
+                    dest: 'google.com:443',
                     xver: 0,
-                    serverNames: ["google.com"],
-                    privateKey: "sO6_TnoWBr3tWWQ9VLgRPgK0_-IjF5Ag8Sj6HkxKt0Y",
-                    shortIds: [""],
+                    serverNames: ['google.com'],
+                    privateKey: 'sO6_TnoWBr3tWWQ9VLgRPgK0_-IjF5Ag8Sj6HkxKt0Y',
+                    shortIds: [''],
                     settings: {
-                        publicKey: "Gk8DFwpAuLg6W0UtdKRKNvIJk8VPt8RqhE2YzBEo6Jk",
-                        fingerprint: "chrome"
+                        publicKey: 'Gk8DFwpAuLg6W0UtdKRKNvIJk8VPt8RqhE2YzBEo6Jk',
+                        fingerprint: 'chrome'
                     }
                 },
                 tcpSettings: {
                     acceptProxyProtocol: false,
                     header: {
-                        type: "none"
+                        type: 'none'
                     }
                 }
             }),
             sniffing: JSON.stringify({
                 enabled: true,
-                destOverride: ["http", "tls", "quic", "fakedns"]
+                destOverride: ['http', 'tls', 'quic', 'fakedns']
             }),
             allocate: JSON.stringify({
-                strategy: "always",
+                strategy: 'always',
                 refresh: 5,
                 concurrency: 3
             })
         };
-        
+
         console.log(`   Port: ${port}`);
         console.log(`   Email: ${email}`);
-        
+
         const result = await testState.client.addInbound(inboundConfig);
-        
+
         if (result.success && result.obj) {
             // Store created inbound for later tests
             testState.createdInbound = result.obj;
             console.log(`✅ Inbound created with ID: ${result.obj.id}`);
         }
-        
+
         // Return the raw API response
         return result;
     } catch (error) {
@@ -91,4 +91,4 @@ async function test05_addInbound(testState) {
     }
 }
 
-module.exports = test05_addInbound; 
+module.exports = test05_addInbound;

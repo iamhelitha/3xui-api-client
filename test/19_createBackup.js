@@ -11,11 +11,11 @@ async function test19_createBackup(testState, rl) {
     try {
         console.log('💾 Creating backup...');
         console.log('⚠️  WARNING: This will create a backup of the current 3X-UI configuration!');
-        
+
         const confirmation = await askQuestion('Are you sure you want to create a backup? (yes/y/no/n): ');
-        
+
         const isConfirmed = confirmation.toLowerCase().startsWith('y') || confirmation.toLowerCase() === 'yes';
-        
+
         if (!isConfirmed) {
             return {
                 success: false,
@@ -23,11 +23,11 @@ async function test19_createBackup(testState, rl) {
                 cancelled: true
             };
         }
-        
+
         console.log('   Creating backup...');
-        
+
         const result = await testState.client.createBackup();
-        
+
         // Return the raw API response
         return result;
     } catch (error) {
@@ -39,4 +39,4 @@ async function test19_createBackup(testState, rl) {
     }
 }
 
-module.exports = test19_createBackup; 
+module.exports = test19_createBackup;

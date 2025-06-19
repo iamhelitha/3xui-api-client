@@ -2,10 +2,10 @@ const axios = require('axios');
 
 /**
  * 3X-UI API Client Library
- * 
+ *
  * A Node.js client for managing 3x-ui panel APIs with automatic session management.
  * This library is designed for server-side use only due to security requirements.
- * 
+ *
  * @class ThreeXUI
  * @version 1.0.0
  * @author Helitha Guruge
@@ -13,7 +13,7 @@ const axios = require('axios');
 class ThreeXUI {
     /**
      * Creates a new ThreeXUI client instance
-     * 
+     *
      * @param {string} baseURL - The base URL of your 3x-ui server (e.g., 'https://your-server.com')
      * @param {string} username - Admin username for authentication
      * @param {string} password - Admin password for authentication
@@ -29,12 +29,12 @@ class ThreeXUI {
         if (!password) {
             throw new Error('password is required');
         }
-        
+
         this.baseURL = baseURL.replace(/\/$/, ''); // Remove trailing slash
         this.username = username;
         this.password = password;
         this.cookie = null;
-        
+
         // Create axios instance with security best practices
         this.api = axios.create({
             baseURL: this.baseURL,
@@ -47,14 +47,14 @@ class ThreeXUI {
                 'Connection': 'keep-alive'
             }
         });
-        
+
         // Add request interceptor for security headers
         this.api.interceptors.request.use((config) => {
             // Add security headers
             config.headers['X-Requested-With'] = 'XMLHttpRequest';
             return config;
         });
-        
+
         // Add response interceptor for error handling
         this.api.interceptors.response.use(
             (response) => response,
@@ -168,7 +168,7 @@ class ThreeXUI {
     updateClient(clientId, clientConfig) {
         return this._request('post', `/panel/api/inbounds/updateClient/${clientId}`, clientConfig);
     }
-    
+
     getClientTrafficsByEmail(email) {
         return this._request('get', `/panel/api/inbounds/getClientTraffics/${email}`);
     }
@@ -176,7 +176,7 @@ class ThreeXUI {
     getClientTrafficsById(id) {
         return this._request('get', `/panel/api/inbounds/getClientTrafficsById/${id}`);
     }
-    
+
     getClientIps(email) {
         return this._request('post', `/panel/api/inbounds/clientIps/${email}`);
     }
@@ -212,4 +212,4 @@ class ThreeXUI {
     }
 }
 
-module.exports = ThreeXUI; 
+module.exports = ThreeXUI;

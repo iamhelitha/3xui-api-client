@@ -9,7 +9,7 @@ coverage/
 .env
 .env.*
 config.env
-.eslintrc.json
+eslint.config.js
 
 # CI/CD and GitHub
 .github/
@@ -59,6 +59,6 @@ build/
 
 # Temporary files
 tmp/
-temp/ 
+temp/
 
 .cursor/

@@ -92,7 +92,7 @@ const newClientConfig = {
   settings: JSON.stringify({
     clients: [{
       id: "f5eb5844-dc57-412b-9ec2-82d37e0ebb9c", // UUID
-      email: "client_1750362432108@example.com",
+      email: "client_175036243210823c5n7",
       limitIp: 0,
       totalGB: 0,
       expiryTime: 0,
@@ -166,7 +166,7 @@ async function updateClient(clientUUID, inboundId, updates) {
 
 // Example: Update client email and traffic limit
 const updates = {
-  email: "updated_1750362315180@example.com",
+  email: "updated_175036231518023c5n7",
   limitIp: 2,
   totalGB: 10
 };
@@ -322,19 +322,38 @@ async function getClientTrafficsById(clientUUID) {
 const traffic = await getClientTrafficsById("f4d6d8ca-04f7-4df2-97ed-7d4984ffeacd");
 ```
 
-### API Response Example
+### API Response Example (Get Client Traffic by Email)
+```javascript
+{
+  "success": true,
+  "msg": "",
+  "obj": {
+    "id": 17,
+    "inboundId": 1,
+    "enable": true,
+    "email": "example23c5n7",
+    "up": 68772918150,
+    "down": 573685722793,
+    "expiryTime": 0,
+    "total": 0,
+    "reset": 0
+  }
+}
+```
+
+### API Response Example (Get Client Traffic by UUID)
 ```javascript
 {
   "success": true,
   "msg": "",
   "obj": [
     {
-      "id": 5,
-      "inboundId": 5,
+      "id": 17,
+      "inboundId": 1,
       "enable": true,
-      "email": "me9absl6",
-      "up": 0,
-      "down": 0,
+      "email": "example23c5n7",
+      "up": 68772919433,
+      "down": 573685723939,
       "expiryTime": 0,
       "total": 0,
       "reset": 0
@@ -373,14 +392,16 @@ async function getClientIps(email) {
 const ips = await getClientIps("me9absl6");
 ```
 
-### API Response Example
+### API Response Example (Get Client IPs)
 ```javascript
 {
   "success": true,
   "msg": "",
-  "obj": "No IP Record"
+  "obj": "[\"43.250.242.69\"]"
 }
 ```
+
+**Note**: The `obj` field contains a JSON string of IP addresses array. When no IPs are recorded, it returns `"No IP Record"`.
 
 ## Clearing Client IPs
 
@@ -554,7 +575,7 @@ try {
 
 ### Client Not Found Errors
 ```javascript
-const response = await client.getClientTrafficsByEmail("nonexistent@example.com");
+const response = await client.getClientTrafficsByEmail("nonexistent23c5n7");
 if (response.success && !response.obj) {
   console.log('Client not found');
 }

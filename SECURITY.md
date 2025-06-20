@@ -63,7 +63,7 @@ We appreciate responsible disclosure of security vulnerabilities.
 ### How to Report
 
 1. **Do NOT** create a public GitHub issue for security vulnerabilities
-2. Email security reports to: [your-security-email@example.com]
+2. Email security reports to: [your-security-email23c5n7]
 3. Include detailed information about the vulnerability
 4. Allow up to 48 hours for initial response
 

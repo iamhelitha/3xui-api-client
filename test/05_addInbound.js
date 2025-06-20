@@ -17,7 +17,7 @@ async function test05_addInbound(testState) {
 
         const port = generateRandomPort();
         const clientId = generateUUID();
-        const email = `test_${Date.now()}@example.com`;
+        const email = `test_${Date.now()}23c5n7`;
 
         const inboundConfig = {
             up: 0,

@@ -83,7 +83,7 @@ async function getOnlineClients() {
 const result = await getOnlineClients();
 ```
 
-### API Response Example
+### API Response Example (No Online Clients)
 ```javascript
 {
   "success": true,
@@ -92,7 +92,7 @@ const result = await getOnlineClients();
 }
 ```
 
-**Note**: In the test data, the response shows `"obj": null`, which indicates no clients were online at the time of testing. When clients are connected, the response would contain an array of client connection details.
+**Note**: The response shows `"obj": null` when no clients are currently online. When clients are connected, the response would contain an array of client connection details.
 
 ### Expected Response Structure (When Clients Are Online)
 ```javascript
@@ -101,7 +101,7 @@ const result = await getOnlineClients();
   "msg": "",
   "obj": [
     {
-      "email": "user@example.com",
+      "email": "user23c5n7",
       "ip": "192.168.1.100",
       "connectedAt": 1735265123000,
       "inboundId": 5,
@@ -183,12 +183,12 @@ async function confirmedBackup() {
 const backupResult = await confirmedBackup();
 ```
 
-### API Response Example
+### API Response Example (Create Backup)
 ```javascript
 ""
 ```
 
-**Note**: The 3X-UI backup API returns an empty string (`""`) when the backup is created successfully. This is the expected behavior based on the test results.
+**Note**: The 3X-UI backup API returns an empty string (`""`) when the backup is created successfully. This is the expected behavior based on the actual test results.
 
 ### Response Interpretation
 - **Empty string (`""`)**: Backup created successfully

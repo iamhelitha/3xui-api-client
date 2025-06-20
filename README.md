@@ -20,6 +20,12 @@ A Node.js client library for 3x-ui panel API that provides easy-to-use methods f
 npm install 3xui-api-client
 ```
 
+## Context7 MCP Integration
+
+This library can be implemented with the help of [Context7 MCP](https://context7.com/iamhelitha/3xui-api-client). Use the package name `3xui-api-client` to get context and documentation through Context7's Model Context Protocol integration.
+
+Learn more about [Context7 MCP](https://context7.com) for enhanced development experience.
+
 ## Quick Start
 
 ```javascript
@@ -153,7 +159,7 @@ const clientConfig = {
   settings: JSON.stringify({
     clients: [{
       id: "client-uuid-here",
-      email: "user@example.com",
+      email: "user23c5n7",
       limitIp: 0,
       totalGB: 0,
       expiryTime: 0,
@@ -184,7 +190,7 @@ const result = await client.deleteClient(inboundId, clientUUID);
 
 #### Get Client Traffic by Email
 ```javascript
-const traffic = await client.getClientTrafficsByEmail("user@example.com");
+const traffic = await client.getClientTrafficsByEmail("user23c5n7");
 console.log('Client traffic:', traffic);
 ```
 
@@ -197,17 +203,17 @@ console.log('Client traffic:', traffic);
 #### Manage Client IPs
 ```javascript
 // Get client IPs
-const ips = await client.getClientIps("user@example.com");
+const ips = await client.getClientIps("user23c5n7");
 
 // Clear client IPs
-const result = await client.clearClientIps("user@example.com");
+const result = await client.clearClientIps("user23c5n7");
 ```
 
 ### Traffic Management (✅ Tested & Working)
 
 #### Reset Individual Client Traffic
 ```javascript
-const result = await client.resetClientTraffic(inboundId, "user@example.com");
+const result = await client.resetClientTraffic(inboundId, "user23c5n7");
 ```
 
 #### Reset All Traffic (Global)
@@ -239,151 +245,16 @@ const result = await client.createBackup();
 console.log('Backup created:', result);
 ```
 
-## Use Cases
+## Documentation
 
-### VPN Service Provider
-```javascript
-const ThreeXUI = require('3xui-api-client');
+For comprehensive guides, examples, and implementation patterns, visit our [Wiki](https://github.com/iamhelitha/3xui-api-client/wiki):
 
-class VPNServiceManager {
-  constructor() {
-    this.client = new ThreeXUI(process.env.XUI_URL, process.env.XUI_USER, process.env.XUI_PASS);
-  }
-
-  // Create new customer account
-  async createCustomerAccount(email, dataLimitGB = 50) {
-    // 1. Get available inbound
-    const inbounds = await this.client.getInbounds();
-    const activeInbound = inbounds.obj.find(i => i.enable);
-
-    // 2. Add client to inbound
-    const clientConfig = {
-      id: activeInbound.id,
-      settings: JSON.stringify({
-        clients: [{
-          id: this.generateUUID(),
-          email: email,
-          limitIp: 2,
-          totalGB: dataLimitGB,
-          expiryTime: Date.now() + (30 * 24 * 60 * 60 * 1000), // 30 days
-          enable: true
-        }]
-      })
-    };
-
-    return await this.client.addClient(clientConfig);
-  }
-
-  // Monthly billing cycle
-  async processBillingCycle() {
-    const inbounds = await this.client.getInbounds();
-    
-    for (const inbound of inbounds.obj) {
-      if (inbound.clientStats) {
-        for (const client of inbound.clientStats) {
-          // Reset traffic for active subscriptions
-          await this.client.resetClientTraffic(inbound.id, client.email);
-        }
-      }
-    }
-  }
-
-  // Monitor usage and send alerts
-  async monitorUsage() {
-    const onlineClients = await this.client.getOnlineClients();
-    
-    for (const client of onlineClients.obj || []) {
-      const traffic = await this.client.getClientTrafficsByEmail(client.email);
-      
-      if (traffic.obj && traffic.obj.total > (40 * 1024 * 1024 * 1024)) { // 40GB
-        console.log(`⚠️ Client ${client.email} approaching data limit`);
-        // Send notification to customer
-      }
-    }
-  }
-}
-```
-
-### Server Administration
-```javascript
-class ServerAdmin {
-  constructor() {
-    this.client = new ThreeXUI(process.env.XUI_URL, process.env.XUI_USER, process.env.XUI_PASS);
-  }
-
-  // Daily maintenance
-  async dailyMaintenance() {
-    // 1. Create backup
-    await this.client.createBackup();
-    
-    // 2. Clean up depleted clients
-    const inbounds = await this.client.getInbounds();
-    for (const inbound of inbounds.obj) {
-      await this.client.deleteDepletedClients(inbound.id);
-    }
-    
-    // 3. Generate usage report
-    const report = await this.generateUsageReport();
-    console.log('Daily Report:', report);
-  }
-
-  // Setup new VPN server
-  async setupNewServer(port, protocol = 'vless') {
-    const serverConfig = {
-      remark: `VPN-Server-${port}`,
-      port: port,
-      protocol: protocol,
-      settings: {
-        clients: [],
-        decryption: "none",
-        fallbacks: []
-      },
-      streamSettings: {
-        network: "tcp",
-        security: "reality",
-        realitySettings: {
-          dest: "google.com:443",
-          serverNames: ["google.com"]
-        }
-      }
-    };
-
-    return await this.client.addInbound(serverConfig);
-  }
-}
-```
-
-### Real-Time Monitoring Dashboard
-```javascript
-class MonitoringDashboard {
-  constructor() {
-    this.client = new ThreeXUI(process.env.XUI_URL, process.env.XUI_USER, process.env.XUI_PASS);
-  }
-
-  async getDashboardData() {
-    const [inbounds, onlineClients] = await Promise.all([
-      this.client.getInbounds(),
-      this.client.getOnlineClients()
-    ]);
-
-    return {
-      totalInbounds: inbounds.obj.length,
-      activeInbounds: inbounds.obj.filter(i => i.enable).length,
-      totalClients: inbounds.obj.reduce((sum, i) => sum + (i.clientStats?.length || 0), 0),
-      onlineClients: onlineClients.obj?.length || 0,
-      totalTraffic: inbounds.obj.reduce((sum, i) => sum + i.total, 0)
-    };
-  }
-
-  // WebSocket endpoint for real-time updates
-  async startRealTimeUpdates(ws) {
-    setInterval(async () => {
-      const data = await this.getDashboardData();
-      ws.send(JSON.stringify(data));
-    }, 30000); // Update every 30 seconds
-  }
-}
-```
+- 📚 [**Use Cases & Examples**](https://github.com/iamhelitha/3xui-api-client/wiki/Use-Cases) - VPN service provider, server administration, monitoring dashboards
+- 🔐 [**Authentication Guide**](https://github.com/iamhelitha/3xui-api-client/wiki/Authentication-Guide) - Secure login and session management  
+- 🌐 [**Inbound Management**](https://github.com/iamhelitha/3xui-api-client/wiki/Inbound-Management) - Server configuration and setup
+- 👥 [**Client Management**](https://github.com/iamhelitha/3xui-api-client/wiki/Client-Management) - User account operations
+- 📊 [**Traffic Management**](https://github.com/iamhelitha/3xui-api-client/wiki/Traffic-Management) - Usage monitoring and billing
+- ⚙️ [**System Operations**](https://github.com/iamhelitha/3xui-api-client/wiki/System-Operations) - Backup and maintenance
 
 ## Error Handling
 
@@ -425,9 +296,7 @@ npm run test:login
 npm test
 ```
 
-## Documentation
 
-For detailed guides and examples, visit our [Wiki](https://github.com/iamhelitha/3xui-api-client/wiki).
 
 ## License
 

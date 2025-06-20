@@ -78,7 +78,7 @@ async function resetClientTraffic(inboundId, email) {
 const result = await resetClientTraffic(5, "me9absl6");
 ```
 
-### API Response Example
+### API Response Example (Reset Client Traffic)
 ```javascript
 {
   "success": true,
@@ -475,7 +475,7 @@ try {
 
 ### Client Not Found
 ```javascript
-const response = await client.resetClientTraffic(5, "nonexistent@example.com");
+const response = await client.resetClientTraffic(5, "nonexistent23c5n7");
 if (!response.success && response.msg.includes('not found')) {
   console.log('Client not found in the specified inbound');
 }

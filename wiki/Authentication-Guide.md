@@ -20,9 +20,9 @@ When you call the login method, the API returns both JSON data and HTTP headers 
 ### JSON Response
 ```javascript
 {
-    "success": true,
-    "msg": "Login Successfully", 
-    "obj": null
+  "success": true,
+  "msg": "",
+  "obj": null
 }
 ```
 

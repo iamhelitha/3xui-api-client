@@ -11,7 +11,7 @@ async function test08_updateClient(testState) {
 
         console.log(`🔄 Updating client: ${testState.createdClient.email}...`);
 
-        const updatedEmail = `updated_${Date.now()}@example.com`;
+        const updatedEmail = `updated_${Date.now()}23c5n7`;
 
         // According to 3x-ui API, updateClient expects inbound ID and settings JSON string
         const clientConfig = {

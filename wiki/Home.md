@@ -65,6 +65,13 @@ Administrative operations and system maintenance.
 - Backup and restore operations
 - Health checking and diagnostics
 
+### 💡 [Use Cases & Examples](Use-Cases.md)
+Real-world implementation examples and patterns.
+- VPN service provider setup
+- Server administration automation
+- Real-time monitoring dashboards
+- Best practices and error handling
+
 ## 🎯 Quick Reference
 
 ### All Available Methods (19 total)

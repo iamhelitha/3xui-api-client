@@ -20,7 +20,7 @@ async function test07_addClient(testState) {
         console.log(`👤 Adding client to inbound ID: ${testState.createdInbound.id}...`);
 
         const clientId = generateUUID();
-        const email = `client_${Date.now()}@example.com`;
+        const email = `client_${Date.now()}23c5n7`;
 
         const clientConfig = {
             id: testState.createdInbound.id,

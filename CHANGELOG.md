@@ -5,6 +5,76 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2025-06-25
+
+### Added
+- 🎯 **Built-in Credential Generation System** - Automatic generation of random passwords, UUIDs, and client identifiers
+- 🔧 **Advanced Session Management** - Intelligent session caching, automatic renewal, and multi-server support
+- 🌐 **Web Integration Support** - Express.js and Next.js middleware for seamless web app integration
+- 🛡️ **Enhanced Security Framework** - Input validation, security monitoring, and secure headers management
+- 📦 **Modular Architecture** - New `src/` directory structure with specialized modules:
+  - `CredentialGenerator.js` - Random credential generation utilities
+  - `SessionManager.js` - Advanced session handling and caching
+  - `WebMiddleware.js` - Express/Next.js integration helpers
+  - `ProtocolBuilders.js` - Automated inbound configuration builders
+  - `SecurityEnhancer.js` - Security validation and monitoring
+
+### Enhanced
+- 🔐 **Improved Authentication** - More robust session handling with automatic recovery
+- 📊 **Better Error Handling** - Enhanced error messages and recovery mechanisms
+- 🎨 **Developer Experience** - Improved TypeScript definitions and code documentation
+- 🧪 **Testing Framework** - Updated test suite with better coverage and reliability
+- 📝 **Documentation** - Comprehensive wiki updates with practical examples
+
+### New Features
+- **Credential Generation**:
+  - Random password generation with customizable complexity
+  - UUID v4 generation for unique client identifiers
+  - Secure random string generation for API keys
+  - Email-like identifier generation for client management
+
+- **Session Management**:
+  - Intelligent session caching with TTL support
+  - Multi-server session handling
+  - Automatic session renewal and cleanup
+  - Database-ready session storage format
+
+- **Web Integration**:
+  - Express.js middleware for route protection
+  - Next.js API route helpers
+  - Automatic cookie management
+  - Request/response transformation utilities
+
+- **Protocol Builders**:
+  - Automated VLESS configuration generation
+  - VMess protocol setup helpers
+  - Trojan and Shadowsocks builders
+  - Reality and WireGuard configuration support
+
+### Changed
+- **Breaking Change**: Enhanced API structure with new module organization
+- **Package Structure**: Moved from monolithic to modular architecture
+- **Dependencies**: Updated to latest stable versions
+- **Configuration**: Improved configuration options and defaults
+
+### Security
+- Enhanced input validation and sanitization
+- Improved session security with automatic cleanup
+- Better error handling to prevent information leakage
+- Security monitoring and alerting capabilities
+
+### Developer Experience
+- Better TypeScript support with comprehensive type definitions
+- Improved documentation with real-world examples
+- Enhanced testing framework with automated validation
+- ESLint configuration for code quality
+
+### Performance
+- Optimized session management with intelligent caching
+- Reduced API call overhead through better request batching
+- Improved memory usage with automatic cleanup
+- Faster authentication flow with session reuse
+
 ## [1.0.0] - 2025-06-20
 
 ### Added
@@ -43,6 +113,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Planned
 - GitHub Actions CI/CD pipeline
 - Automated semantic releases
-- Unit test coverage with Jest
-- ESLint configuration
-- Contribution guidelines 
+- Enhanced unit test coverage
+- Performance benchmarking tools
+- Advanced monitoring and analytics 

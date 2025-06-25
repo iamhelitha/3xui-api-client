@@ -1,7 +1,7 @@
 {
   "name": "3xui-api-client",
-  "version": "1.0.0",
-  "description": "A Node.js client library for 3x-ui panel API that provides easy-to-use methods for managing your 3x-ui server",
+  "version": "2.0.0",
+  "description": "A Node.js client library for 3x-ui panel API with built-in credential generation, session management, and web integration support",
   "main": "index.js",
   "types": "index.d.ts",
   "exports": {
@@ -12,14 +12,15 @@
     }
   },
   "scripts": {
-    "test": "jest",
+    "test": "node test/main-test.js",
+    "test:jest": "jest",
     "test:manual": "node test/main-test.js",
     "test:main": "node test/main-test.js",
     "test:login": "node test/login-test.js",
     "test:inbounds": "node test/inbounds-test.js",
     "test:create": "node test/create-inbound-test.js",
-    "lint": "eslint index.js",
-    "prepublishOnly": "npm test"
+    "lint": "eslint index.js src/",
+    "prepublishOnly": "npm run test:jest"
   },
   "keywords": [
     "3x-ui",
@@ -33,7 +34,18 @@
     "v2ray",
     "server-management",
     "api-client",
-    "network-management"
+    "network-management",
+    "credential-generation",
+    "session-management",
+    "web-integration",
+    "express-middleware",
+    "nextjs",
+    "vless",
+    "vmess",
+    "trojan",
+    "shadowsocks",
+    "wireguard",
+    "reality"
   ],
   "author": {
     "name": "Helitha Guruge",
@@ -67,10 +79,12 @@
     "index.js",
     "index.mjs",
     "index.d.ts",
+    "src/",
     "README.md",
     "LICENSE",
     "CHANGELOG.md",
-    "SECURITY.md"
+    "SECURITY.md",
+    "USAGE_EXAMPLES.md"
   ],
   "dependencies": {
     "axios": "^1.10.0"
@@ -84,7 +98,8 @@
   "jest": {
     "testEnvironment": "node",
     "collectCoverageFrom": [
-      "index.js"
+      "index.js",
+      "src/**/*.js"
     ],
     "coverageDirectory": "coverage",
     "testMatch": [

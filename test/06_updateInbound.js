@@ -1,55 +1,78 @@
-// Test 06: Update Inbound (update the inbound just created)
+// Test 06: Update Inbound with Simplified Logic (Test-Created Inbounds Only)
 async function test06_updateInbound(testState) {
     try {
-        if (!testState.createdInbound) {
+        // SAFETY: Only update inbounds that were created during testing
+        const inboundId = testState.createdInboundId;
+
+        if (!inboundId) {
             return {
                 success: false,
-                message: 'No inbound was created in previous test to update',
-                error: 'Missing created inbound'
+                message: 'No test-created inbound available to update. Run addInbound (Test 05) first.',
+                error: 'Missing test-created inbound ID',
+                note: 'This test only updates inbounds created during testing for safety.',
+                skipped: true
             };
         }
 
-        console.log(`🔄 Updating inbound ID: ${testState.createdInbound.id}...`);
+        console.log(`🔄 Updating TEST-CREATED inbound ID: ${inboundId} with auto-session...`);
+        console.log('   ⚠️  Safety: Only updating inbounds created during testing');
 
-        // Parse existing settings to modify them
-        let existingSettings = {};
-        try {
-            existingSettings = JSON.parse(testState.createdInbound.settings);
-        } catch {
-            console.log('   Using default settings structure');
-            existingSettings = { clients: [], decryption: 'none' };
+        // OLD WAY: Complex settings parsing and reconstruction
+        // NEW WAY: Simple, focused updates
+
+        // First get current inbound to preserve existing settings
+        const currentInbound = await testState.client.getInbound(inboundId);
+
+        if (!currentInbound.success || !currentInbound.obj) {
+            return {
+                success: false,
+                message: `Could not retrieve inbound ${inboundId} for updating`,
+                error: 'Inbound not found'
+            };
         }
 
-        // Update the remark and some other details
+        // Create simple update with preserved settings
         const updatedConfig = {
-            ...testState.createdInbound,
-            remark: `Updated_Test_Inbound_${Date.now()}`,
-            enable: true, // Make sure it's enabled
-            settings: JSON.stringify({
-                ...existingSettings,
-                decryption: 'none' // Ensure decryption is set
-            }),
-            streamSettings: testState.createdInbound.streamSettings,
-            sniffing: testState.createdInbound.sniffing,
-            allocate: testState.createdInbound.allocate
+            ...currentInbound.obj,
+            remark: `Updated_Auto_${Date.now()}`,
+            enable: true
         };
 
-        console.log(`   Old remark: ${testState.createdInbound.remark}`);
+        console.log(`   Old remark: ${currentInbound.obj.remark}`);
         console.log(`   New remark: ${updatedConfig.remark}`);
 
-        const result = await testState.client.updateInbound(testState.createdInbound.id, updatedConfig);
+        // AUTO-SESSION: No manual authentication needed!
+        const result = await testState.client.updateInbound(inboundId, updatedConfig);
 
         if (result.success) {
-            console.log('✅ Inbound updated successfully');
+            console.log('✅ Inbound updated successfully with auto-session');
         }
 
-        // Return the raw API response
-        return result;
+        return {
+            ...result,
+            updateDetails: {
+                inboundId: inboundId,
+                oldRemark: currentInbound.obj.remark,
+                newRemark: updatedConfig.remark,
+                sessionAutoManaged: true
+            },
+            coding_comparison: {
+                oldWay: 'Complex settings parsing + manual JSON reconstruction',
+                newWay: 'Simple object spread + focused updates'
+            },
+            benefits: [
+                'Automatic session management',
+                'Simplified update logic',
+                'Preserved existing configuration',
+                'Error-resistant approach'
+            ]
+        };
     } catch (error) {
         return {
             success: false,
             message: error.message,
-            error: error.message
+            error: error.message,
+            note: 'Session handling automated even during update errors'
         };
     }
 }

@@ -152,7 +152,11 @@ class VLESSBuilder extends BaseBuilder {
             xver: 0,
             serverNames: options.serverNames || ['google.com'],
             privateKey: keys.privateKey,
-            shortIds: options.shortIds || ['']
+            shortIds: options.shortIds || [''],
+            settings: {
+                publicKey: keys.publicKey,
+                fingerprint: options.fingerprint || 'chrome'
+            }
         };
         return this;
     }

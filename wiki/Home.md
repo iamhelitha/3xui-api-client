@@ -142,6 +142,8 @@ User account operations with automatic credential generation.
 - Auto-generated UUIDs and passwords
 - Bulk client creation and management
 - Traffic limits and IP restrictions
+ 
+ Note: In 3x-ui, the `email` field is a client identifier, not an email address. See the note in the Client Management guide.
 
 ### 📊 [Traffic Management](Traffic-Management.md)
 Monitor and control data usage with real-time capabilities.
@@ -395,4 +397,4 @@ export default async function handler(req, res) {
 |----------|------|
 | - | [Authentication Guide →](Authentication-Guide.md) |
 
-*Last updated: January 2025* 
+*Last updated: September 2025*  

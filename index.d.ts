@@ -11,6 +11,11 @@ declare module '3xui-api-client' {
     sessionManager?: SessionManager | SessionConfig;
     autoGenerateCredentials?: boolean;
     timeout?: number;
+    maxRequestsPerMinute?: number;
+    maxLoginAttemptsPerHour?: number;
+    isDevelopment?: boolean;
+    enableCSP?: boolean;
+    userAgent?: string;
   }
 
   export interface LoginResponse {
@@ -237,9 +242,17 @@ declare module '3xui-api-client' {
     generateRealityKeys(): RealityKeys;
     generatePort(min?: number, max?: number): number;
     validateCredentials(credentials: any, protocol: string): ValidationResult;
+    
+    // Security helpers
+    getSecurityStats(): any;
+    clearBlockedIPs(): void;
+    validateCredentialStrength(credential: string, type: 'password' | 'uuid' | 'port'): { isValid: boolean; issues: string[]; strength: 'weak' | 'medium' | 'strong' };
+    generateSecureToken(): string;
+    setDevelopmentMode(enabled: boolean): void;
 
     // Enhanced Client Management
     addClientWithCredentials(inboundId: number, protocol: string, options?: CredentialOptions): Promise<any>;
+  updateClientWithCredentials(clientId: string, inboundId: number, options?: CredentialOptions): Promise<any>;
 
     // Session Management
     getSessionStats(): Promise<any>;
@@ -284,7 +297,6 @@ declare module '3xui-api-client' {
     static generateWireGuardKeys(): WireGuardKeys;
     static generateRealityKeys(): RealityKeys;
     static generateUsername(prefix?: string): string;
-    static generateEmail(domain?: string): string;
     static getRecommendedShadowsocksCipher(): string;
     static getShadowsocksCipherMethods(): string[];
     static generatePort(min?: number, max?: number): number;
@@ -413,4 +425,13 @@ declare module '3xui-api-client' {
       shadowsocks(options?: any): BuilderConfig;
     };
   }
-} 
+
+  // Optional: expose security helpers for advanced users
+  export const SecurityEnhancer: {
+    InputValidator: any;
+    SecureHeaders: any;
+    SecurityMonitor: any;
+    CredentialSecurity: any;
+    ErrorSecurity: any;
+  };
+}

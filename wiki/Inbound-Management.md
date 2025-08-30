@@ -4,6 +4,8 @@
 
 This guide covers all inbound management operations using the 3xui-api-client library.
 
+Note on client identifiers: 3x-ui uses the `email` field inside client objects purely as an identifier/tag. It does not need to be a real email address. Prefer random strings like `5yhuih4hg93` for privacy.
+
 ## Table of Contents
 - [Overview](#overview)
 - [Protocol Authentication Methods](#protocol-authentication-methods)
@@ -627,4 +629,4 @@ for (const config of inboundConfigs) {
 - [System Operations](System-Operations.md) - Admin operations
 - [Home](Home.md) - Main documentation page
 
-*Last updated: January 2025* 
+*Last updated: September 2025*  

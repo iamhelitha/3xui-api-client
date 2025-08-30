@@ -436,7 +436,8 @@ class ThreeXUI {
             const processedOptions = {
                 email: options.email || existingClients[clientIndex].email,
                 limitIp: options.limitIp !== undefined ? options.limitIp : existingClients[clientIndex].limitIp,
-                totalGB: options.totalGB ? options.totalGB * 1024 * 1024 * 1024 : existingClients[clientIndex].totalGB,
+                // totalGB is specified in gigabytes in 3x-ui config; do not convert to bytes
+                totalGB: options.totalGB !== undefined ? options.totalGB : existingClients[clientIndex].totalGB,
                 expiryTime: options.expiryDays ? Date.now() + (options.expiryDays * 24 * 60 * 60 * 1000) : existingClients[clientIndex].expiryTime,
                 enable: options.enable !== undefined ? options.enable : existingClients[clientIndex].enable,
                 flow: options.flow || existingClients[clientIndex].flow,
@@ -466,7 +467,7 @@ class ThreeXUI {
                 ...result,
                 updatedOptions: processedOptions,
                 conversions: {
-                    totalGB: options.totalGB ? `${options.totalGB}GB → ${processedOptions.totalGB} bytes` : 'unchanged',
+                    totalGB: options.totalGB !== undefined ? `${options.totalGB}GB` : 'unchanged',
                     expiryDays: options.expiryDays ? `${options.expiryDays} days → ${new Date(processedOptions.expiryTime).toISOString()}` : 'unchanged'
                 }
             };
@@ -653,3 +654,62 @@ ThreeXUI.SessionManager = SessionManager;
 ThreeXUI.createSessionManager = createSessionManager;
 
 module.exports = ThreeXUI;
+
+// Define lazy getters to avoid circular dependencies
+Object.defineProperties(module.exports, {
+    // Web middleware helpers
+    createExpressMiddleware: {
+        enumerable: true,
+        get: () => require('./src/middleware/WebMiddleware').createExpressMiddleware
+    },
+    withThreeXUI: {
+        enumerable: true,
+        get: () => require('./src/middleware/WebMiddleware').withThreeXUI
+    },
+    createReactHook: {
+        enumerable: true,
+        get: () => require('./src/middleware/WebMiddleware').createReactHook
+    },
+    createNextjsRoutes: {
+        enumerable: true,
+        get: () => require('./src/middleware/WebMiddleware').createNextjsRoutes
+    },
+    SessionConfig: {
+        enumerable: true,
+        get: () => require('./src/middleware/WebMiddleware').SessionConfig
+    },
+    // Protocol builders
+    ProtocolBuilder: {
+        enumerable: true,
+        get: () => require('./src/builders/ProtocolBuilders').ProtocolBuilder
+    },
+    VLESSBuilder: {
+        enumerable: true,
+        get: () => require('./src/builders/ProtocolBuilders').VLESSBuilder
+    },
+    VMESSBuilder: {
+        enumerable: true,
+        get: () => require('./src/builders/ProtocolBuilders').VMESSBuilder
+    },
+    TrojanBuilder: {
+        enumerable: true,
+        get: () => require('./src/builders/ProtocolBuilders').TrojanBuilder
+    },
+    ShadowsocksBuilder: {
+        enumerable: true,
+        get: () => require('./src/builders/ProtocolBuilders').ShadowsocksBuilder
+    },
+    WireGuardBuilder: {
+        enumerable: true,
+        get: () => require('./src/builders/ProtocolBuilders').WireGuardBuilder
+    },
+    BaseBuilder: {
+        enumerable: true,
+        get: () => require('./src/builders/ProtocolBuilders').BaseBuilder
+    },
+    // Security helpers
+    SecurityEnhancer: {
+        enumerable: true,
+        get: () => require('./src/security/SecurityEnhancer')
+    }
+});

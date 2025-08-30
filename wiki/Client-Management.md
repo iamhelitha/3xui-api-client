@@ -4,6 +4,8 @@
 
 This guide covers client management operations with automatic credential generation, security validation, and bulk operations using the enhanced 3xui-api-client library.
 
+> Important: In 3x-ui, the `email` field is an arbitrary client identifier string, not a real email address. Use short random tags like `5yhuih4hg93`, `user_23c5n7`, etc. This library generates such identifiers by default when not provided.
+
 ## Table of Contents
 - [Quick Start](#quick-start)
 - [Auto-Credential Generation](#auto-credential-generation)
@@ -809,5 +811,5 @@ try {
 |----------|------|
 | [← Inbound Management](Inbound-Management.md) | [Traffic Management →](Traffic-Management.md) |
 
-*Last updated: January 2025*
+*Last updated: September 2025* 
 ```

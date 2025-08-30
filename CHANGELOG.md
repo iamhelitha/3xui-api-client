@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2025-08-30
+
+### Added
+- 🔥 **Firestore Session Store Support** - Custom session handler for Firebase Firestore integration
+- 📝 **Enhanced Wiki Documentation** - Comprehensive guides with real-world examples and integration patterns
+- 🔍 **Client Identifier Clarification** - Clear documentation that 'email' field is an identifier, not a real email address
+
+### Enhanced
+- 📚 **Authentication Guide** - Added detailed session/cookie flow documentation and Firestore integration example
+- 👥 **Client Management Guide** - Clarified email field semantics and added identifier generation examples  
+- 🛠️ **Inbound Management Guide** - Added protocol-specific authentication method explanations
+- 🏠 **Home Documentation** - Improved navigation and cross-references between guides
+
+### Documentation
+- **Session Management**: Added comprehensive Firestore adapter example with cleanup patterns
+- **API Flow Clarification**: Documented that all API calls automatically include stored session cookies
+- **Client Identifiers**: Clarified that 'email' fields use random strings (e.g., '5yhuih4hg93') for privacy
+- **Integration Examples**: Enhanced web integration patterns for Express.js and Next.js
+- **Security Best Practices**: Consolidated security guidance in Authentication Guide
+
+### Removed
+- Removed any references to email generation functionality for clarity
+- Cleaned up duplicate content across wiki files
+
+### Fixed
+- Corrected misconceptions about email field usage in 3x-ui
+- Improved consistency across documentation
+
 ## [2.0.0] - 2025-06-25
 
 ### Added

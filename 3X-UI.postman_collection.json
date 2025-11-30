@@ -1,0 +1,3696 @@
+{
+	"info": {
+		"_postman_id": "9909c11c-733a-454f-a2a7-d51ce3e1889d",
+		"name": "3X-UI",
+		"description": "3X-UI API collection\n\nPurpose & Scope\n- Manage 3X-UI server status/utilities, inbound management, and client operations for local panels and remote deployments.\n\nGetting Started\n1) Create or select an environment with variables: HOST, PORT, WEBBASEPATH, username, password, twoFactorCode (if applicable).\n2) In Collection Authorization, choose Bearer Token and set token to {{bearerToken}} if your deployment needs it; otherwise rely on session cookies from Login.\n3) Set base variables:\n   - {{HOST}}: e.g., localhost or your.domain.tld\n   - {{PORT}}: e.g., 2053\n   - {{WEBBASEPATH}}: base path prefix (starts with /), e.g., / or /panel\n4) Open Login and send with valid credentials to capture cookies or token.\n5) Send a safe GET (e.g., status or Inbounds) to validate connectivity (expect HTTP 200–299).\n\nAuth\n- Bearer: Use Authorization type Bearer Token with token {{bearerToken}} when your API requires it.\n- Cookie session: Many endpoints work after a successful Login; Postman will retain cookies for the domain.\n- Optional API key: If your deployment requires an apiKey header, add it at the collection level.\n\nEnvironment Variables\n- {{HOST}}: hostname of your 3X-UI panel (no protocol). Example: localhost or example.com\n- {{PORT}}: port the panel listens on. Example: 2053\n- {{WEBBASEPATH}}: leading-path for your panel. Example: / or /panel\n- {{username}} / {{password}} / {{twoFactorCode}}: used for Login when applicable.\n- You can define additional variables (bearerToken, apiKey) if your deployment needs them.\n\nRunning Tests and Monitors\n- Requests contain lightweight tests: 2xx status, <3s response, JSON content-type where applicable.\n- Use Collection Runner to execute folders or the whole collection and view results.\n- Create a Monitor to schedule runs and get alerts on failures.\n\nNotes\n- Most unsafe operations (POST/PUT/PATCH/DELETE) include mock/example payloads—adjust to your deployment.\n- Safe methods (GET/HEAD/OPTIONS) may have saved examples from live responses.\n- Replace path variables (e.g., {inboundId}, {uuid}, {email}, {count}, {bucket}) before sending.\n- Some endpoints are hardcoded with localhost in this collection; adapt HOST/PORT/WEBBASEPATH for your environment.\n- Expected success responses are typically 200 OK or 201 Created unless otherwise documented.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "40853499"
+	},
+	"item": [
+		{
+			"name": "Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"protocolVersion": "auto",
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "username",
+							"value": "{{username}}",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "{{password}}",
+							"type": "text"
+						},
+						{
+							"key": "twoFactorCode",
+							"value": "{{twoFactorCode}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/login/",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"login",
+						""
+					]
+				},
+				"description": "Purpose: Authenticate a user and create a session/token.\n\nPath: /login/\nQuery: none\n\nParams:\n- Path: none\n- Body: username, password (required, in body as JSON or form; follow your API’s expected schema)\n\nEnvironment variables: {{HOST}}, {{PORT}}, {{WEBBASEPATH}}\nAuth: Usually no auth; returns auth cookie/token on success.\n\nExample:\ncurl -X POST \"http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/login/\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"username\":\"<user>\",\"password\":\"<pass>\"}'\n\nSuccess: 200 OK (login successful)\nErrors: 400/422 (validation), 401 (invalid creds), 429, 500.\nIdempotency: Not idempotent (may create new session). Side effects: starts an authenticated session and may set cookies."
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "username",
+									"value": "",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "",
+									"type": "text"
+								},
+								{
+									"key": "twoFactorCode",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:2053/randompath/login/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "2053",
+							"path": [
+								"randompath",
+								"login",
+								""
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Set-Cookie",
+							"value": "3x-ui=MTc1ODgwMDA0OHxEWDhFQVFMX2dBQUJFQUVRQUFCOV80QUFBUVp6ZEhKcGJtY01EQUFLVEU5SFNVNWZWVk5GVWpCbmFYUm9kV0l1WTI5dEwyMW9jMkZ1WVdWcEx6TjRMWFZwTDNZeUwyUmhkR0ZpWVhObEwyMXZaR1ZzTGxWelpYTF9nUU1CQVFSVmMyVnlBZi1DQUFFREFRSkpaQUVFQUFFSVZYTmxjbTVoYldVQkRBQUJDRkJoYzNOM2IzSmtBUXdBQUFCTF80SklBUUlCQldGa2JXbHVBVHdrTW1Fa01UQWtTa05VVlRKWVZGRlllbTQyTnk5cFFUSnpOVWx0VDBKT2IySlhSMWN3WVVWUFZHSkJUbk4xWlhwRGJYWm5RM2d6TW5SblIwY0F8YWaXytYmy5DT_IZkX_xRb8tq4RTo_z_wy-L7kmoBjlc=; Path=/; Expires=Thu, 25 Sep 2025 17:34:08 GMT; Max-Age=21600; HttpOnly; SameSite=Lax"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 25 Sep 2025 11:34:08 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "100"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \" You have successfully logged into your account.\",\n    \"obj\": null\n}"
+				},
+				{
+					"name": "failed",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "username",
+									"value": "{{username}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{password}}",
+									"type": "text"
+								},
+								{
+									"key": "twoFactorCode",
+									"value": "{{twoFactorCode}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/login/",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"login",
+								""
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 25 Sep 2025 11:34:49 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "103"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": false,\n    \"msg\": \"Invalid username or password or two-factor code.\",\n    \"obj\": null\n}"
+				}
+			]
+		},
+		{
+			"name": "Inbounds",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/list",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"inbounds",
+						"list"
+					]
+				},
+				"description": "Purpose: List all inbounds visible to the current user.\n\nPath: /panel/api/inbounds/list\nQuery: optional filters may be supported by server (not specified).\n\nParams: none.\n\nEnvironment variables: {{HOST}}, {{PORT}}, {{WEBBASEPATH}}\nAuth: Requires prior login/session or token.\n\nExample:\ncurl \"http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/list\" -H \"Cookie: <session>\"\n\nSuccess: 200 OK (array of inbounds)\nErrors: 401 (unauthorized), 403 (forbidden), 429, 500.\nIdempotency: Safe and idempotent (read-only)."
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:2053/randompath/panel/api/inbounds/list",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "2053",
+							"path": [
+								"randompath",
+								"panel",
+								"api",
+								"inbounds",
+								"list"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 23 Sep 2025 09:51:10 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "1981"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"\",\n    \"obj\": [\n        {\n            \"id\": 1,\n            \"up\": 0,\n            \"down\": 0,\n            \"total\": 0,\n            \"allTime\": 0,\n            \"remark\": \"\",\n            \"enable\": true,\n            \"expiryTime\": 0,\n            \"trafficReset\": \"never\",\n            \"lastTrafficResetTime\": 0,\n            \"clientStats\": [\n                {\n                    \"id\": 1,\n                    \"inboundId\": 1,\n                    \"enable\": false,\n                    \"email\": \"aadsykn0\",\n                    \"uuid\": \"1c6079e6-5342-47fa-a9f0-1188bf4e2ef6\",\n                    \"subId\": \"dff4pajow34ymeiv\",\n                    \"up\": 0,\n                    \"down\": 0,\n                    \"allTime\": 0,\n                    \"expiryTime\": 0,\n                    \"total\": 0,\n                    \"reset\": 0,\n                    \"lastOnline\": 0\n                },\n                {\n                    \"id\": 2,\n                    \"inboundId\": 1,\n                    \"enable\": true,\n                    \"email\": \"cle5b4n7\",\n                    \"uuid\": \"c29c95e2-9c76-44c3-ba3d-ad57eba215b0\",\n                    \"subId\": \"zx95rirylinj93e4\",\n                    \"up\": 0,\n                    \"down\": 0,\n                    \"allTime\": 0,\n                    \"expiryTime\": 0,\n                    \"total\": 0,\n                    \"reset\": 0,\n                    \"lastOnline\": 0\n                }\n            ],\n            \"listen\": \"\",\n            \"port\": 30886,\n            \"protocol\": \"vless\",\n            \"settings\": \"{\\n  \\\"clients\\\": [\\n    {\\n      \\\"comment\\\": \\\"\\\",\\n      \\\"created_at\\\": 1758532912000,\\n      \\\"email\\\": \\\"aadsykn0\\\",\\n      \\\"enable\\\": false,\\n      \\\"expiryTime\\\": 0,\\n      \\\"flow\\\": \\\"\\\",\\n      \\\"id\\\": \\\"1c6079e6-5342-47fa-a9f0-1188bf4e2ef6\\\",\\n      \\\"limitIp\\\": 0,\\n      \\\"reset\\\": 0,\\n      \\\"subId\\\": \\\"dff4pajow34ymeiv\\\",\\n      \\\"tgId\\\": 0,\\n      \\\"totalGB\\\": 0,\\n      \\\"updated_at\\\": 1758620508000\\n    },\\n    {\\n      \\\"comment\\\": \\\"\\\",\\n      \\\"created_at\\\": 1758620950000,\\n      \\\"email\\\": \\\"cle5b4n7\\\",\\n      \\\"enable\\\": true,\\n      \\\"expiryTime\\\": 0,\\n      \\\"flow\\\": \\\"\\\",\\n      \\\"id\\\": \\\"c29c95e2-9c76-44c3-ba3d-ad57eba215b0\\\",\\n      \\\"limitIp\\\": 0,\\n      \\\"reset\\\": 0,\\n      \\\"subId\\\": \\\"zx95rirylinj93e4\\\",\\n      \\\"tgId\\\": \\\"\\\",\\n      \\\"totalGB\\\": 0,\\n      \\\"updated_at\\\": 1758620950000\\n    }\\n  ],\\n  \\\"decryption\\\": \\\"none\\\",\\n  \\\"encryption\\\": \\\"none\\\"\\n}\",\n            \"streamSettings\": \"{\\n  \\\"network\\\": \\\"tcp\\\",\\n  \\\"security\\\": \\\"none\\\",\\n  \\\"externalProxy\\\": [],\\n  \\\"tcpSettings\\\": {\\n    \\\"acceptProxyProtocol\\\": false,\\n    \\\"header\\\": {\\n      \\\"type\\\": \\\"none\\\"\\n    }\\n  }\\n}\",\n            \"tag\": \"inbound-30886\",\n            \"sniffing\": \"{\\n  \\\"enabled\\\": false,\\n  \\\"destOverride\\\": [\\n    \\\"http\\\",\\n    \\\"tls\\\",\\n    \\\"quic\\\",\\n    \\\"fakedns\\\"\\n  ],\\n  \\\"metadataOnly\\\": false,\\n  \\\"routeOnly\\\": false\\n}\"\n        }\n    ]\n}"
+				},
+				{
+					"name": "No Inbounds",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/list",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"inbounds",
+								"list"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 17 Oct 2024 13:46:23 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "58"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"\",\n    \"obj\": []\n}"
+				}
+			]
+		},
+		{
+			"name": "Inbound",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/get/{inboundId}",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"inbounds",
+						"get",
+						"{inboundId}"
+					]
+				},
+				"description": "Purpose: Get details of a specific inbound by ID.\n\nPath: /panel/api/inbounds/get/{inboundId}\nQuery: none\n\nParams:\n- Path: inboundId (required) — Inbound identifier.\n\nEnvironment variables: {{HOST}}, {{PORT}}, {{WEBBASEPATH}}\nAuth: Requires authenticated session/token.\n\nExample:\ncurl \"http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/get/{inboundId}\" -H \"Cookie: <session>\"\n\nSuccess: 200 OK\nErrors: 400 (bad id), 401, 404 (not found), 429, 500.\nIdempotency: Safe and idempotent (read-only)."
+			},
+			"response": [
+				{
+					"name": "Successful",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:2053/randompath/panel/api/inbounds/get/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "2053",
+							"path": [
+								"randompath",
+								"panel",
+								"api",
+								"inbounds",
+								"get",
+								"1"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 23 Sep 2025 09:51:29 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "1567"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"\",\n    \"obj\": {\n        \"id\": 1,\n        \"up\": 0,\n        \"down\": 0,\n        \"total\": 0,\n        \"allTime\": 0,\n        \"remark\": \"\",\n        \"enable\": true,\n        \"expiryTime\": 0,\n        \"trafficReset\": \"never\",\n        \"lastTrafficResetTime\": 0,\n        \"clientStats\": null,\n        \"listen\": \"\",\n        \"port\": 30886,\n        \"protocol\": \"vless\",\n        \"settings\": \"{\\n  \\\"clients\\\": [\\n    {\\n      \\\"comment\\\": \\\"\\\",\\n      \\\"created_at\\\": 1758532912000,\\n      \\\"email\\\": \\\"aadsykn0\\\",\\n      \\\"enable\\\": false,\\n      \\\"expiryTime\\\": 0,\\n      \\\"flow\\\": \\\"\\\",\\n      \\\"id\\\": \\\"1c6079e6-5342-47fa-a9f0-1188bf4e2ef6\\\",\\n      \\\"limitIp\\\": 0,\\n      \\\"reset\\\": 0,\\n      \\\"subId\\\": \\\"dff4pajow34ymeiv\\\",\\n      \\\"tgId\\\": 0,\\n      \\\"totalGB\\\": 0,\\n      \\\"updated_at\\\": 1758620508000\\n    },\\n    {\\n      \\\"comment\\\": \\\"\\\",\\n      \\\"created_at\\\": 1758620950000,\\n      \\\"email\\\": \\\"cle5b4n7\\\",\\n      \\\"enable\\\": true,\\n      \\\"expiryTime\\\": 0,\\n      \\\"flow\\\": \\\"\\\",\\n      \\\"id\\\": \\\"c29c95e2-9c76-44c3-ba3d-ad57eba215b0\\\",\\n      \\\"limitIp\\\": 0,\\n      \\\"reset\\\": 0,\\n      \\\"subId\\\": \\\"zx95rirylinj93e4\\\",\\n      \\\"tgId\\\": \\\"\\\",\\n      \\\"totalGB\\\": 0,\\n      \\\"updated_at\\\": 1758620950000\\n    }\\n  ],\\n  \\\"decryption\\\": \\\"none\\\",\\n  \\\"encryption\\\": \\\"none\\\"\\n}\",\n        \"streamSettings\": \"{\\n  \\\"network\\\": \\\"tcp\\\",\\n  \\\"security\\\": \\\"none\\\",\\n  \\\"externalProxy\\\": [],\\n  \\\"tcpSettings\\\": {\\n    \\\"acceptProxyProtocol\\\": false,\\n    \\\"header\\\": {\\n      \\\"type\\\": \\\"none\\\"\\n    }\\n  }\\n}\",\n        \"tag\": \"inbound-30886\",\n        \"sniffing\": \"{\\n  \\\"enabled\\\": false,\\n  \\\"destOverride\\\": [\\n    \\\"http\\\",\\n    \\\"tls\\\",\\n    \\\"quic\\\",\\n    \\\"fakedns\\\"\\n  ],\\n  \\\"metadataOnly\\\": false,\\n  \\\"routeOnly\\\": false\\n}\"\n    }\n}"
+				},
+				{
+					"name": "Failed",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/get/1",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"inbounds",
+								"get",
+								"1"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 17 Oct 2024 13:45:50 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "90"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": false,\n    \"msg\": \"Obtain Failed: record not found\",\n    \"obj\": null\n}"
+				}
+			]
+		},
+		{
+			"name": "Client Traffics with email",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/getClientTraffics/{email}",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"inbounds",
+						"getClientTraffics",
+						"{email}"
+					]
+				},
+				"description": "Purpose: Fetch client traffic usage by email.\n\nPath: /panel/api/inbounds/getClientTraffics/{email}\nQuery: none\n\nParams:\n- Path: email (required) — Client email.\n\nEnvironment variables: {{HOST}}, {{PORT}}, {{WEBBASEPATH}}\nAuth: Requires authenticated session/token.\n\nExample:\ncurl \"http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/getClientTraffics/{email}\" -H \"Cookie: <session>\"\n\nSuccess: 200 OK\nErrors: 400 (invalid email), 401, 404, 429, 500.\nIdempotency: Safe and idempotent (read-only)."
+			},
+			"response": [
+				{
+					"name": "Successful",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:2053/randompath/panel/api/inbounds/getClientTraffics/cycd2pj6",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "2053",
+							"path": [
+								"randompath",
+								"panel",
+								"api",
+								"inbounds",
+								"getClientTraffics",
+								"cycd2pj6"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Sun, 21 Sep 2025 20:21:07 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "238"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"\",\n    \"obj\": {\n        \"id\": 1,\n        \"inboundId\": 1,\n        \"enable\": true,\n        \"email\": \"cycd2pj6\",\n        \"uuid\": \"113e88fd-749a-48af-a358-e642b581e6cb\",\n        \"subId\": \"5fm4zt28zq31pf1v\",\n        \"up\": 0,\n        \"down\": 0,\n        \"allTime\": 0,\n        \"expiryTime\": 0,\n        \"total\": 0,\n        \"reset\": 0,\n        \"lastOnline\": 0\n    }\n}"
+				},
+				{
+					"name": "Failed",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/getClientTraffics/s729v2",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"inbounds",
+								"getClientTraffics",
+								"s729v2"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 17 Oct 2024 13:49:06 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "60"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"\",\n    \"obj\": null\n}"
+				}
+			]
+		},
+		{
+			"name": "Client Traffics with ID",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/getClientTrafficsById/{uuid}",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"inbounds",
+						"getClientTrafficsById",
+						"{uuid}"
+					]
+				},
+				"description": "Purpose: Fetch client traffic usage by client UUID.\n\nPath: /panel/api/inbounds/getClientTrafficsById/{uuid}\nQuery: none\n\nParams:\n- Path: uuid (required) — Client UUID.\n\nEnvironment variables: {{HOST}}, {{PORT}}, {{WEBBASEPATH}}\nAuth: Requires authenticated session/token.\n\nExample:\ncurl \"http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/getClientTrafficsById/{uuid}\" -H \"Cookie: <session>\"\n\nSuccess: 200 OK\nErrors: 400 (invalid UUID), 401, 404, 429, 500.\nIdempotency: Safe (read-only)."
+			},
+			"response": [
+				{
+					"name": "Successful",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:2053/randompath/panel/api/inbounds/getClientTrafficsById/411d895d-5d18-4524-b507-2a186039d6cb",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "2053",
+							"path": [
+								"randompath",
+								"panel",
+								"api",
+								"inbounds",
+								"getClientTrafficsById",
+								"411d895d-5d18-4524-b507-2a186039d6cb"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 16 Sep 2025 12:48:42 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "170"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"\",\n    \"obj\": [\n        {\n            \"id\": 26,\n            \"inboundId\": 24,\n            \"enable\": false,\n            \"email\": \"r8zrgmdu\",\n            \"up\": 0,\n            \"down\": 0,\n            \"allTime\": 0,\n            \"expiryTime\": 0,\n            \"total\": 0,\n            \"reset\": 0,\n            \"lastOnline\": 0\n        }\n    ]\n}"
+				},
+				{
+					"name": "Failed",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/getClientTrafficsById/a39c9655-bcbb-43c4-9b3b-ebd8b7ae9111",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"inbounds",
+								"getClientTrafficsById",
+								"a39c9655-bcbb-43c4-9b3b-ebd8b7ae9111"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 17 Oct 2024 13:51:10 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "58"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"\",\n    \"obj\": []\n}"
+				}
+			]
+		},
+		{
+			"name": "tgbot - sends backup to admins",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "",
+						"value": "",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/backuptotgbot",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"backuptotgbot"
+					]
+				},
+				"description": "Purpose: Trigger sending a backup to Telegram bot admins.\n\nPath: /panel/api/backuptotgbot\nQuery: none\n\nParams: none.\n\nEnvironment variables: {{HOST}}, {{PORT}}, {{WEBBASEPATH}}\nAuth: Requires admin session/token.\n\nExample:\ncurl \"http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/backuptotgbot\" -H \"Cookie: <session>\"\n\nSuccess: 200 OK (trigger accepted)\nErrors: 401/403, 429, 500.\nIdempotency: Not guaranteed; repeated calls may send multiple backups. Side effects: Initiates backup send."
+			},
+			"response": []
+		},
+		{
+			"name": "Client Ip address",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/clientIps/{email}",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"inbounds",
+						"clientIps",
+						"{email}"
+					]
+				},
+				"description": "Purpose: Retrieve client IP address history by email.\n\nPath: /panel/api/inbounds/clientIps/{email}\nQuery: none\n\nParams:\n- Path: email (required) — Client email.\n\nEnvironment variables: {{HOST}}, {{PORT}}, {{WEBBASEPATH}}\nAuth: Requires authenticated session/token.\n\nExample:\ncurl -X POST \"http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/clientIps/{email}\" -H \"Cookie: <session>\"\n\nSuccess: 200 OK\nErrors: 400 (invalid email), 401, 404, 429, 500.\nIdempotency: Read-like but uses POST; no side effects expected."
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:2053/randompath/panel/api/inbounds/clientIps/s729v2km",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "2053",
+							"path": [
+								"randompath",
+								"panel",
+								"api",
+								"inbounds",
+								"clientIps",
+								"s729v2km"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Mon, 08 Sep 2025 23:37:10 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "46"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"\",\n    \"obj\": \"No IP Record\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Add Inbound",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\"up\": 0,\r\n\"down\": 0,\r\n\"total\": 0,\r\n\"remark\": \"New\",\r\n\"enable\": true,\r\n\"expiryTime\": 0,\r\n\"listen\": \"\",\r\n\"port\": 55421,\r\n\"protocol\": \"vless\",\r\n\"settings\": \"{\\\"clients\\\": [{\\\"id\\\": \\\"b86c0cdc-8a02-4da4-8693-72ba27005587\\\",\\\"flow\\\": \\\"\\\",\\\"email\\\": \\\"nt3wz904\\\",\\\"limitIp\\\": 0,\\\"totalGB\\\": 0,\\\"expiryTime\\\": 0,\\\"enable\\\": true,\\\"tgId\\\": \\\"\\\",\\\"subId\\\": \\\"rqv5zw1ydutamcp0\\\",\\\"reset\\\": 0}],\\\"decryption\\\": \\\"none\\\",\\\"fallbacks\\\": []}\",\r\n\"streamSettings\": \"{\\\"network\\\": \\\"tcp\\\",\\\"security\\\": \\\"reality\\\",\\\"externalProxy\\\": [],\\\"realitySettings\\\": {\\\"show\\\": false,\\\"xver\\\": 0,\\\"dest\\\": \\\"yahoo.com:443\\\",\\\"serverNames\\\": [\\\"yahoo.com\\\",\\\"www.yahoo.com\\\"],\\\"privateKey\\\": \\\"wIc7zBUiTXBGxM7S7wl0nCZ663OAvzTDNqS7-bsxV3A\\\",\\\"minClient\\\": \\\"\\\",\\\"maxClient\\\": \\\"\\\",\\\"maxTimediff\\\": 0,\\\"shortIds\\\": [\\\"47595474\\\",\\\"7a5e30\\\",\\\"810c1efd750030e8\\\",\\\"99\\\",\\\"9c19c134b8\\\",\\\"35fd\\\",\\\"2409c639a707b4\\\",\\\"c98fc6b39f45\\\"],\\\"settings\\\": {\\\"publicKey\\\": \\\"2UqLjQFhlvLcY7VzaKRotIDQFOgAJe1dYD1njigp9wk\\\",\\\"fingerprint\\\": \\\"random\\\",\\\"serverName\\\": \\\"\\\",\\\"spiderX\\\": \\\"/\\\"}},\\\"tcpSettings\\\": {\\\"acceptProxyProtocol\\\": false,\\\"header\\\": {\\\"type\\\": \\\"none\\\"}}}\",\r\n\"sniffing\": \"{\\\"enabled\\\": true,\\\"destOverride\\\": [\\\"http\\\",\\\"tls\\\",\\\"quic\\\",\\\"fakedns\\\"],\\\"metadataOnly\\\": false,\\\"routeOnly\\\": false}\",\r\n\"allocate\": \"{\\\"strategy\\\": \\\"always\\\",\\\"refresh\\\": 5,\\\"concurrency\\\": 3}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/add",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"inbounds",
+						"add"
+					]
+				},
+				"description": "Purpose: Create a new inbound.\n\nPath: /panel/api/inbounds/add\nQuery: none\n\nParams:\n- Body: inbound configuration (required) — JSON payload per server schema.\n\nEnvironment variables: {{HOST}}, {{PORT}}, {{WEBBASEPATH}}\nAuth: Requires authenticated admin session/token.\n\nExample:\ncurl -X POST \"http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/add\" \\\n  -H \"Content-Type: application/json\" -H \"Cookie: <session>\" \\\n  -d '{\"<inbound fields>\": \"...\"}'\n\nSuccess: 201 Created or 200 OK\nErrors: 400/422 (validation), 401/403, 429, 500.\nIdempotency: Not idempotent; creates a new resource."
+			},
+			"response": [
+				{
+					"name": "Successful",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\t\"up\": 0,\r\n\t\"down\": 0,\r\n\t\"total\": 0,\r\n\t\"remark\": \"\",\r\n\t\"enable\": true,\r\n\t\"expiryTime\": 0,\r\n\t\"listen\": \"\",\r\n\t\"port\": 26139,\r\n\t\"protocol\": \"vless\",\r\n\t\"settings\": \"{\\n  \\\"clients\\\": [\\n    {\\n      \\\"id\\\": \\\"20714ae1-db48-4202-9639-58237500127d\\\",\\n      \\\"flow\\\": \\\"\\\",\\n      \\\"email\\\": \\\"ajrzqcf9\\\",\\n      \\\"limitIp\\\": 0,\\n      \\\"totalGB\\\": 0,\\n      \\\"expiryTime\\\": 0,\\n      \\\"enable\\\": true,\\n      \\\"tgId\\\": \\\"\\\",\\n      \\\"subId\\\": \\\"rzkhldokbw9ij6za\\\",\\n      \\\"comment\\\": \\\"\\\",\\n      \\\"reset\\\": 0\\n    }\\n  ],\\n  \\\"decryption\\\": \\\"mlkem768x25519plus.native.600s.gGl-2HWuULvg_dyRSiZ8DjUJeE-PDFqJYoaiLirWG0o\\\",\\n  \\\"encryption\\\": \\\"mlkem768x25519plus.native.0rtt.DgrUVBkM9R_Kl2Pr29tytuic7pXLw75uGhKYVWNZ5mw\\\",\\n  \\\"selectedAuth\\\": \\\"X25519, not Post-Quantum\\\"\\n}\",\r\n\t\"streamSettings\": \"{\\n  \\\"network\\\": \\\"tcp\\\",\\n  \\\"security\\\": \\\"none\\\",\\n  \\\"externalProxy\\\": [],\\n  \\\"tcpSettings\\\": {\\n    \\\"acceptProxyProtocol\\\": false,\\n    \\\"header\\\": {\\n      \\\"type\\\": \\\"none\\\"\\n    }\\n  }\\n}\",\r\n\t\"sniffing\": \"{\\n  \\\"enabled\\\": false,\\n  \\\"destOverride\\\": [\\n    \\\"http\\\",\\n    \\\"tls\\\",\\n    \\\"quic\\\",\\n    \\\"fakedns\\\"\\n  ],\\n  \\\"metadataOnly\\\": false,\\n  \\\"routeOnly\\\": false\\n}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:2053/randompath/panel/api/inbounds/add",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "2053",
+							"path": [
+								"randompath",
+								"panel",
+								"api",
+								"inbounds",
+								"add"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 09 Sep 2025 10:35:45 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "1392"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"Inbound has been successfully created.\",\n    \"obj\": {\n        \"id\": 6,\n        \"up\": 0,\n        \"down\": 0,\n        \"total\": 0,\n        \"allTime\": 0,\n        \"remark\": \"\",\n        \"enable\": true,\n        \"expiryTime\": 0,\n        \"clientStats\": null,\n        \"listen\": \"\",\n        \"port\": 26139,\n        \"protocol\": \"vless\",\n        \"settings\": \"{\\n  \\\"clients\\\": [\\n    {\\n      \\\"id\\\": \\\"20714ae1-db48-4202-9639-58237500127d\\\",\\n      \\\"security\\\": \\\"\\\",\\n      \\\"password\\\": \\\"\\\",\\n      \\\"flow\\\": \\\"\\\",\\n      \\\"email\\\": \\\"ajrzqcf9\\\",\\n      \\\"limitIp\\\": 0,\\n      \\\"totalGB\\\": 0,\\n      \\\"expiryTime\\\": 0,\\n      \\\"enable\\\": true,\\n      \\\"tgId\\\": 0,\\n      \\\"subId\\\": \\\"rzkhldokbw9ij6za\\\",\\n      \\\"comment\\\": \\\"\\\",\\n      \\\"reset\\\": 0,\\n      \\\"created_at\\\": 1757414145000,\\n      \\\"updated_at\\\": 1757414145000\\n    }\\n  ],\\n  \\\"decryption\\\": \\\"mlkem768x25519plus.native.600s.gGl-2HWuULvg_dyRSiZ8DjUJeE-PDFqJYoaiLirWG0o\\\",\\n  \\\"encryption\\\": \\\"mlkem768x25519plus.native.0rtt.DgrUVBkM9R_Kl2Pr29tytuic7pXLw75uGhKYVWNZ5mw\\\",\\n  \\\"selectedAuth\\\": \\\"X25519, not Post-Quantum\\\"\\n}\",\n        \"streamSettings\": \"{\\n  \\\"network\\\": \\\"tcp\\\",\\n  \\\"security\\\": \\\"none\\\",\\n  \\\"externalProxy\\\": [],\\n  \\\"tcpSettings\\\": {\\n    \\\"acceptProxyProtocol\\\": false,\\n    \\\"header\\\": {\\n      \\\"type\\\": \\\"none\\\"\\n    }\\n  }\\n}\",\n        \"tag\": \"inbound-26139\",\n        \"sniffing\": \"{\\n  \\\"enabled\\\": false,\\n  \\\"destOverride\\\": [\\n    \\\"http\\\",\\n    \\\"tls\\\",\\n    \\\"quic\\\",\\n    \\\"fakedns\\\"\\n  ],\\n  \\\"metadataOnly\\\": false,\\n  \\\"routeOnly\\\": false\\n}\"\n    }\n}"
+				},
+				{
+					"name": "Failed",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\"up\": 0,\r\n\"down\": 0,\r\n\"total\": 0,\r\n\"remark\": \"New\",\r\n\"enable\": true,\r\n\"expiryTime\": 0,\r\n\"listen\": \"\",\r\n\"port\": 55421,\r\n\"protocol\": \"vless\",\r\n\"settings\": \"{\\\"clients\\\": [{\\\"id\\\": \\\"b86c0cdc-8a02-4da4-8693-72ba27005587\\\",\\\"flow\\\": \\\"\\\",\\\"email\\\": \\\"nt3wz904\\\",\\\"limitIp\\\": 0,\\\"totalGB\\\": 0,\\\"expiryTime\\\": 0,\\\"enable\\\": true,\\\"tgId\\\": \\\"\\\",\\\"subId\\\": \\\"rqv5zw1ydutamcp0\\\",\\\"reset\\\": 0}],\\\"decryption\\\": \\\"none\\\",\\\"fallbacks\\\": []}\",\r\n\"streamSettings\": \"{\\\"network\\\": \\\"tcp\\\",\\\"security\\\": \\\"reality\\\",\\\"externalProxy\\\": [],\\\"realitySettings\\\": {\\\"show\\\": false,\\\"xver\\\": 0,\\\"dest\\\": \\\"yahoo.com:443\\\",\\\"serverNames\\\": [\\\"yahoo.com\\\",\\\"www.yahoo.com\\\"],\\\"privateKey\\\": \\\"wIc7zBUiTXBGxM7S7wl0nCZ663OAvzTDNqS7-bsxV3A\\\",\\\"minClient\\\": \\\"\\\",\\\"maxClient\\\": \\\"\\\",\\\"maxTimediff\\\": 0,\\\"shortIds\\\": [\\\"47595474\\\",\\\"7a5e30\\\",\\\"810c1efd750030e8\\\",\\\"99\\\",\\\"9c19c134b8\\\",\\\"35fd\\\",\\\"2409c639a707b4\\\",\\\"c98fc6b39f45\\\"],\\\"settings\\\": {\\\"publicKey\\\": \\\"2UqLjQFhlvLcY7VzaKRotIDQFOgAJe1dYD1njigp9wk\\\",\\\"fingerprint\\\": \\\"random\\\",\\\"serverName\\\": \\\"\\\",\\\"spiderX\\\": \\\"/\\\"}},\\\"tcpSettings\\\": {\\\"acceptProxyProtocol\\\": false,\\\"header\\\": {\\\"type\\\": \\\"none\\\"}}}\",\r\n\"sniffing\": \"{\\\"enabled\\\": true,\\\"destOverride\\\": [\\\"http\\\",\\\"tls\\\",\\\"quic\\\",\\\"fakedns\\\"],\\\"metadataOnly\\\": false,\\\"routeOnly\\\": false}\",\r\n\"allocate\": \"{\\\"strategy\\\": \\\"always\\\",\\\"refresh\\\": 5,\\\"concurrency\\\": 3}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/add",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"inbounds",
+								"add"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 17 Oct 2024 13:54:54 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "809"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": false,\n    \"msg\": \"Create Failed: Port already exists: 55421\\n\",\n    \"obj\": {\n        \"id\": 0,\n        \"up\": 0,\n        \"down\": 0,\n        \"total\": 0,\n        \"remark\": \"New\",\n        \"enable\": true,\n        \"expiryTime\": 0,\n        \"clientStats\": null,\n        \"listen\": \"\",\n        \"port\": 55421,\n        \"protocol\": \"vless\",\n        \"settings\": \"{\\\"clients\\\": [{\\\"id\\\": \\\"b86c0cdc-8a02-4da4-8693-72ba27005587\\\",\\\"flow\\\": \\\"\\\",\\\"email\\\": \\\"nt3wz904\\\",\\\"limitIp\\\": 0,\\\"totalGB\\\": 0,\\\"expiryTime\\\": 0,\\\"enable\\\": true,\\\"tgId\\\": \\\"\\\",\\\"subId\\\": \\\"rqv5zw1ydutamcp0\\\",\\\"reset\\\": 0}],\\\"decryption\\\": \\\"none\\\",\\\"fallbacks\\\": []}\",\n        \"streamSettings\": \"{\\\"network\\\": \\\"tcp\\\",\\\"security\\\": \\\"reality\\\",\\\"externalProxy\\\": [],\\\"realitySettings\\\": {\\\"show\\\": false,\\\"xver\\\": 0,\\\"dest\\\": \\\"yahoo.com:443\\\",\\\"serverNames\\\": [\\\"yahoo.com\\\",\\\"www.yahoo.com\\\"],\\\"privateKey\\\": \\\"wIc7zBUiTXBGxM7S7wl0nCZ663OAvzTDNqS7-bsxV3A\\\",\\\"minClient\\\": \\\"\\\",\\\"maxClient\\\": \\\"\\\",\\\"maxTimediff\\\": 0,\\\"shortIds\\\": [\\\"47595474\\\",\\\"7a5e30\\\",\\\"810c1efd750030e8\\\",\\\"99\\\",\\\"9c19c134b8\\\",\\\"35fd\\\",\\\"2409c639a707b4\\\",\\\"c98fc6b39f45\\\"],\\\"settings\\\": {\\\"publicKey\\\": \\\"2UqLjQFhlvLcY7VzaKRotIDQFOgAJe1dYD1njigp9wk\\\",\\\"fingerprint\\\": \\\"random\\\",\\\"serverName\\\": \\\"\\\",\\\"spiderX\\\": \\\"/\\\"}},\\\"tcpSettings\\\": {\\\"acceptProxyProtocol\\\": false,\\\"header\\\": {\\\"type\\\": \\\"none\\\"}}}\",\n        \"tag\": \"inbound-55421\",\n        \"sniffing\": \"{\\\"enabled\\\": true,\\\"destOverride\\\": [\\\"http\\\",\\\"tls\\\",\\\"quic\\\",\\\"fakedns\\\"],\\\"metadataOnly\\\": false,\\\"routeOnly\\\": false}\",\n        \"allocate\": \"{\\\"strategy\\\": \\\"always\\\",\\\"refresh\\\": 5,\\\"concurrency\\\": 3}\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "Add Client to inbound",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "id",
+							"value": "6",
+							"type": "text"
+						},
+						{
+							"key": "settings",
+							"value": "{\"clients\": [{\n  \"id\": \"06c3c327-c619-4998-9bb3-adaced38c68b\",\n  \"flow\": \"\",\n  \"email\": \"5atat4da\",\n  \"limitIp\": 0,\n  \"totalGB\": 0,\n  \"expiryTime\": 0,\n  \"enable\": true,\n  \"tgId\": \"\",\n  \"subId\": \"86xi6py5uwsgokh1\",\n  \"comment\": \"\",\n  \"reset\": 0\n}]}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/addClient",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"inbounds",
+						"addClient"
+					]
+				},
+				"description": "Purpose: Add a client to an inbound.\n\nPath: /panel/api/inbounds/addClient\nQuery: none\n\nParams:\n- Body: inboundId, client details (required) — JSON per server schema.\n\nEnvironment variables: {{HOST}}, {{PORT}}, {{WEBBASEPATH}}\nAuth: Requires authenticated admin session/token.\n\nExample:\ncurl -X POST \"http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/addClient\" \\\n  -H \"Content-Type: application/json\" -H \"Cookie: <session>\" \\\n  -d '{\"inboundId\":\"<id>\",\"client\":{...}}'\n\nSuccess: 200 OK or 201 Created\nErrors: 400/422 (validation), 401/403, 404 (inbound not found), 429, 500.\nIdempotency: Not idempotent; creates or mutates client list."
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "id",
+									"value": "6",
+									"type": "text"
+								},
+								{
+									"key": "settings",
+									"value": "{\"clients\": [{\n  \"id\": \"06c3c327-c619-4998-9bb3-adaced38c68b\",\n  \"flow\": \"\",\n  \"email\": \"5atat4da\",\n  \"limitIp\": 0,\n  \"totalGB\": 0,\n  \"expiryTime\": 0,\n  \"enable\": true,\n  \"tgId\": \"\",\n  \"subId\": \"86xi6py5uwsgokh1\",\n  \"comment\": \"\",\n  \"reset\": 0\n}]}",
+									"type": "text"
+								}
+							],
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:2053/randompath/panel/api/inbounds/addClient",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "2053",
+							"path": [
+								"randompath",
+								"panel",
+								"api",
+								"inbounds",
+								"addClient"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 25 Sep 2025 11:05:15 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "70"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"Inbound client(s) have been added.\",\n    \"obj\": null\n}"
+				},
+				{
+					"name": "Failed",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\t\"id\": 5,\r\n\t\"settings\": \"{\\\"clients\\\": [{\\\"id\\\": \\\"bbfad557-28f2-47e5-9f3d-e3c7f532fbda\\\",\\\"flow\\\": \\\"\\\",\\\"email\\\": \\\"dp1plmlt8\\\",\\\"limitIp\\\": 0,\\\"totalGB\\\": 0,\\\"expiryTime\\\": 0,\\\"enable\\\": true,\\\"tgId\\\": \\\"\\\",\\\"subId\\\": \\\"2rv0gb458kbfl532\\\",\\\"reset\\\": 0}]}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/addClient",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"inbounds",
+								"addClient"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 17 Oct 2024 14:03:18 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "112"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": false,\n    \"msg\": \"Something went wrong! Failed: Duplicate email: dp1plmlt8\\n\",\n    \"obj\": null\n}"
+				}
+			]
+		},
+		{
+			"name": "Update Inbound",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\t\"up\": 0,\r\n\t\"down\": 0,\r\n\t\"total\": 0,\r\n\t\"remark\": \"\",\r\n\t\"enable\": true,\r\n\t\"expiryTime\": 0,\r\n\t\"listen\": \"\",\r\n\t\"port\": 44360,\r\n\t\"protocol\": \"vless\",\r\n\t\"settings\": \"{\\n  \\\"clients\\\": [\\n    {\\n      \\\"id\\\": \\\"a39c9655-bcbb-43c4-9b3b-ebd8b7ae9e1e\\\",\\n      \\\"flow\\\": \\\"\\\",\\n      \\\"email\\\": \\\"s729v2km\\\",\\n      \\\"limitIp\\\": 0,\\n      \\\"totalGB\\\": 0,\\n      \\\"expiryTime\\\": 0,\\n      \\\"enable\\\": true,\\n      \\\"tgId\\\": \\\"\\\",\\n      \\\"subId\\\": \\\"n2b9ubaioe06cak8\\\",\\n      \\\"reset\\\": 0\\n    }\\n  ],\\n  \\\"decryption\\\": \\\"none\\\",\\n  \\\"fallbacks\\\": []\\n}\",\r\n\t\"streamSettings\": \"{\\n  \\\"network\\\": \\\"tcp\\\",\\n  \\\"security\\\": \\\"none\\\",\\n  \\\"externalProxy\\\": [],\\n  \\\"tcpSettings\\\": {\\n    \\\"acceptProxyProtocol\\\": false,\\n    \\\"header\\\": {\\n      \\\"type\\\": \\\"none\\\"\\n    }\\n  }\\n}\",\r\n\t\"sniffing\": \"{\\n  \\\"enabled\\\": false,\\n  \\\"destOverride\\\": [\\n    \\\"http\\\",\\n    \\\"tls\\\",\\n    \\\"quic\\\",\\n    \\\"fakedns\\\"\\n  ],\\n  \\\"metadataOnly\\\": false,\\n  \\\"routeOnly\\\": false\\n}\",\r\n\t\"allocate\": \"{\\n  \\\"strategy\\\": \\\"always\\\",\\n  \\\"refresh\\\": 5,\\n  \\\"concurrency\\\": 3\\n}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/update/{inboundId}",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"inbounds",
+						"update",
+						"{inboundId}"
+					]
+				},
+				"description": "Purpose: Update an existing inbound by ID.\n\nPath: /panel/api/inbounds/update/{inboundId}\nQuery: none\n\nParams:\n- Path: inboundId (required)\n- Body: inbound fields to update (required) — JSON per server schema.\n\nEnvironment variables: {{HOST}}, {{PORT}}, {{WEBBASEPATH}}\nAuth: Requires authenticated admin session/token.\n\nExample:\ncurl -X POST \"http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/update/{inboundId}\" \\\n  -H \"Content-Type: application/json\" -H \"Cookie: <session>\" \\\n  -d '{\"<field>\": \"<value>\"}'\n\nSuccess: 200 OK\nErrors: 400/422, 401/403, 404, 429, 500.\nIdempotency: Not idempotent; mutates resource."
+			},
+			"response": [
+				{
+					"name": "Successful",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\t\"up\": 0,\r\n\t\"down\": 0,\r\n\t\"total\": 0,\r\n\t\"remark\": \"\",\r\n\t\"enable\": true,\r\n\t\"expiryTime\": 0,\r\n\t\"listen\": \"\",\r\n\t\"port\": 26139,\r\n\t\"protocol\": \"vless\",\r\n\t\"settings\": \"{\\n  \\\"clients\\\": [\\n    {\\n      \\\"id\\\": \\\"20714ae1-db48-4202-9639-58237500127d\\\",\\n      \\\"flow\\\": \\\"\\\",\\n      \\\"email\\\": \\\"ajrzqcf9\\\",\\n      \\\"limitIp\\\": 0,\\n      \\\"totalGB\\\": 0,\\n      \\\"expiryTime\\\": 0,\\n      \\\"enable\\\": true,\\n      \\\"tgId\\\": 0,\\n      \\\"subId\\\": \\\"rzkhldokbw9ij6za\\\",\\n      \\\"comment\\\": \\\"\\\",\\n      \\\"reset\\\": 0,\\n      \\\"created_at\\\": 1757414145000,\\n      \\\"updated_at\\\": 1757414145000\\n    }\\n  ],\\n  \\\"decryption\\\": \\\"mlkem768x25519plus.native.600s.gGl-2HWuULvg_dyRSiZ8DjUJeE-PDFqJYoaiLirWG0o\\\",\\n  \\\"encryption\\\": \\\"mlkem768x25519plus.native.0rtt.DgrUVBkM9R_Kl2Pr29tytuic7pXLw75uGhKYVWNZ5mw\\\",\\n  \\\"selectedAuth\\\": \\\"X25519, not Post-Quantum\\\"\\n}\",\r\n\t\"streamSettings\": \"{\\n  \\\"network\\\": \\\"tcp\\\",\\n  \\\"security\\\": \\\"none\\\",\\n  \\\"externalProxy\\\": [],\\n  \\\"tcpSettings\\\": {\\n    \\\"acceptProxyProtocol\\\": false,\\n    \\\"header\\\": {\\n      \\\"type\\\": \\\"none\\\"\\n    }\\n  }\\n}\",\r\n\t\"sniffing\": \"{\\n  \\\"enabled\\\": false,\\n  \\\"destOverride\\\": [\\n    \\\"http\\\",\\n    \\\"tls\\\",\\n    \\\"quic\\\",\\n    \\\"fakedns\\\"\\n  ],\\n  \\\"metadataOnly\\\": false,\\n  \\\"routeOnly\\\": false\\n}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:2053/randompath/panel/api/inbounds/update/6",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "2053",
+							"path": [
+								"randompath",
+								"panel",
+								"api",
+								"inbounds",
+								"update",
+								"6"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 09 Sep 2025 10:38:00 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "1325"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"Inbound has been successfully updated.\",\n    \"obj\": {\n        \"id\": 6,\n        \"up\": 0,\n        \"down\": 0,\n        \"total\": 0,\n        \"allTime\": 0,\n        \"remark\": \"\",\n        \"enable\": true,\n        \"expiryTime\": 0,\n        \"clientStats\": null,\n        \"listen\": \"\",\n        \"port\": 26139,\n        \"protocol\": \"vless\",\n        \"settings\": \"{\\n  \\\"clients\\\": [\\n    {\\n      \\\"comment\\\": \\\"\\\",\\n      \\\"created_at\\\": 1757414145000,\\n      \\\"email\\\": \\\"ajrzqcf9\\\",\\n      \\\"enable\\\": true,\\n      \\\"expiryTime\\\": 0,\\n      \\\"flow\\\": \\\"\\\",\\n      \\\"id\\\": \\\"20714ae1-db48-4202-9639-58237500127d\\\",\\n      \\\"limitIp\\\": 0,\\n      \\\"reset\\\": 0,\\n      \\\"subId\\\": \\\"rzkhldokbw9ij6za\\\",\\n      \\\"tgId\\\": 0,\\n      \\\"totalGB\\\": 0,\\n      \\\"updated_at\\\": 1757414145000\\n    }\\n  ],\\n  \\\"decryption\\\": \\\"mlkem768x25519plus.native.600s.gGl-2HWuULvg_dyRSiZ8DjUJeE-PDFqJYoaiLirWG0o\\\",\\n  \\\"encryption\\\": \\\"mlkem768x25519plus.native.0rtt.DgrUVBkM9R_Kl2Pr29tytuic7pXLw75uGhKYVWNZ5mw\\\",\\n  \\\"selectedAuth\\\": \\\"X25519, not Post-Quantum\\\"\\n}\",\n        \"streamSettings\": \"{\\n  \\\"network\\\": \\\"tcp\\\",\\n  \\\"security\\\": \\\"none\\\",\\n  \\\"externalProxy\\\": [],\\n  \\\"tcpSettings\\\": {\\n    \\\"acceptProxyProtocol\\\": false,\\n    \\\"header\\\": {\\n      \\\"type\\\": \\\"none\\\"\\n    }\\n  }\\n}\",\n        \"tag\": \"\",\n        \"sniffing\": \"{\\n  \\\"enabled\\\": false,\\n  \\\"destOverride\\\": [\\n    \\\"http\\\",\\n    \\\"tls\\\",\\n    \\\"quic\\\",\\n    \\\"fakedns\\\"\\n  ],\\n  \\\"metadataOnly\\\": false,\\n  \\\"routeOnly\\\": false\\n}\"\n    }\n}"
+				},
+				{
+					"name": "Failed",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\t\"up\": 0,\r\n\t\"down\": 0,\r\n\t\"total\": 0,\r\n\t\"remark\": \"\",\r\n\t\"enable\": true,\r\n\t\"expiryTime\": 0,\r\n\t\"listen\": \"\",\r\n\t\"port\": 44322,\r\n\t\"protocol\": \"vless\",\r\n\t\"settings\": \"{\\n  \\\"clients\\\": [\\n    {\\n      \\\"id\\\": \\\"a39c9655-bcbb-43c4-9b3b-ebd8b7ae9e1e\\\",\\n      \\\"flow\\\": \\\"\\\",\\n      \\\"email\\\": \\\"s729v2km\\\",\\n      \\\"limitIp\\\": 0,\\n      \\\"totalGB\\\": 0,\\n      \\\"expiryTime\\\": 0,\\n      \\\"enable\\\": true,\\n      \\\"tgId\\\": \\\"\\\",\\n      \\\"subId\\\": \\\"n2b9ubaioe06cak8\\\",\\n      \\\"reset\\\": 0\\n    }\\n  ],\\n  \\\"decryption\\\": \\\"none\\\",\\n  \\\"fallbacks\\\": []\\n}\",\r\n\t\"streamSettings\": \"{\\n  \\\"network\\\": \\\"tcp\\\",\\n  \\\"security\\\": \\\"none\\\",\\n  \\\"externalProxy\\\": [],\\n  \\\"tcpSettings\\\": {\\n    \\\"acceptProxyProtocol\\\": false,\\n    \\\"header\\\": {\\n      \\\"type\\\": \\\"none\\\"\\n    }\\n  }\\n}\",\r\n\t\"sniffing\": \"{\\n  \\\"enabled\\\": false,\\n  \\\"destOverride\\\": [\\n    \\\"http\\\",\\n    \\\"tls\\\",\\n    \\\"quic\\\",\\n    \\\"fakedns\\\"\\n  ],\\n  \\\"metadataOnly\\\": false,\\n  \\\"routeOnly\\\": false\\n}\",\r\n\t\"allocate\": \"{\\n  \\\"strategy\\\": \\\"always\\\",\\n  \\\"refresh\\\": 5,\\n  \\\"concurrency\\\": 3\\n}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/update/6",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"inbounds",
+								"update",
+								"6"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 17 Oct 2024 14:12:37 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "542"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": false,\n    \"msg\": \"Update Failed: record not found\",\n    \"obj\": {\n        \"id\": 6,\n        \"up\": 0,\n        \"down\": 0,\n        \"total\": 0,\n        \"remark\": \"\",\n        \"enable\": true,\n        \"expiryTime\": 0,\n        \"clientStats\": null,\n        \"listen\": \"\",\n        \"port\": 44322,\n        \"protocol\": \"vless\",\n        \"settings\": \"{\\n  \\\"clients\\\": [\\n    {\\n      \\\"id\\\": \\\"a39c9655-bcbb-43c4-9b3b-ebd8b7ae9e1e\\\",\\n      \\\"flow\\\": \\\"\\\",\\n      \\\"email\\\": \\\"s729v2km\\\",\\n      \\\"limitIp\\\": 0,\\n      \\\"totalGB\\\": 0,\\n      \\\"expiryTime\\\": 0,\\n      \\\"enable\\\": true,\\n      \\\"tgId\\\": \\\"\\\",\\n      \\\"subId\\\": \\\"n2b9ubaioe06cak8\\\",\\n      \\\"reset\\\": 0\\n    }\\n  ],\\n  \\\"decryption\\\": \\\"none\\\",\\n  \\\"fallbacks\\\": []\\n}\",\n        \"streamSettings\": \"{\\n  \\\"network\\\": \\\"tcp\\\",\\n  \\\"security\\\": \\\"none\\\",\\n  \\\"externalProxy\\\": [],\\n  \\\"tcpSettings\\\": {\\n    \\\"acceptProxyProtocol\\\": false,\\n    \\\"header\\\": {\\n      \\\"type\\\": \\\"none\\\"\\n    }\\n  }\\n}\",\n        \"tag\": \"\",\n        \"sniffing\": \"{\\n  \\\"enabled\\\": false,\\n  \\\"destOverride\\\": [\\n    \\\"http\\\",\\n    \\\"tls\\\",\\n    \\\"quic\\\",\\n    \\\"fakedns\\\"\\n  ],\\n  \\\"metadataOnly\\\": false,\\n  \\\"routeOnly\\\": false\\n}\",\n        \"allocate\": \"{\\n  \\\"strategy\\\": \\\"always\\\",\\n  \\\"refresh\\\": 5,\\n  \\\"concurrency\\\": 3\\n}\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "Update Client",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Cookie",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\t\"id\": 20,\r\n\t\"settings\": \"{\\\"clients\\\": [{\\\"id\\\": \\\"6046007d-f4e5-4384-a545-2848165001da\\\",\\\"flow\\\": \\\"\\\",\\\"email\\\": \\\"sbhmrsmz\\\",\\\"limitIp\\\": 0,\\\"totalGB\\\": 10737418240,\\\"expiryTime\\\": 1729073736270,\\\"enable\\\": true,\\\"tgId\\\": \\\"\\\",\\\"subId\\\": \\\"z70791vpexfxw57h\\\",\\\"reset\\\": 0}]}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/updateClient/{uuid}",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"inbounds",
+						"updateClient",
+						"{uuid}"
+					]
+				},
+				"description": "Purpose: Update an existing client by UUID.\n\nPath: /panel/api/inbounds/updateClient/{uuid}\nQuery: none\n\nParams:\n- Path: uuid (required) — Client UUID.\n- Body: fields to update (required) — JSON per server schema.\n\nEnvironment variables: {{HOST}}, {{PORT}}, {{WEBBASEPATH}}\nAuth: Requires authenticated admin session/token.\n\nExample:\ncurl -X POST \"http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/updateClient/{uuid}\" \\\n  -H \"Content-Type: application/json\" -H \"Cookie: <session>\" \\\n  -d '{\"<field>\": \"<value>\"}'\n\nSuccess: 200 OK\nErrors: 400/422, 401/403, 404, 429, 500.\nIdempotency: Not idempotent; mutates resource."
+			},
+			"response": [
+				{
+					"name": "Successful",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\t\"id\": 6,\r\n\t\"settings\": \"{\\\"clients\\\": [{\\n  \\\"id\\\": \\\"20714ae1-db48-4202-9639-58237500127d\\\",\\n  \\\"flow\\\": \\\"\\\",\\n  \\\"email\\\": \\\"ajrzqcf9\\\",\\n  \\\"limitIp\\\": 0,\\n  \\\"totalGB\\\": 0,\\n  \\\"expiryTime\\\": 0,\\n  \\\"enable\\\": true,\\n  \\\"tgId\\\": 0,\\n  \\\"subId\\\": \\\"rzkhldokbw9ij6za\\\",\\n  \\\"comment\\\": \\\"\\\",\\n  \\\"reset\\\": 0,\\n  \\\"created_at\\\": 1757414145000,\\n  \\\"updated_at\\\": 1757414342000\\n}]}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:2053/randompath/panel/api/inbounds/updateClient/20714ae1-db48-4202-9639-58237500127d",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "2053",
+							"path": [
+								"randompath",
+								"panel",
+								"api",
+								"inbounds",
+								"updateClient",
+								"20714ae1-db48-4202-9639-58237500127d"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Tue, 09 Sep 2025 10:40:16 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "68"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"Inbound client has been updated.\",\n    \"obj\": null\n}"
+				},
+				{
+					"name": "Failed",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 3,\r\n    \"settings\": \"{\\\"clients\\\":[{\\\"id\\\":\\\"95e4e7bb-7796-47e7-e8a7-f4055194f776\\\",\\\"alterId\\\":0,\\\"email\\\":\\\"test123\\\",\\\"limitIp\\\":2,\\\"totalGB\\\":42949672960,\\\"expiryTime\\\":1682864675944,\\\"enable\\\":true,\\\"tgId\\\":\\\"\\\",\\\"subId\\\":\\\"\\\"}]}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/updateClient/fake uuid",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"inbounds",
+								"updateClient",
+								"fake uuid"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 17 Oct 2024 14:15:08 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "106"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": false,\n    \"msg\": \"Something went wrong! Failed: empty client ID\\n\",\n    \"obj\": null\n}"
+				}
+			]
+		},
+		{
+			"name": "Clear Client Ip address",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/clearClientIps/{email}",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"inbounds",
+						"clearClientIps",
+						"{email}"
+					]
+				},
+				"description": "Purpose: Clear stored client IP addresses by email.\n\nPath: /panel/api/inbounds/clearClientIps/{email}\nQuery: none\n\nParams:\n- Path: email (required)\n\nEnvironment variables: {{HOST}}, {{PORT}}, {{WEBBASEPATH}}\nAuth: Requires authenticated admin session/token.\n\nExample:\ncurl -X POST \"http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/clearClientIps/{email}\" -H \"Cookie: <session>\"\n\nSuccess: 200 OK\nErrors: 400, 401/403, 404, 429, 500.\nIdempotency: Not idempotent; deletes stored IPs (destructive)."
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/clearClientIps/27225ost",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"inbounds",
+								"clearClientIps",
+								"27225ost"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 17 Oct 2024 14:16:28 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "80"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"Log Cleared Successfully\",\n    \"obj\": null\n}"
+				}
+			]
+		},
+		{
+			"name": "Reset traffics of all inbounds",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/resetAllTraffics",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"inbounds",
+						"resetAllTraffics"
+					]
+				},
+				"description": "Purpose: Reset traffic counters for all inbounds.\n\nPath: /panel/api/inbounds/resetAllTraffics\nQuery: none\n\nParams: none\n\nEnvironment variables: {{HOST}}, {{PORT}}, {{WEBBASEPATH}}\nAuth: Requires authenticated admin session/token.\n\nExample:\ncurl -X POST \"http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/resetAllTraffics\" -H \"Cookie: <session>\"\n\nSuccess: 200 OK\nErrors: 401/403, 429, 500.\nIdempotency: Not idempotent; resets counters globally."
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/resetAllTraffics",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"inbounds",
+								"resetAllTraffics"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 17 Oct 2024 14:17:07 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "93"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"all traffic has been reset Successfully\",\n    \"obj\": null\n}"
+				}
+			]
+		},
+		{
+			"name": "Reset traffics of all clients in an inbound",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/resetAllClientTraffics/{inboundId}",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"inbounds",
+						"resetAllClientTraffics",
+						"{inboundId}"
+					]
+				},
+				"description": "Purpose: Reset traffic counters for all clients in a specific inbound.\n\nPath: /panel/api/inbounds/resetAllClientTraffics/{inboundId}\nQuery: none\n\nParams:\n- Path: inboundId (required)\n\nEnvironment variables: {{HOST}}, {{PORT}}, {{WEBBASEPATH}}\nAuth: Requires authenticated admin session/token.\n\nExample:\ncurl -X POST \"http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/resetAllClientTraffics/{inboundId}\" -H \"Cookie: <session>\"\n\nSuccess: 200 OK\nErrors: 401/403, 404, 429, 500.\nIdempotency: Not idempotent; resets counters for clients under the inbound."
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/resetAllClientTraffics/3",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"inbounds",
+								"resetAllClientTraffics",
+								"3"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 17 Oct 2024 14:17:39 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "107"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"All traffic from the client has been reset. Successfully\",\n    \"obj\": null\n}"
+				}
+			]
+		},
+		{
+			"name": "Reset Client Traffic",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/{inboundId}/resetClientTraffic/{email}",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"inbounds",
+						"{inboundId}",
+						"resetClientTraffic",
+						"{email}"
+					]
+				},
+				"description": "Purpose: Reset a single client’s traffic in a specific inbound by email.\n\nPath: /panel/api/inbounds/{inboundId}/resetClientTraffic/{email}\nQuery: none\n\nParams:\n- Path: inboundId (required)\n- Path: email (required)\n\nEnvironment variables: {{HOST}}, {{PORT}}, {{WEBBASEPATH}}\nAuth: Requires authenticated admin session/token.\n\nExample:\ncurl -X POST \"http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/{inboundId}/resetClientTraffic/{email}\" -H \"Cookie: <session>\"\n\nSuccess: 200 OK\nErrors: 400, 401/403, 404, 429, 500.\nIdempotency: Not idempotent; resets client’s counters."
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/3/resetClientTraffic/27225ost",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"inbounds",
+								"3",
+								"resetClientTraffic",
+								"27225ost"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 17 Oct 2024 14:18:46 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "91"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"Traffic has been reset Successfully\",\n    \"obj\": null\n}"
+				}
+			]
+		},
+		{
+			"name": "Delete Client",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/{inboundId}/delClient/{uuid}",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"inbounds",
+						"{inboundId}",
+						"delClient",
+						"{uuid}"
+					]
+				},
+				"description": "Purpose: Delete a client from an inbound by UUID.\n\nPath: /panel/api/inbounds/{inboundId}/delClient/{uuid}\nQuery: none\n\nParams:\n- Path: inboundId (required)\n- Path: uuid (required) — Client UUID.\n\nEnvironment variables: {{HOST}}, {{PORT}}, {{WEBBASEPATH}}\nAuth: Requires authenticated admin session/token.\n\nExample:\ncurl -X POST \"http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/{inboundId}/delClient/{uuid}\" -H \"Cookie: <session>\"\n\nSuccess: 200 OK\nErrors: 400, 401/403, 404, 429, 500.\nIdempotency: Not idempotent; deletes client (destructive)."
+			},
+			"response": [
+				{
+					"name": "Successful",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/3/delClient/bf036995-a81d-41b3-8e06-8e233418c96a",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"inbounds",
+								"3",
+								"delClient",
+								"bf036995-a81d-41b3-8e06-8e233418c96a"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 17 Oct 2024 14:20:24 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "83"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"Client deleted Successfully\",\n    \"obj\": null\n}"
+				},
+				{
+					"name": "Failed",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/2/delClient/95e2b7bb-7796-47e7-e8a7-f4055194f433",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"inbounds",
+								"2",
+								"delClient",
+								"95e2b7bb-7796-47e7-e8a7-f4055194f433"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 17 Oct 2024 14:20:48 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "101"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": false,\n    \"msg\": \"Something went wrong! Failed: record not found\",\n    \"obj\": null\n}"
+				}
+			]
+		},
+		{
+			"name": "Delete Inbound",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/del/{inboundId}",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"inbounds",
+						"del",
+						"{inboundId}"
+					]
+				},
+				"description": "Purpose: Delete an inbound by ID.\n\nPath: /panel/api/inbounds/del/{inboundId}\nQuery: none\n\nParams:\n- Path: inboundId (required)\n\nEnvironment variables: {{HOST}}, {{PORT}}, {{WEBBASEPATH}}\nAuth: Requires authenticated admin session/token.\n\nExample:\ncurl -X POST \"http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/del/{inboundId}\" -H \"Cookie: <session>\"\n\nSuccess: 200 OK\nErrors: 400, 401/403, 404, 429, 500.\nIdempotency: Not idempotent; deletes resource (destructive)."
+			},
+			"response": [
+				{
+					"name": "Successful",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/del/3",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"inbounds",
+								"del",
+								"3"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 17 Oct 2024 14:21:26 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "72"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"Delete Successfully\",\n    \"obj\": 3\n}"
+				},
+				{
+					"name": "Failed",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/del/3",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"inbounds",
+								"del",
+								"3"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 17 Oct 2024 14:21:34 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "89"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": false,\n    \"msg\": \"Delete Failed: record not found\",\n    \"obj\": 3\n}"
+				}
+			]
+		},
+		{
+			"name": "Delete Depleted Clients",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/delDepletedClients/{inboundId}",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"inbounds",
+						"delDepletedClients",
+						"{inboundId}"
+					]
+				},
+				"description": "Purpose: Delete all depleted clients under an inbound.\n\nPath: /panel/api/inbounds/delDepletedClients/{inboundId}\nQuery: none\n\nParams:\n- Path: inboundId (required)\n\nEnvironment variables: {{HOST}}, {{PORT}}, {{WEBBASEPATH}}\nAuth: Requires authenticated admin session/token.\n\nExample:\ncurl -X POST \"http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/delDepletedClients/{inboundId}\" -H \"Cookie: <session>\"\n\nSuccess: 200 OK\nErrors: 400, 401/403, 404, 429, 500.\nIdempotency: Not idempotent; bulk deletion (destructive)."
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://{{HOST}}:2053/panel/api/inbounds/delDepletedClients/4",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "2053",
+							"path": [
+								"panel",
+								"api",
+								"inbounds",
+								"delDepletedClients",
+								"4"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 17 Oct 2024 14:22:23 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "97"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"All depleted clients are deleted Successfully\",\n    \"obj\": null\n}"
+				}
+			]
+		},
+		{
+			"name": "Online Clients",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": []
+				},
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/onlines",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"inbounds",
+						"onlines"
+					]
+				},
+				"description": "Purpose: Get list of online clients across inbounds.\n\nPath: /panel/api/inbounds/onlines\nQuery: none\n\nParams: none\n\nEnvironment variables: {{HOST}}, {{PORT}}, {{WEBBASEPATH}}\nAuth: Requires authenticated session/token.\n\nExample:\ncurl -X POST \"http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/onlines\" -H \"Cookie: <session>\"\n\nSuccess: 200 OK\nErrors: 401/403, 429, 500.\nIdempotency: Read-like but uses POST; no side effects expected."
+			},
+			"response": [
+				{
+					"name": "Response",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/onlines",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"inbounds",
+								"onlines"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Encoding",
+							"value": "gzip"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Vary",
+							"value": "Accept-Encoding"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 17 Oct 2024 14:26:49 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "68"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"\",\n    \"obj\": [\n        \"88vzckui\"\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "import inbound",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/import",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"inbounds",
+						"import"
+					]
+				},
+				"description": "Purpose: Import an inbound configuration from payload.\n\nPath: /panel/api/inbounds/import\nQuery: none\n\nParams:\n- Body: import data (required) — JSON per server schema.\n\nEnvironment variables: {{HOST}}, {{PORT}}, {{WEBBASEPATH}}\nAuth: Requires authenticated admin session/token.\n\nExample:\ncurl -X POST \"http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/import\" \\\n  -H \"Content-Type: application/json\" -H \"Cookie: <session>\" \\\n  -d '{\"data\": \"...\"}'\n\nSuccess: 200 OK or 201 Created\nErrors: 400/422, 401/403, 429, 500.\nIdempotency: Not idempotent; creates or mutates resources."
+			},
+			"response": []
+		},
+		{
+			"name": "last Online",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:2053/panel/api/inbounds/lastOnline",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "2053",
+					"path": [
+						"panel",
+						"api",
+						"inbounds",
+						"lastOnline"
+					]
+				},
+				"description": "## Endpoint Description\n\nThis API endpoint retrieves the last online status of inbound connections. It is useful for monitoring the availability and performance of various inbound services within the system.\n\n### Request\n\n- **Method**: POST\n    \n- **URL**: `http://localhost:2053/panel/api/inbounds/lastOnline`\n    \n\n### Request Body\n\nThe request does not require any input parameters in the body.\n\n### Response\n\nThe response will be in JSON format and includes the following structure:\n\n- **success**: A boolean indicating whether the request was successful.\n    \n- **msg**: A string that may contain a message related to the request (usually empty).\n    \n- **obj**: This field can have different structures based on the context:\n    \n    - If the last online status is available, it will contain an object with the identifier of the inbound connection and its last online status (e.g., `{\"lb0n0jx2\":0}`).\n        \n    - If there are no inbound connections or the status is not available, it may return `null`.\n        \n    - In related responses, the `obj` can also contain an array of objects with detailed statistics about each inbound connection, including metrics such as `up`, `down`, `total`, `allTime`, and `lastOnline` timestamps.\n        \n\n### Example Response\n\n``` json\n{\n  \"success\": true,\n  \"msg\": \"\",\n  \"obj\": {\n    \"lb0n0jx2\": 0\n  }\n}\n\n ```\n\n### Status Codes\n\n- **200 OK**: Indicates that the request was processed successfully.\n    \n\nThis endpoint is essential for tracking the operational status of inbound connections and can be used in conjunction with other API endpoints that provide detailed statistics about connection performance."
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/lastOnline",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"inbounds",
+								"lastOnline"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Sat, 13 Sep 2025 21:07:33 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "58"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"\",\n    \"obj\": {\n        \"lb0n0jx2\": 1757797563004\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "del Client By Email",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/{id}/delClientByEmail/{email}",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"inbounds",
+						"{id}",
+						"delClientByEmail",
+						"{email}"
+					]
+				},
+				"description": "## Endpoint Description\n\nThis endpoint allows you to delete a client by their email address from a specified inbound configuration. It is useful for managing client access and ensuring that only authorized users are retained within the system.\n\n### HTTP Method\n\n`POST`\n\n### Request URL\n\n`http://localhost:2053/panel/api/inbounds/{id}/delClientByEmail/{email}`\n\n### Path Parameters\n\n- **id** (string): The unique identifier of the inbound configuration from which the client will be deleted.\n    \n- **email** (string): The email address of the client to be deleted.\n    \n\n### Request Body\n\nThis endpoint does not require a request body.\n\n### Response Structure\n\nThe response will be in JSON format and will contain the following fields:\n\n- **success** (boolean): Indicates whether the operation was successful.\n    \n- **msg** (string): A message providing additional information about the operation (can be empty).\n    \n- **obj** (object or null): Contains the details of the operation. It may return `null` if there are no additional details.\n    \n\n### Example Response\n\n``` json\n{\n  \"success\": true,\n  \"msg\": \"\",\n  \"obj\": null\n}\n\n ```\n\n### Related Responses\n\nThe structure of the response is consistent with other endpoints in the API, which may return similar success messages and object structures. For example:\n\n- A successful operation may return an object with client statistics or an empty response indicating that the action was completed without errors.\n    \n\n### Usage Notes\n\n- Ensure that the provided email corresponds to an existing client associated with the specified inbound configuration.\n    \n- A successful response does not guarantee that the client was found; it only indicates that the request was processed without errors."
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/inbounds/14/delClientByEmail/h45vyj2i",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"inbounds",
+								"14",
+								"delClientByEmail",
+								"h45vyj2i"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Wed, 10 Sep 2025 14:37:46 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "63"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"Client deleted successfully\",\n    \"obj\": null\n}"
+				}
+			]
+		},
+		{
+			"name": "status",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/status",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"server",
+						"status"
+					]
+				},
+				"description": "### API Endpoint: Server Status\n\nThis endpoint retrieves the current status of the server, providing various metrics related to CPU, memory, disk usage, network traffic, and application statistics.\n\n#### Request\n\n- **Method**: GET\n    \n- **URL**: `http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/status`\n    \n\n#### Response\n\nThe response will be a JSON object containing the following fields:\n\n- **success** (boolean): Indicates whether the request was successful.\n    \n- **msg** (string): A message providing additional information about the request status.\n    \n- **obj** (object): An object containing detailed server metrics:\n    \n    - **cpu** (integer): The current CPU usage percentage.\n        \n    - **cpuCores** (integer): The number of CPU cores available.\n        \n    - **logicalPro** (integer): The number of logical processors.\n        \n    - **cpuSpeedMhz** (integer): The speed of the CPU in MHz.\n        \n    - **mem** (object): Memory usage details:\n        \n        - **current** (integer): Current memory usage in bytes.\n            \n        - **total** (integer): Total memory available in bytes.\n            \n    - **swap** (object): Swap memory details:\n        \n        - **current** (integer): Current swap usage in bytes.\n            \n        - **total** (integer): Total swap available in bytes.\n            \n    - **disk** (object): Disk usage details:\n        \n        - **current** (integer): Current disk usage in bytes.\n            \n        - **total** (integer): Total disk space available in bytes.\n            \n    - **xray** (object): X-ray service status:\n        \n        - **state** (string): Current state of the X-ray service.\n            \n        - **errorMsg** (string): Error message if applicable.\n            \n        - **version** (string): Version of the X-ray service.\n            \n    - **uptime** (integer): Server uptime in seconds.\n        \n    - **loads** (array): Current load averages.\n        \n    - **tcpCount** (integer): Number of active TCP connections.\n        \n    - **udpCount** (integer): Number of active UDP connections.\n        \n    - **netIO** (object): Network I/O statistics:\n        \n        - **up** (integer): Data sent in bytes.\n            \n        - **down** (integer): Data received in bytes.\n            \n    - **netTraffic** (object): Network traffic statistics:\n        \n        - **sent** (integer): Total data sent in bytes.\n            \n        - **recv** (integer): Total data received in bytes.\n            \n    - **publicIP** (object): Public IP addresses:\n        \n        - **ipv4** (string): IPv4 address.\n            \n        - **ipv6** (string): IPv6 address.\n            \n    - **appStats** (object): Application statistics:\n        \n        - **threads** (integer): Number of active threads.\n            \n        - **mem** (integer): Memory used by the application in bytes.\n            \n        - **uptime** (integer): Application uptime in seconds.\n            \n\n#### Notes\n\n- A successful response will return a 200 status code.\n    \n- The structure of the response may vary, as some calls to other endpoints may return `null` or an array in the `obj` field, but the `success` and `msg` fields will remain consistent."
+			},
+			"response": []
+		},
+		{
+			"name": "get Db",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getDb",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"server",
+						"getDb"
+					]
+				},
+				"description": "## API Endpoint: Get Database Information\n\n### Method\n\n`GET`\n\n### Endpoint\n\n`http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getDb`\n\n### Description\n\nThis endpoint retrieves the current database status and server metrics. It provides insights into the server's CPU, memory, disk usage, network statistics, and application statistics. The response will include various metrics that can be used to monitor the health and performance of the server.\n\n### Request Parameters\n\nThere are no request parameters required for this endpoint.\n\n### Expected Response Format\n\nThe response will be in JSON format and will include the following structure:\n\n- **success**: A boolean indicating the success of the request.\n    \n- **msg**: A message string that may contain additional information (usually empty).\n    \n- **obj**: An object containing server metrics or null if no data is available. The metrics include:\n    \n    - **cpu**: Current CPU usage.\n        \n    - **cpuCores**: Number of CPU cores.\n        \n    - **logicalPro**: Number of logical processors.\n        \n    - **cpuSpeedMhz**: CPU speed in MHz.\n        \n    - **mem**: Memory usage details:\n        \n        - **current**: Current memory usage.\n            \n        - **total**: Total memory available.\n            \n    - **swap**: Swap memory details:\n        \n        - **current**: Current swap usage.\n            \n        - **total**: Total swap available.\n            \n    - **disk**: Disk usage details:\n        \n        - **current**: Current disk usage.\n            \n        - **total**: Total disk space available.\n            \n    - **xray**: Xray service status:\n        \n        - **state**: Current state of the Xray service.\n            \n        - **errorMsg**: Any error message related to Xray.\n            \n        - **version**: Version of the Xray service.\n            \n    - **uptime**: Server uptime in seconds.\n        \n    - **loads**: Array of load averages.\n        \n    - **tcpCount**: Number of active TCP connections.\n        \n    - **udpCount**: Number of active UDP connections.\n        \n    - **netIO**: Network I/O statistics:\n        \n        - **up**: Data sent.\n            \n        - **down**: Data received.\n            \n    - **netTraffic**: Network traffic statistics:\n        \n        - **sent**: Total data sent.\n            \n        - **recv**: Total data received.\n            \n    - **publicIP**: Public IP addresses:\n        \n        - **ipv4**: IPv4 address.\n            \n        - **ipv6**: IPv6 address.\n            \n    - **appStats**: Application statistics:\n        \n        - **threads**: Number of threads used by the application.\n            \n        - **mem**: Memory usage by the application.\n            \n        - **uptime**: Uptime of the application.\n            \n\n### Example Response\n\n``` json\n{\n  \"success\": true,\n  \"msg\": \"\",\n  \"obj\": {\n    \"cpu\": 0,\n    \"cpuCores\": 0,\n    \"logicalPro\": 0,\n    \"cpuSpeedMhz\": 0,\n    \"mem\": {\n      \"current\": 0,\n      \"total\": 0\n    },\n    \"swap\": {\n      \"current\": 0,\n      \"total\": 0\n    },\n    \"disk\": {\n      \"current\": 0,\n      \"total\": 0\n    },\n    \"xray\": {\n      \"state\": \"\",\n      \"errorMsg\": \"\",\n      \"version\": \"\"\n    },\n    \"uptime\": 0,\n    \"loads\": [0],\n    \"tcpCount\": 0,\n    \"udpCount\": 0,\n    \"netIO\": {\n      \"up\": 0,\n      \"down\": 0\n    },\n    \"netTraffic\": {\n      \"sent\": 0,\n      \"recv\": 0\n    },\n    \"publicIP\": {\n      \"ipv4\": \"\",\n      \"ipv6\": \"\"\n    },\n    \"appStats\": {\n      \"threads\": 0,\n      \"mem\": 0,\n      \"uptime\": 0\n    }\n  }\n}\n\n ```"
+			},
+			"response": []
+		},
+		{
+			"name": "get Xray Version",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getXrayVersion",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"server",
+						"getXrayVersion"
+					]
+				},
+				"description": "### Get Xray Version\n\nThis endpoint retrieves the current version of the Xray service running on the server. It is a simple HTTP GET request that does not require any parameters.\n\n#### Request\n\n- **Method**: GET\n    \n- **URL**: `http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getXrayVersion`\n    \n\n#### Response\n\nThe response will be in JSON format and will contain the following fields:\n\n- **success** (boolean): Indicates whether the request was successful.\n    \n- **msg** (string): A message providing additional information about the request.\n    \n- **obj** (array or null): Contains the version information of Xray. If the version is not available, this field may return null.\n    \n\n##### Example Response\n\n``` json\n{\n  \"success\": true,\n  \"msg\": \"\",\n  \"obj\": [\"\"]\n}\n\n ```\n\n#### Notes\n\n- A successful response will return a 200 HTTP status code.\n    \n- The `obj` field may contain an array with version details or may be null depending on the availability of the information.\n    \n- This endpoint is related to other server status endpoints which may return similar response structures, such as CPU, memory, and network statistics.\n    \n\nThis endpoint is useful for monitoring and managing the Xray service version on the server."
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getXrayVersion",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"server",
+								"getXrayVersion"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Mon, 08 Sep 2025 22:15:38 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "75"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"\",\n    \"obj\": [\n        \"v25.9.5\",\n        \"v25.8.31\",\n        \"v25.8.29\",\n        \"v25.8.3\"\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "get Config Json",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getConfigJson",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"server",
+						"getConfigJson"
+					]
+				},
+				"description": "## API Endpoint: Get Configuration JSON\n\n### Purpose\n\nThis endpoint retrieves the configuration settings of the server in JSON format. It provides detailed information about various server parameters, including API services, inbounds, outbounds, logging settings, metrics, and routing rules.\n\n### Request Format\n\n- **Method**: GET\n    \n- **URL**: `http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getConfigJson`\n    \n- **Request Body**: None (This is a GET request)\n    \n\n### Response Structure\n\nThe response is a JSON object containing the following fields:\n\n- **success**: A boolean indicating the success of the request.\n    \n- **msg**: A string that may contain a message related to the request (usually empty).\n    \n- **obj**: An object containing the configuration details, structured as follows:\n    \n    - **api**: Contains information about API services.\n        \n        - **services**: An array of service names.\n            \n        - **tag**: A string representing the tag.\n            \n    - **burstObservatory**: Can be null or contain observatory details.\n        \n    - **dns**: Can be null or contain DNS settings.\n        \n    - **fakedns**: Can be null or contain fake DNS settings.\n        \n    - **inbounds**: An array of inbound configurations, each including:\n        \n        - **listen**: The address to listen on.\n            \n        - **port**: The port number.\n            \n        - **protocol**: The protocol used.\n            \n        - **settings**: An object with additional settings, such as address.\n            \n        - **sniffing**: Can be null or contain sniffing settings.\n            \n        - **streamSettings**: Can be null or contain stream settings.\n            \n        - **tag**: A string representing the tag.\n            \n    - **log**: An object containing logging settings.\n        \n        - **access**: The access log setting.\n            \n        - **dnsLog**: A boolean indicating if DNS logging is enabled.\n            \n        - **error**: The error log setting.\n            \n        - **loglevel**: The log level setting.\n            \n        - **maskAddress**: The address masking setting.\n            \n    - **metrics**: Contains metrics configuration.\n        \n        - **listen**: The address to listen for metrics.\n            \n        - **tag**: A string representing the tag.\n            \n    - **observatory**: Can be null or contain observatory settings.\n        \n    - **outbounds**: An array of outbound configurations, each including:\n        \n        - **protocol**: The protocol used.\n            \n        - **settings**: An object with additional settings, such as domain strategy.\n            \n        - **tag**: A string representing the tag.\n            \n    - **policy**: Contains policy settings, including:\n        \n        - **levels**: An object with user and system statistics settings.\n            \n    - **reverse**: Can be null or contain reverse proxy settings.\n        \n    - **routing**: Contains routing configurations.\n        \n        - **domainStrategy**: The strategy for domain routing.\n            \n        - **rules**: An array of routing rules.\n            \n    - **stats**: An object containing statistics.\n        \n    - **transport**: Can be null or contain transport settings.\n        \n\n### Example Response\n\n``` json\n{\n  \"success\": true,\n  \"msg\": \"\",\n  \"obj\": {\n    \"api\": {\n      \"services\": [\"\"],\n      \"tag\": \"\"\n    },\n    \"burstObservatory\": null,\n    \"dns\": null,\n    \"fakedns\": null,\n    \"inbounds\": [\n      {\n        \"listen\": \"\",\n        \"port\": 0,\n        \"protocol\": \"\",\n        \"settings\": {\n          \"address\": \"\"\n        },\n        \"sniffing\": null,\n        \"streamSettings\": null,\n        \"tag\": \"\"\n      }\n    ],\n    \"log\": {\n      \"access\": \"\",\n      \"dnsLog\": true,\n      \"error\": \"\",\n      \"loglevel\": \"\",\n      \"maskAddress\": \"\"\n    },\n    \"metrics\": {\n      \"listen\": \"\",\n      \"tag\": \"\"\n    },\n    \"observatory\": null,\n    \"outbounds\": [\n      {\n        \"protocol\": \"\",\n        \"settings\": {\n          \"domainStrategy\": \"\",\n          \"noises\": [],\n          \"redirect\": \"\"\n        },\n        \"tag\": \"\"\n      }\n    ],\n    \"policy\": {\n      \"levels\": {\n        \"0\": {\n          \"statsUserDownlink\": true,\n          \"statsUserUplink\": true\n        }\n      },\n      \"system\": {\n        \"statsInboundDownlink\": true,\n        \"statsInboundUplink\": true,\n        \"statsOutboundDownlink\": true,\n        \"statsOutboundUplink\": true\n      }\n    },\n    \"reverse\": null,\n    \"routing\": {\n      \"domainStrategy\": \"\",\n      \"rules\": [\n        {\n          \"inboundTag\": [\"\"],\n          \"outboundTag\": \"\",\n          \"type\": \"\"\n        }\n      ]\n    },\n    \"stats\": {},\n    \"transport\": null\n  }\n}\n\n ```"
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getConfigJson",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"server",
+								"getConfigJson"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Mon, 08 Sep 2025 22:16:41 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "1607"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"\",\n    \"obj\": {\n        \"api\": {\n            \"services\": [\n                \"HandlerService\",\n                \"LoggerService\",\n                \"StatsService\"\n            ],\n            \"tag\": \"api\"\n        },\n        \"burstObservatory\": null,\n        \"dns\": null,\n        \"fakedns\": null,\n        \"inbounds\": [\n            {\n                \"listen\": \"127.0.0.1\",\n                \"port\": 62789,\n                \"protocol\": \"dokodemo-door\",\n                \"settings\": {\n                    \"address\": \"127.0.0.1\"\n                },\n                \"sniffing\": null,\n                \"streamSettings\": null,\n                \"tag\": \"api\"\n            },\n            {\n                \"listen\": null,\n                \"port\": 38756,\n                \"protocol\": \"vless\",\n                \"settings\": {\n                    \"clients\": [\n                        {\n                            \"email\": \"g8odxwnc\",\n                            \"flow\": \"\",\n                            \"id\": \"215254e8-48e1-4c80-904b-7788cda1274c\",\n                            \"password\": \"\"\n                        }\n                    ],\n                    \"decryption\": \"none\",\n                    \"encryption\": \"none\"\n                },\n                \"sniffing\": {\n                    \"destOverride\": [\n                        \"http\",\n                        \"tls\",\n                        \"quic\",\n                        \"fakedns\"\n                    ],\n                    \"enabled\": false,\n                    \"metadataOnly\": false,\n                    \"routeOnly\": false\n                },\n                \"streamSettings\": {\n                    \"network\": \"tcp\",\n                    \"security\": \"none\",\n                    \"tcpSettings\": {\n                        \"acceptProxyProtocol\": false,\n                        \"header\": {\n                            \"type\": \"none\"\n                        }\n                    }\n                },\n                \"tag\": \"inbound-38756\"\n            }\n        ],\n        \"log\": {\n            \"access\": \"./access.log\",\n            \"dnsLog\": false,\n            \"error\": \"\",\n            \"loglevel\": \"warning\",\n            \"maskAddress\": \"\"\n        },\n        \"metrics\": {\n            \"listen\": \"127.0.0.1:11111\",\n            \"tag\": \"metrics_out\"\n        },\n        \"observatory\": null,\n        \"outbounds\": [\n            {\n                \"protocol\": \"freedom\",\n                \"settings\": {\n                    \"domainStrategy\": \"AsIs\",\n                    \"noises\": [],\n                    \"redirect\": \"\"\n                },\n                \"tag\": \"direct\"\n            },\n            {\n                \"protocol\": \"blackhole\",\n                \"settings\": {},\n                \"tag\": \"blocked\"\n            }\n        ],\n        \"policy\": {\n            \"levels\": {\n                \"0\": {\n                    \"statsUserDownlink\": true,\n                    \"statsUserUplink\": true\n                }\n            },\n            \"system\": {\n                \"statsInboundDownlink\": true,\n                \"statsInboundUplink\": true,\n                \"statsOutboundDownlink\": false,\n                \"statsOutboundUplink\": false\n            }\n        },\n        \"reverse\": null,\n        \"routing\": {\n            \"domainStrategy\": \"AsIs\",\n            \"rules\": [\n                {\n                    \"inboundTag\": [\n                        \"api\"\n                    ],\n                    \"outboundTag\": \"api\",\n                    \"type\": \"field\"\n                },\n                {\n                    \"ip\": [\n                        \"geoip:private\"\n                    ],\n                    \"outboundTag\": \"blocked\",\n                    \"type\": \"field\"\n                },\n                {\n                    \"outboundTag\": \"blocked\",\n                    \"protocol\": [\n                        \"bittorrent\"\n                    ],\n                    \"type\": \"field\"\n                }\n            ]\n        },\n        \"stats\": {},\n        \"transport\": null\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "cpuHistory/:bucket",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:2053/panel/api/server/cpuHistory/{bucket}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "2053",
+					"path": [
+						"panel",
+						"api",
+						"server",
+						"cpuHistory",
+						"{bucket}"
+					]
+				},
+				"description": "## Endpoint Description\n\nThis endpoint retrieves the CPU history data for a specified time bucket from the server. It provides insights into CPU usage over time, which can be useful for monitoring and performance analysis.\n\n### Request\n\n- **Method**: GET\n    \n- **URL**: `http://localhost:2053/panel/api/server/cpuHistory/{bucket}`\n    \n- **Path Parameter**:\n    \n    - `bucket` (string): This parameter specifies the time bucket for which the CPU history is requested. The format and acceptable values for this parameter should be defined based on the API's requirements.\n        \n\n### Response\n\n- **Status Code**: 200 OK\n    \n- **Content-Type**: application/json\n    \n- **Response Structure**:\n    \n    - `success` (boolean): Indicates whether the request was successful.\n        \n    - `msg` (string): A message providing additional information about the request. This may be empty if there are no issues.\n        \n    - `obj` (array or null): Contains the CPU history data. Each entry in the array has the following structure:\n        \n        - `cpu` (integer): Represents the CPU usage value.\n            \n        - `t` (integer): Represents the timestamp associated with the CPU usage value.\n            \n\n### Example Responses\n\n1. { \"success\": true, \"msg\": \"\", \"obj\": \\[ { \"cpu\": 0, \"t\": 0 } \\]}\n    \n2. { \"success\": true, \"msg\": \"\", \"obj\": null }\n    \n\n### Notes\n\nThis endpoint is essential for obtaining real-time CPU usage statistics, which can help in diagnosing performance issues and understanding system load over specified periods. It is important to note that the `obj` field may return either an array of CPU usage records or null, depending on the availability of data for the requested time bucket. Ensure to handle both scenarios in your application logic."
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/cpuHistory/30",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"server",
+								"cpuHistory",
+								"30"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 25 Sep 2025 09:45:37 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "283"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"\",\n    \"obj\": [\n        {\n            \"cpu\": 17.291145865138006,\n            \"t\": 1758793380\n        },\n        {\n            \"cpu\": 14.006730599906719,\n            \"t\": 1758793410\n        },\n        {\n            \"cpu\": 10.055294573878642,\n            \"t\": 1758793440\n        },\n        {\n            \"cpu\": 10.2679041077746,\n            \"t\": 1758793470\n        },\n        {\n            \"cpu\": 11.869218431909065,\n            \"t\": 1758793500\n        },\n        {\n            \"cpu\": 10.870493278632468,\n            \"t\": 1758793530\n        }\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "get New UUID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getNewUUID",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"server",
+						"getNewUUID"
+					]
+				},
+				"description": "## Endpoint Description\n\nThis endpoint retrieves a new universally unique identifier (UUID) from the server. It is typically used to generate a unique identifier for various purposes within the application, such as session management or resource identification.\n\n### Request Method\n\n- **GET**\n    \n\n### Request URL\n\n- `http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getNewUUID`\n    \n\n### Response Structure\n\nThe response from this endpoint will be in JSON format and includes the following structure:\n\n- **success**: (boolean) Indicates whether the request was successful.\n    \n- **msg**: (string) A message providing additional information about the request status.\n    \n- **obj**: (object or null) Contains the UUID if the request was successful. The structure of the object is as follows:\n    \n    - **uuid**: (string) The newly generated UUID.\n        \n\n#### Example Response\n\n``` json\n{\n  \"success\": true,\n  \"msg\": \"\",\n  \"obj\": {\n    \"uuid\": \"generated-uuid-value\"\n  }\n}\n\n ```\n\n### Status Codes\n\n- **200 OK**: The request was successful, and the server returned the expected response.\n    \n\nThis endpoint is essential for generating unique identifiers required for various operations within the application."
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getNewUUID",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"server",
+								"getNewUUID"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Mon, 08 Sep 2025 23:17:30 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "79"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"\",\n    \"obj\": {\n        \"uuid\": \"0b8ca9c6-9f47-42d5-971f-af595efd842b\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "get New X25519 Cert",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getNewX25519Cert",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"server",
+						"getNewX25519Cert"
+					]
+				},
+				"description": "### API Endpoint: Get New X25519 Certificate\n\nThis endpoint retrieves a new X25519 certificate, which includes both a private key and a public key. This certificate is essential for secure communication and cryptographic operations.\n\n#### Request Method\n\n- **GET**\n    \n\n#### Request URL\n\n- `http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getNewX25519Cert`\n    \n\n#### Response Structure\n\nThe response from this endpoint will be in JSON format and will contain the following fields:\n\n- **success** (boolean): Indicates whether the request was successful.\n    \n- **msg** (string): A message providing additional information about the request status.\n    \n- **obj** (object): Contains the certificate details:\n    \n    - **privateKey** (string): The generated private key.\n        \n    - **publicKey** (string): The generated public key.\n        \n\n#### Example Response\n\n``` json\n{\n  \"success\": true,\n  \"msg\": \"\",\n  \"obj\": {\n    \"privateKey\": \"\",\n    \"publicKey\": \"\"\n  }\n}\n\n ```\n\nThis endpoint is expected to return a 200 HTTP status code upon successful execution."
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getNewX25519Cert",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"server",
+								"getNewX25519Cert"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Mon, 08 Sep 2025 23:08:11 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "150"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"\",\n    \"obj\": {\n        \"privateKey\": \"aHa5WREV94uI9LYFFzxoBVjXnfTXVNpewvzIrkXtp3w\",\n        \"publicKey\": \"3L7iv-NlexMtONKoHqnqTcirRoaVgb7dqvRbbtuOplM\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "get New mldsa65",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getNewmldsa65",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"server",
+						"getNewmldsa65"
+					]
+				},
+				"description": "## Endpoint Description\n\nThis endpoint retrieves the status of the server by making an HTTP GET request to `http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getNewmldsa65`. It is designed to provide information about the server's current state and performance metrics.\n\n### Request Format\n\n- **Method**: GET\n    \n- **URL**: `http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getNewmldsa65`\n    \n\nNo request body is required for this endpoint.\n\n### Response Structure\n\nThe response from this endpoint will be in JSON format and will contain the following structure:\n\n``` json\n{\n  \"success\": true,\n  \"msg\": \"\",\n  \"obj\": {\n    \"seed\": \"\",\n    \"verify\": \"\"\n  }\n}\n\n ```\n\n#### Response Fields\n\n- **success**: A boolean indicating whether the request was successful.\n    \n- **msg**: A string that may contain additional information or error messages.\n    \n- **obj**: An object that may contain various properties depending on the server's status.\n    \n\n### Status Codes\n\n- **200 OK**: Indicates that the request was processed successfully.\n    \n\nThis endpoint is useful for monitoring server health and performance metrics, providing essential data for system administrators and developers."
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getNewmldsa65",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"server",
+								"getNewmldsa65"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Mon, 08 Sep 2025 22:36:47 GMT"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"\",\n    \"obj\": {\n        \"seed\": \"RG5tF_0mZMdGCniZyMfdF-TQCaIU-74qsiLxR_ls_IA\",\n        \"verify\": \"XZKpy8CwZp2dYNBJUwIbG8I7RFOZUtpBCNdraVRTQY0GSHlMpcjDzjX_rSxKr8JBlohfablGY6LNsPtLBg19SZfGOlrkhJLLNv7SL7hXCwhOPvdXt-0R0sarO9AYUmHvMk4ClrCGBi4dP68fudsNbALuVlYFxcTSG68MWhSFJSYoaN4p-n2QYH1BwBsLcZy9H4uLsdGMDxevRiL13ujLphc1XfFvNIL2thT1BtCSjex7gBA1v-vKPU0_Djskm09PLJjPbv1ol40C6Q7p-tmg8hTGpP_8PPXJmVVimud53jjlkrB7EUgA-xgkrAgnfp-rfWc77LMHDn7_-QmS6Weu9GKzI0wIMJpcaRv-OBOfqaYw-kSA3jq1qhD0yDBflqZeWNc7b_XvWsxRio0CUKD8gPUlyG_ipuq5dzlfL3PGzGTCxDdtE9CLjiy2hA7k-dM6FhwFaFXDJH1zPGoz7sec3yTiacwfGEoa1vjT5k8xFuAqZ-xyHdqGQfu09LsBMWQ_O_a129tCHhV1oo9J5x9VKk_YM2i_VsK3sMM868_kBM3L0hVz34D2kSFSryjDTxc7lY0vY0SlANYoykKjhwtF8BC-GS61KSu-aXRyWfzcA9BlBXWoOSVEh47jzs1Z_8QcZvcBrYPZyq0oi--aKNYBi19FbvEqRkb92mX4G1kahXYluEy80uLkbA5jFsLKzdZEZ9EBUAmDW1Vti0LcKRoZpd-GE01bZacAr_gVShv-lKqhJTp8y8CZ3Ss5Q-Ct26tY8cnX3eTN1D9e-svfBLKqBIpeP0eJW0Bh4IuSz_r5t1HAzyqyigwX--u4vhGMiTq1kwXy_XcXaWNjnswcze-7oT6vHl7mFJ8Kv6OC_n9ukdR5qcFbckshoUzWGrmo5pIl2Q-1lFXO5rIcZQ7zFr1qdSKT-zPBj3UayrMc6GC5weOXDhg4IiyPUCvZ8ScB5UF6YepL3jsJ3mWG2IxO7SE7DONlS8vTffox6zPjxotzKNKudmH5fPxmmumRl-nQmYy-hyA5hvl8f2brRWxs_e8OOXIpHrrRtfAnVzbwTwfxbRT4tnCxxWiSD2R_uZ81j2LkP_SDS014i0dFBDRLiyQE4vkkaQlKAsn2ZDP9jQ1JlrwLUY_bGTrRhYG4bRBtSB6w3BYe3ttP0DlX5RY5nmOxHciHYUmkyhbYo7p7AiQURGEszDtWE4wK0FW83iQINlTqF1vW6WQJZXOwWQbKHT7iw29nsYtueyoc1FsAnfEAqoGIZda1Fy5CiaCoviUln6HjcF5_Pl-XXXljc0Viw0jR6YMnAiOkItaOGGMxWLuPpCZfV1NzASU7AiMpzFgbvM-3hNjkRXxxNr_GFjcg-kU4SX3oxRVWQlLZ6_2oyKXT0dOEymQdXS6qyQ4FGfEJytGZa-xbLBAwPcmaMEtAYeCww-1cpebQhfhAvuBEYn22NXrlOWy5g_gVuGyC9fr4a44hkrWjkq_nYA8thoycrzbrOXJDeWZk_ULF1_cnKm9FiS8dxZA74xgUXvZrB_oiHcujG22pZBFjq1qS_rAEGzt0fupgS0TFDSqIU3CDE35cHzJNg8FAMmOycSS2xR7Aah0B3-jIt9lRXm-ci9717eIPqTIlhwX_IVgQgOVSv3rqSfMdHbJ75yajVc05qjJvjNk2sZbL9Dt3O9Ydm6_4x7HBxQOXYma23hyTBp5pphF1WEKUTlalNUkCa2JtwPoWOSsG3fmhxyz_zLQb2ig6YgweNzsH1mlr1OQquPPG7yEdxgNyyVu-WXLdsiiiNfuSL3I12nblBFOpCok900-Vbb9_sQGZy5GT1FqkM22QdqREAcOvk7_PO_c3RNZRreO7rejOkuWAQukvaZUEdmAtjonCz_n50cTQPIrjwKBeyaIlwOif4sukyxJeYRVEPnBalr9OU6neaN-WJr4IScXhRgln-A4CgNxP7Fj25CsdxO_bU4Hu0LSsvTNzQpPQhR3NzkZ5v6clLbx8trUm1WspU6cJ8xuWk7aTqbCpTr-iwns4bZVeaUSy0M9dqh7fyoYH5SeXEInS-c32Ksby6hsQa4VJGLv_-xg6FIFcDU-Fx4QAmFix4Y6VL9SDQW5tcDnleFY_wewXgekorA0WVbklOjw1rBwOAgecXXA50ZNpv_-4heoVrhi80yb1u1h2mbBhod32sZXjegpXBSdHOvzfuuK49u0yX75IL6vs9uiRUozYttpKQlUc2Uqup5TeW_kYy7YrFAorDSpp7eLgJiOkrQYDfBw9bjHjqtJrW1HE0QwgXukWY8Dn5p8UgA4XxFaQLnhbJyyESReVRrsFaj1APg3XkPN-BlxPCVc5G6nmz6nq_b4z7hn6vmHjtyWuR14QML3k7ArNkdSTQp1Yg_85vnE4GnUKdinWYyWdTJEs7Eh0NvNW-KiDqbvjN1mk50TJnoMaorKbhIr6CbKlvL5waRJC8wCOAW9Pp33BCiG0GrBShvJkNCYUhl_aQWLAJStwJI9C9BhNhmWTvoxf_16v06jBOVJ-jPt9rbwKuZtHpkAUPesZNr4CrzxcnIq6oKnGIDzbJIjKE-JJas0XwIwRoypOMRdkUqf_dhbkapxfj6P2iEA\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "get New mlkem768",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getNewmlkem768",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"server",
+						"getNewmlkem768"
+					]
+				},
+				"description": "## Endpoint Description\n\nThis endpoint retrieves the status and configuration details of the server associated with the specified identifier. It is particularly useful for monitoring server performance and obtaining essential metrics.\n\n### Request\n\n- **Method**: GET\n    \n- **URL**: `http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getNewmlkem768`\n    \n\n### Functionality\n\nThis request fetches the current status of the server, including various performance metrics such as CPU usage, memory usage, and network statistics. It is essential for administrators to monitor server health and performance in real-time.\n\n### Important Notes\n\n- Ensure that the server is running and accessible before making the request.\n    \n- The response may vary based on the server state and configuration.\n    \n\n### Status Codes\n\n- **200 OK**: The request was successful, and the server returned the expected response.\n    \n\nThis endpoint is integral for obtaining real-time data about the server's performance, allowing for effective monitoring and management."
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getNewmlkem768",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"server",
+								"getNewmlkem768"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Mon, 08 Sep 2025 23:10:50 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "1720"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"\",\n    \"obj\": {\n        \"client\": \"dpxpe7U-UNeHgHmf57JGmcrLgTyOFdefywxds_xIPOJAQ2gztXgxWJebtvNJgCQ3jOGuD0FHUQJBNvEs13FBbAw8-MlgIXWQrgQqoOJPjahc6BUNyIpj_5NCOLKlLTui6yK4uWRvxoOoBSshkYGVwXAiRqoF8jW9vDl1DIuAnlQPHTOnrRCRHkSWewQF9NM1ntFdr-sPOpENT4UrNjRB1dfB1FUxu1iDnYUQFMgFP4jJ4CYbpaCqhbgV4KTHSVrF69uN2oxMyLCDLHKfJqNwgGIjJZhQ9vYk0qPBRaHBSVsphtpQIyM-7mEw7HZ9CTJdkjqQFLuHPWJhrreijLCKD-seURYFxEDOS-qYTshvT3RnOigb-WqZ38hxDZF1YDgWF3pjW0U6o3qAfydLdzfACLixR9JpONEyCpuRTfK9RbzA5ZZ_kKBRtMlBk_OhBjFe9uM8UMVNyuRqrMi9ZRIjluhuYitW6-cOrklLPUzAu2Cogrk0VEUntoxdJci0B0TDIbBZFSgJXPwDLjqmgfNFVeUbo2zAG4B0w7ax-yCarkk4KLU9QpGQpug0YsykrHRnL7KYWeirD4NIZvhVFzPE0lzGq-rDyEVNanaBg6ZzeSVB_PF8u2TDuecNINGjvBKWwpF3C3a4p2ot1XjE0XFPgCCXiNgZnpxxhTptifoDdpeISRmwYFcZrMe9ktJpRWUThkIphjB9cBIHg9Cd6Fa5-kSw06NehjF4McG7jLenMsiOqlqK0hNek_QPnLBUqcWYvgFYmXmXonW_wVELQPEl3ucb11OhK2NTp3s08wtSK5RyXbQSdApt-_pTbfEMLBYOq2mZxTkzbVKeRpVOFxfOlCd8cMuLBtOApGtsX8VwFzlPhcCm8PQ46tY1VBJOlkEMoThMZNagz9AfulqF0WS9FLwS1ABF9Vt0PSJDnTa17_QrZYAEbzPIo2EbXmMhp_ltxUZUtqapLfSCAFdi2LUTq_sxLRQLNNZYAqVUXwGq0FQkIuJQDeA2zayLHMYM5bgSqUdJklIqcPobyLkDOMSk9TktYXCnVBIn4lMdaBcZUouEpUgrKDmeQRG8BlULbNIynvyRgHXH13gYP0PO7We0QTWSDDVY3-zH8IUrXKcbeLLB1nhzzglqKphtNXaE5IVW3kNsOxfEHvoxndE1SokMjOwWYsw4faCxNoY5e2RRhXF0MhKNCRALX5TO8oiJAtISNkix_shIoXpkjYtF3zs9oLlf-kuCG3ZVPLC3EEdq6YMjFTkHztGUZlpj9vJ2DxtT9NWiwdWPeuRk5Phd2CUoO3AVwonI4Iwtd3ZDz3mDQlOIw6q-KLhfQctW_Lx4K-I-aTAHZ2KDxMudw9aI2XqyQwKhfPEfc1xZ-pOAVOgzgkceI6ySP2IBzBy09ZESVGcSEZgPFXVBSgeOBbq4lbLN6RdD2Bk_LUJZY_KcFgIOKVMwykUBkDlonqZsavEpEFRVvoXAujRsMeFmN6gJxSpxKaMWqtrPihcSNyOhhEmiEUc4tLMLvYdkyglxD9AWI0gWD0YNr1zLsIx1TK25PmDZiL7V_nvl53WVwi3ukRf8w-c\",\n        \"seed\": \"VzJj9F1rvKXVDTJwyvmCvTKYX9ABiydklvOESw_OQQsl3hMpOVFOBp7v_-s8DWYNG9gFVHiOJ1KXw5yvoFIw2w\"\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "get New Vless Enc",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getNewVlessEnc",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"server",
+						"getNewVlessEnc"
+					]
+				},
+				"description": "### Endpoint Description\n\nThis endpoint retrieves the current configuration for the VLESS encryption method used by the server. It is designed to provide information about the available authentication methods, including their decryption and encryption settings.\n\n### Request Method\n\n- **GET**\n    \n\n### Expected Response Format\n\nThe response will return a JSON object containing the following structure:\n\n- **success**: A boolean indicating whether the request was successful.\n    \n- **msg**: A string that may contain additional information or error messages (if applicable).\n    \n- **obj**: An object containing an array of authentication methods. Each authentication method includes:\n    \n    - **decryption**: A string representing the decryption method.\n        \n    - **encryption**: A string representing the encryption method.\n        \n    - **label**: A string that serves as a label for the authentication method.\n        \n\n#### Example Response\n\n``` json\n{\n  \"success\": true,\n  \"msg\": \"\",\n  \"obj\": {\n    \"auths\": [\n      {\n        \"decryption\": \"\",\n        \"encryption\": \"\",\n        \"label\": \"\"\n      }\n    ]\n  }\n}\n\n ```\n\n### Related Responses\n\nResponses from other endpoints in this API may return similar structures, often with a `success` field and an `obj` that can be either an object, array, or null, depending on the specific endpoint being called.\n\nThis endpoint retrieves the latest VLESS encryption configurations from the server. It is primarily used to obtain the current encryption settings that can be utilized for secure communication.\n\n### Request Format\n\n- **Method**: GET\n    \n- **URL**: `http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getNewVlessEnc`\n    \n\n### Response Structure\n\nThe response from this endpoint is in JSON format and includes the following fields:\n\n- **success** (boolean): Indicates whether the request was successful.\n    \n- **msg** (string): A message providing additional information about the request's outcome.\n    \n- **obj** (object): Contains the details of the VLESS encryption configurations. This field can have the following structure:\n    \n    - **auths** (array): An array of authentication objects, each containing:\n        \n        - **decryption** (string): The decryption method used.\n            \n        - **encryption** (string): The encryption method used.\n            \n        - **label** (string): A label associated with the authentication method.\n            \n\n### Example Response\n\nA successful response may look like this:\n\n``` json\n{\n  \"success\": true,\n  \"msg\": \"\",\n  \"obj\": {\n    \"auths\": [\n      {\n        \"decryption\": \"\",\n        \"encryption\": \"\",\n        \"label\": \"\"\n      }\n    ]\n  }\n}\n\n ```\n\n### Related Responses\n\nResponses from other endpoints in this API may return similar structures, often with a `success` field indicating the result of the request and an `obj` field that can either contain relevant data or be `null`.\n\nThis endpoint is critical for applications that rely on VLESS for secure data transmission, ensuring that the latest encryption methods are always in use."
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getNewVlessEnc",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"server",
+								"getNewVlessEnc"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Mon, 08 Sep 2025 23:16:52 GMT"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"\",\n    \"obj\": {\n        \"auths\": [\n            {\n                \"decryption\": \"mlkem768x25519plus.native.600s.YFTcWrEulaPORRccLD0QH95NOCo4hlUzaGPq_5mMmEk\",\n                \"encryption\": \"mlkem768x25519plus.native.0rtt.5gdj5V4eNShGBvaWOLX3RtokDD0uSy9LtcvDfvPN1HU\",\n                \"label\": \"X25519, not Post-Quantum\"\n            },\n            {\n                \"decryption\": \"mlkem768x25519plus.native.600s.PrL1bfe6dgdksMT3E5oAEr-la6h7KZTqu9679F-inkbcSSCkwmExCONLvfgkDvuMSFluuPj0hJNKeVuzfckyEA\",\n                \"encryption\": \"mlkem768x25519plus.native.0rtt.N-gYHVAmMTQskecls5vJJ2TBMqp0mmKuM8S5WDqbdUCbSQwwcQwf1TMHq8t2aoc2O1opo-hyzCMV5ycf_bSXAmxK3vionBVIAuV6alLH44iM1XGDfYdJcVBgcbNqCDJJaLZKQAh4obyASbqi02ZqcnBLwYwV1qK0GlJ1-rJGI6yU_nkaKxxJf8wwsoc_WvluBzapiqoAaqCOkQRy8DUi_FO9HPGC32yVRGgEdynJt1HGsTAC_XTJhXEYyZc8ORhWQpdKEYk3LSp0wgcGJFm9uDFDR3JyM_SH2zeWQyuEZpNgkeUkyeGmr2asb-hU8btzqVtKjvoZTCAQfAiTFmkLittsXhZNPmZO49W3ozcm9KFB0sPHj-AjKDjIT6EB7ForHxWq59VMOvMPCNUefeC_WaPFgGaClsVVrugm6DVXnQqL-FnELGesJDkLWAuLGdIo_scfzapAEhBqaTO-0FF6PgOpfaqsdNggPZdDNBlqAdhxrCMxh_d1wfpSB6OhUjs1jTe363BiqNF3rhq5LmlcGMMZZ7N46jgVsDa8N7hRxUkJ8jp2bjQGg9W4aQae45AWuqQ7_FLNP_u3jNTMY6nMpalOM9JRqbmVU_OynNwla-IBjkalsonH_Jy3sHCofJe4nAl5PecjmTa2kjInLaNu07hoAnNVQvoD9BJIoXzNcvWZqNeTrfE2Awkm4cZ1UCCh58wjQ1NPiACZMtGII5hUlcCnPcMCJoO_S6Q1vlmfJcZ4fxyQzot1wWGI09K66SoBh9Riz5oSOYy-OKfMpPyxJZM4CvauxbsWE8oYJ5U0axuN_vxP_XcTDyHCe4B4qnmRnAUO7cZ0v7VM8jUUM1FMeqFcoARv1yFxBPsb9TFSNOhIGCIdSpdZ1tg4VmwDX-VSASuwUTQ6l8YQ60YXNNvHBoEuyahhjeleWTHN_fBKTVysElzGHrmzZEfLBDOrqRmlG_WEBVcynKelQ5Odf0BeG9BotlRyKfc_dTwHWQEQYiAxVcwHkXMv3TG4xlezG4Uw0HHHF3tvt1umwoIWNzGc7EpM73dohkc-4yiZGcxcgBmvjwKvt2daPvIHKGCLTbOKyKqicCJqNAheZYtIctoVfOaq3AYHfIxaFlHMKrxxDuFXi-Fw-rILtMshOvutrHm9_EzDp0xwBQNKKNVxHfBf16FU3ny54fu95CjLhHGUvDgSucwqZJkgmHyyXmwiRNGSGqnKTDaEd3ts5GiQope7jbNIDdYW-AcYfrwq7WUy9rhOMHuDNDgcp6s2ZWU6IpkDQ8diFAw9ozRsauGJ3eWiFRkjZfYU6LIatkVbEpG_IgcPzUeOGBjKYZqiniisuQtjTHOy0oMCFjp8qrvP00dFdsJzkgeGiidx-TcHjoc_I-gSDaUpGekeAIROlkJOmSsO6RgfhKJlWySx02CwbPlTXiQOVvUDwwMiqGMZOHATAmkmHOdg6viuW1lbWYlsa9iAU9ETUycJe9in1EOtCkgTr8kCRJx1Jhij9jiPltKCovmOpUW01aenqMloTsUrK1NHCW-RoCUKkMJxSWLgrg3kLKe2Uz5lCwiODk-24phElXQ\",\n                \"label\": \"ML-KEM-768, Post-Quantum\"\n            }\n        ]\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "stop Xray Service",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/stopXrayService",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"server",
+						"stopXrayService"
+					]
+				},
+				"description": "### Stop Xray Service API\n\nThis endpoint is used to stop the Xray service on the server. It is a POST request that does not require any body parameters.\n\n#### Request\n\n- **Method**: POST\n    \n- **URL**: `http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/stopXrayService`\n    \n\n#### Expected Response\n\nUpon a successful request, the API will return a JSON object with the following structure:\n\n- **success**: A boolean indicating the success of the operation.\n    \n- **msg**: A message string that may contain additional information about the operation.\n    \n- **obj**: This can be `null` or may contain other relevant data based on the context of the request.\n    \n\n##### Example Response\n\n``` json\n{\n  \"success\": true,\n  \"msg\": \"\",\n  \"obj\": null\n}\n\n ```\n\n#### Notes\n\n- The response will always return a 200 status code indicating that the request was processed successfully.\n    \n- Similar endpoints return responses with the same structure, which may include more detailed information about the server's state or statistics.\n    \n- Ensure that you have the necessary permissions to stop the Xray service before making this request."
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/stopXrayService",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"server",
+								"stopXrayService"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Mon, 08 Sep 2025 22:18:36 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "71"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"Xray has been successfully stopped.\",\n    \"obj\": null\n}"
+				}
+			]
+		},
+		{
+			"name": "restart Xray Service",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/restartXrayService",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"server",
+						"restartXrayService"
+					]
+				},
+				"description": "### Restart Xray Service API Endpoint\n\nThis endpoint is used to restart the Xray service on the server. It is a crucial operation that may be required for maintenance or troubleshooting purposes.\n\n#### Request\n\n- **Method**: POST\n    \n- **URL**: `http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/restartXrayService`\n    \n- **Request Body**: The request does not require any specific parameters in the body.\n    \n\n#### Notes\n\n- The endpoint is expected to return a `200` status code for successful operations.\n    \n- Ensure that the Xray service is not already running before sending this request to avoid unnecessary restarts.\n    \n- Monitor the response for any error messages that may indicate issues with the restart process."
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/restartXrayService",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"server",
+								"restartXrayService"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Mon, 08 Sep 2025 22:19:30 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "74"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"Xray has been successfully relaunched.\",\n    \"obj\": null\n}"
+				}
+			]
+		},
+		{
+			"name": "install Xray version",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/installXray/v25.9.11",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"server",
+						"installXray",
+						"v25.9.11"
+					]
+				},
+				"description": "### Endpoint Description\n\nThis endpoint is used to install Xray on the server. It accepts a version parameter in the URL path to specify the version of Xray to be installed.\n\n### Request Parameters\n\n- **version** (path parameter): The version of Xray that you want to install. This should be provided in the URL.\n    \n\n### Notes\n\n- The endpoint will return a `200 OK` status code on successful installation, along with the response structure outlined above.\n    \n- Ensure that the correct version parameter is provided to avoid any installation issues."
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/installXray/v25.9.11",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"server",
+								"installXray",
+								"v25.9.11"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 25 Sep 2025 10:52:43 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "61"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"Xray updated successfully\",\n    \"obj\": null\n}"
+				}
+			]
+		},
+		{
+			"name": "update Geofile",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/updateGeofile",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"server",
+						"updateGeofile"
+					]
+				},
+				"description": "### Update Geofile API Endpoint\n\nThis endpoint is used to update the geofile on the server. It processes the provided data and returns the status of the update operation.\n\n#### Request\n\n- **Method**: POST\n    \n- **URL**: `http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/updateGeofile`"
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/updateGeofile",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"server",
+								"updateGeofile"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 25 Sep 2025 10:53:34 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "64"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"Geofile updated successfully\",\n    \"obj\": null\n}"
+				}
+			]
+		},
+		{
+			"name": "updateGeofile/{fileName}",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/updateGeofile/geosite.dat",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"server",
+						"updateGeofile",
+						"geosite.dat"
+					]
+				},
+				"description": "## Update Geofile\n\nThis endpoint allows you to update a geofile on the server by providing a specific filename. It is a POST request that targets the URL `http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/updateGeofile/{fileName}`, where `{fileName}` should be replaced with the actual name of the file you wish to update.\n\n### Request Parameters\n\n- **fileName** (path parameter): The name of the geofile you want to update. This is a required parameter.\n    \n\n### Status Codes\n\n- **200 OK**: Indicates that the request was successfully processed, and the response body will contain the relevant information as described above.\n    \n\nThis endpoint is crucial for maintaining and updating geofile data on the server, ensuring that the latest information is available for processing and analysis."
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/updateGeofile/geosite.dat",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"server",
+								"updateGeofile",
+								"geosite.dat"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 25 Sep 2025 10:54:29 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "64"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"Geofile updated successfully\",\n    \"obj\": null\n}"
+				}
+			]
+		},
+		{
+			"name": "logs/{count}",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "level",
+							"value": "debug",
+							"type": "text"
+						},
+						{
+							"key": "syslog",
+							"value": "false",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/logs/{count}",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"server",
+						"logs",
+						"{count}"
+					]
+				},
+				"description": "## API Endpoint: Log Server Events\n\n### Description\n\nThis endpoint allows you to log server events by sending a POST request. It accepts specific parameters related to the log level and the syslog message.\n\n### Request Method\n\n**POST**\n\n### Endpoint\n\n```\nhttp://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/logs/logs/{count}\n\n ```\n\n### Request Parameters\n\nThe request body should be sent as `form-data` with the following parameters:\n\n- **level** (type: text): Specifies the severity level of the log (e.g., INFO, ERROR, WARN).\n    \n- **syslog** (type: text): Contains the actual log message to be recorded.\n    \n\n### Expected Response\n\nUpon a successful request, the server will return a JSON response with the following structure:\n\n``` json\n{\n  \"success\": true,\n  \"msg\": \"\",\n  \"obj\": [\"\"]\n}\n\n ```\n\n- **success** (boolean): Indicates if the logging was successful.\n    \n- **msg** (string): A message providing additional information about the request (usually empty).\n    \n- **obj** (array): An array that may contain additional data related to the log operation. It can be an empty array or `null`.\n    \n\n### Notes\n\n- The endpoint is designed to handle logging operations efficiently, ensuring that server events are recorded correctly.\n    \n- The response will always return a status code of 200 for successful operations, regardless of the content of the `obj` field.\n    \n- Similar endpoints may return responses with similar structures, providing a consistent API experience.\n    \n\nEnsure to replace `{{HOST}}`, `{{PORT}}`, and `{{WEBBASEPATH}}` with the appropriate values when making requests."
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "level",
+									"value": "debug",
+									"type": "text"
+								},
+								{
+									"key": "syslog",
+									"value": "false",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/logs/{count}",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"server",
+								"logs",
+								"{count}"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 25 Sep 2025 10:41:31 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "645"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"\",\n    \"obj\": [\n        \"2025/09/25 12:41:28 WARNING - XRAY: core: Xray 25.9.11 started\",\n        \"2025/09/25 12:41:28 INFO - Sub server running HTTP on[::]:2096\",\n        \"2025/09/25 12:41:28 DEBUG - sub: Setting base_path to:/sub/\",\n        \"2025/09/25 12:41:28 INFO - XRAY: infra/conf/serial: Reading config: &{Name:bin/config.json Format:json}\",\n        \"2025/09/25 12:41:28 DEBUG - XRAY: A unified platform for anti-censorship.\",\n        \"2025/09/25 12:41:28 DEBUG - XRAY: Xray 25.9.11 (Xray, Penetrates Everything.) 3edfb0e (go1.25.1 windows/amd64)\",\n        \"2025/09/25 12:41:28 DEBUG - restart Xray, force:true\",\n        \"2025/09/25 12:41:28 INFO - Web server running HTTP on[::]:2053\"\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "xraylogs/{count}",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "showDirect",
+							"value": "true",
+							"type": "text"
+						},
+						{
+							"key": "showBlocked",
+							"value": "true",
+							"type": "text"
+						},
+						{
+							"key": "showProxy",
+							"value": "true",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/xraylogs/20",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"server",
+						"xraylogs",
+						"20"
+					]
+				},
+				"description": "### API Endpoint: Retrieve X-Ray Logs\n\nThis endpoint is designed to retrieve X-ray logs from the server. It allows users to specify the number of log entries to be returned through the `{count}` parameter in the URL. This is essential for monitoring the server's performance and for analyzing log data.\n\n#### Request\n\n- **Method**: POST\n    \n- **URL**: `http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/xraylogs/{count}`\n    \n\n**Path Parameter**:\n\n- `{count}` (integer): Specifies the number of X-ray log entries to retrieve.\n    \n\n**Request Body** (form-data):\n\n- `showDirect` (string): Indicates whether to show direct logs.\n    \n- `showBlocked` (string): Indicates whether to show blocked logs.\n    \n- `showProxy` (string): Indicates whether to show proxy logs.\n    \n\n#### Response\n\nThe response will contain a JSON object with the following structure:\n\n- `success` (boolean): Indicates whether the request was successful.\n    \n- `msg` (string): A message providing additional information about the request.\n    \n- `obj` (array or null): An array of log entries or null if no logs are available. Each log entry will contain:\n    \n    - `DateTime` (string): The date and time of the log entry.\n        \n    - `FromAddress` (string): The address from which the log originated.\n        \n    - `ToAddress` (string): The address to which the log was sent.\n        \n    - `Inbound` (string): Indicates if the log entry is inbound.\n        \n    - `Outbound` (string): Indicates if the log entry is outbound.\n        \n    - `Email` (string): The email associated with the log entry.\n        \n    - `Event` (integer): The type of event logged.\n        \n\n#### Status Codes\n\n- **200 OK**: The request was successful, and the response contains the requested data or null if no logs are available.\n    \n\nThis endpoint is crucial for monitoring the server's performance and retrieving logs for analysis."
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "showDirect",
+									"value": "true",
+									"type": "text"
+								},
+								{
+									"key": "showBlocked",
+									"value": "true",
+									"type": "text"
+								},
+								{
+									"key": "showProxy",
+									"value": "true",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/xraylogs/20",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"server",
+								"xraylogs",
+								"20"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": null,
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Thu, 25 Sep 2025 10:48:55 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "413"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"\",\n    \"obj\": [\n        {\n            \"DateTime\": \"2025-09-25T12:48:39.549806Z\",\n            \"FromAddress\": \"tcp:[::1]:59472\",\n            \"ToAddress\": \"tcp:www.google.com:443\",\n            \"Inbound\": \"inbound-58367\",\n            \"Outbound\": \"direct\",\n            \"Email\": \"ce0wa59b\",\n            \"Event\": 0\n        },\n        {\n            \"DateTime\": \"2025-09-25T12:48:39.870332Z\",\n            \"FromAddress\": \"tcp:[::1]:59472\",\n            \"ToAddress\": \"tcp:speed.cloudflare.com:443\",\n            \"Inbound\": \"inbound-58367\",\n            \"Outbound\": \"direct\",\n            \"Email\": \"ce0wa59b\",\n            \"Event\": 0\n        }\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "importDB",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/importDB",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"server",
+						"importDB"
+					]
+				},
+				"description": "## Import Database\n\n**Endpoint:** `POST http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/importDB`\n\nThis endpoint is used to import a database into the server. Upon a successful request, it returns a JSON response indicating the success of the operation along with relevant server statistics.\n\nThis endpoint is crucial for managing database imports and monitoring server performance."
+			},
+			"response": []
+		},
+		{
+			"name": "get New Ech Cert",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getNewEchCert",
+					"protocol": "http",
+					"host": [
+						"{{HOST}}"
+					],
+					"port": "{{PORT}}{{WEBBASEPATH}}",
+					"path": [
+						"panel",
+						"api",
+						"server",
+						"getNewEchCert"
+					]
+				},
+				"description": "## Endpoint Description\n\nThis endpoint allows clients to retrieve new Echo certificates from the server. It is accessed via an HTTP POST request to `http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getNewEchCert`.\n\n### Request Parameters\n\nThis endpoint does not require any specific parameters in the request body. It is a straightforward call to fetch new Echo certificates.\n\n### Expected Response\n\nUpon a successful request, the server responds with a JSON object that includes the following structure:\n\n- **success** (boolean): Indicates whether the request was successful.\n    \n- **msg** (string): A message providing additional information about the request status.\n    \n- **obj** (object): Contains the following fields:\n    \n    - **echConfigList** (string): A list of Echo configuration settings.\n        \n    - **echServerKeys** (string): The server keys associated with the Echo certificates.\n        \n\n### Response Examples\n\n1. { \"success\": true, \"msg\": \"\", \"obj\": { \"echConfigList\": \"\", \"echServerKeys\": \"\" }}\n    \n2. { \"success\": true, \"msg\": \"\", \"obj\": null}\n    \n\n### Notes\n\n- The endpoint returns a 200 status code for successful requests.\n    \n- Similar endpoints may return responses with different structures, but they generally follow the same success message format.\n    \n- Ensure that your application handles both successful and null object responses appropriately.\n    \n\nThis documentation should help users understand how to interact with the `getNewEchCert` endpoint effectively."
+			},
+			"response": [
+				{
+					"name": "success",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://{{HOST}}:{{PORT}}{{WEBBASEPATH}}/panel/api/server/getNewEchCert",
+							"protocol": "http",
+							"host": [
+								"{{HOST}}"
+							],
+							"port": "{{PORT}}{{WEBBASEPATH}}",
+							"path": [
+								"panel",
+								"api",
+								"server",
+								"getNewEchCert"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"key": "Date",
+							"value": "Mon, 08 Sep 2025 22:36:33 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "347"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"success\": true,\n    \"msg\": \"\",\n    \"obj\": {\n        \"echConfigList\": \"AFP+DQBPAAAgACBnzJMXZXXhERoC9m+P/YAbXNNEdp/hzHmq1iHHwi9dbwAkAAEAAQABAAIAAQADAAIAAQACAAIAAgADAAMAAQADAAIAAwADAAAAAA==\",\n        \"echServerKeys\": \"ACB955VJ7N8LX5dkDav+pZBxqA/4i9A9Q9sciFV4xKE8AQBT/g0ATwAAIAAgZ8yTF2V14REaAvZvj/2AG1zTRHaf4cx5qtYhx8IvXW8AJAABAAEAAQACAAEAAwACAAEAAgACAAIAAwADAAEAAwACAAMAAwAAAAA=\"\n    }\n}"
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "HOST",
+			"value": "localhost"
+		},
+		{
+			"key": "PORT",
+			"value": "2053"
+		},
+		{
+			"key": "WEBBASEPATH",
+			"value": "/randompath"
+		},
+		{
+			"key": "username",
+			"value": ""
+		},
+		{
+			"key": "password",
+			"value": ""
+		},
+		{
+			"key": "twoFactorCode",
+			"value": ""
+		}
+	]
+}

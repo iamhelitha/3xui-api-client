@@ -22,6 +22,9 @@ const test16_resetAllTraffics = require('./16_resetAllTraffics.js');
 const test17_resetAllClientTraffics = require('./17_resetAllClientTraffics.js');
 const test18_deleteDepletedClients = require('./18_deleteDepletedClients.js');
 const test19_createBackup = require('./19_createBackup.js');
+const test20_server_management = require('./20_server_management.js');
+const test21_settings_xray = require('./21_settings_xray.js');
+const test22_backupToTgBot = require('./22_backupToTgBot.js');
 
 // Shared test state
 const testState = {
@@ -183,7 +186,10 @@ async function runMainTests() {
             { test: test16_resetAllTraffics, name: 'Reset All Traffics', number: '16' },
             { test: test17_resetAllClientTraffics, name: 'Reset All Client Traffics', number: '17' },
             { test: test18_deleteDepletedClients, name: 'Delete Depleted Clients', number: '18' },
-            { test: test19_createBackup, name: 'Create Backup', number: '19' }
+            { test: test19_createBackup, name: 'Create Backup', number: '19' },
+            { test: test20_server_management, name: 'Server Management', number: '20' },
+            { test: test21_settings_xray, name: 'Settings & Xray', number: '21' },
+            { test: test22_backupToTgBot, name: 'Backup to Telegram', number: '22' }
         ];
 
         console.log('\n' + '='.repeat(60));

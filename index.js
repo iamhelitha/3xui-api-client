@@ -45,6 +45,14 @@ class ThreeXUI {
 
         // Apply security validations
         this.baseURL = InputValidator.validateURL(baseURL);
+
+        // Warning for common configuration error
+        if (this.baseURL.endsWith('/panel') || this.baseURL.endsWith('/panel/')) {
+            console.warn('WARNING: baseURL should NOT end with "/panel". The library appends this automatically. Please remove it from your configuration.');
+            // Auto-fix for better user experience
+            this.baseURL = this.baseURL.replace(/\/panel\/?$/, '');
+        }
+
         this.username = InputValidator.validateUsername(username);
         this.password = InputValidator.validatePassword(password);
         this.cookie = null;
@@ -174,6 +182,7 @@ class ThreeXUI {
                 return {
                     success: true,
                     fromCache: false,
+                    cookie: this.cookie, // Explicitly return the cookie
                     headers: response.headers,
                     data: response.data
                 };
@@ -206,12 +215,26 @@ class ThreeXUI {
      * Logout and clear session
      */
     async logout() {
+        try {
+            await this._request('get', '/logout');
+        } catch {
+            // Ignore server-side logout errors, proceed to clear local session
+        }
+
         this.cookie = null;
         delete this.api.defaults.headers.Cookie;
 
         if (this.sessionManager) {
             await this.sessionManager.deleteSession(this.baseURL, this.username);
         }
+    }
+
+    /**
+     * Check if Two-Factor Authentication is enabled
+     * @returns {Promise<Object>} 2FA status
+     */
+    getTwoFactorEnable() {
+        return this._request('post', '/getTwoFactorEnable');
     }
 
     async _request(method, path, data = {}) {
@@ -545,6 +568,21 @@ class ThreeXUI {
         return this._request('post', `/panel/api/inbounds/update/${id}`, validatedConfig);
     }
 
+    /**
+     * Import inbounds
+     * @param {Array} inbounds - Array of inbound configurations
+     */
+    importInbounds(inbounds) {
+        return this._request('post', '/panel/api/inbounds/import', { inbounds });
+    }
+
+    /**
+     * Get last online time for clients
+     */
+    getLastOnline() {
+        return this._request('post', '/panel/api/inbounds/lastOnline');
+    }
+
     // Clients
     addClient(clientConfig) {
         // Validate client configuration for security
@@ -560,6 +598,24 @@ class ThreeXUI {
         // Validate client configuration for security
         const validatedConfig = InputValidator.validateClientConfig(clientConfig);
         return this._request('post', `/panel/api/inbounds/updateClient/${clientId}`, validatedConfig);
+    }
+
+    /**
+     * Update client traffic limit and expiry by email
+     * @param {string} email - Client email
+     * @param {Object} trafficConfig - Traffic configuration (totalGB, expiryTime)
+     */
+    updateClientTraffic(email, trafficConfig) {
+        return this._request('post', `/panel/api/inbounds/updateClientTraffic/${email}`, trafficConfig);
+    }
+
+    /**
+     * Delete client by email
+     * @param {number} inboundId - Inbound ID
+     * @param {string} email - Client email
+     */
+    deleteClientByEmail(inboundId, email) {
+        return this._request('post', `/panel/api/inbounds/${inboundId}/delClientByEmail/${email}`);
     }
 
     getClientTrafficsByEmail(email) {
@@ -602,6 +658,248 @@ class ThreeXUI {
 
     createBackup() {
         return this._request('get', '/panel/api/inbounds/createbackup');
+    }
+
+    /**
+     * Trigger sending a backup to Telegram bot admins
+     */
+    backupToTgBot() {
+        return this._request('post', '/panel/api/backuptotgbot');
+    }
+
+    // ===========================================
+    // SERVER MANAGEMENT
+    // ===========================================
+
+    /**
+     * Get server status (CPU, RAM, etc.)
+     */
+    getServerStatus() {
+        return this._request('get', '/panel/api/server/status');
+    }
+
+    /**
+     * Get CPU usage history
+     * @param {string} bucket - Time bucket (e.g., 'min', 'hour')
+     */
+    getCPUHistory(bucket = 'min') {
+        return this._request('get', `/panel/api/server/cpuHistory/${bucket}`);
+    }
+
+    /**
+     * Get current Xray version
+     */
+    getXrayVersion() {
+        return this._request('get', '/panel/api/server/getXrayVersion');
+    }
+
+    /**
+     * Get Xray config as JSON
+     */
+    getConfigJson() {
+        return this._request('get', '/panel/api/server/getConfigJson');
+    }
+
+    /**
+     * Download database
+     */
+    getDb() {
+        return this._request('get', '/panel/api/server/getDb');
+    }
+
+    /**
+     * Stop Xray core service
+     */
+    stopXrayService() {
+        return this._request('post', '/panel/api/server/stopXrayService');
+    }
+
+    /**
+     * Restart Xray core service
+     */
+    restartXrayService() {
+        return this._request('post', '/panel/api/server/restartXrayService');
+    }
+
+    /**
+     * Install specific Xray version
+     * @param {string} version - Version to install
+     */
+    installXray(version) {
+        return this._request('post', `/panel/api/server/installXray/${version}`);
+    }
+
+    /**
+     * Get panel logs
+     * @param {number} count - Number of logs to retrieve
+     */
+    getPanelLogs(count = 100) {
+        return this._request('post', `/panel/api/server/logs/${count}`);
+    }
+
+    /**
+     * Get Xray logs
+     * @param {number} count - Number of logs to retrieve
+     */
+    getXrayLogs(count = 100) {
+        return this._request('post', `/panel/api/server/xraylogs/${count}`);
+    }
+
+    /**
+     * Update GeoIP/GeoSite files
+     * @param {string} [fileName] - Specific file to update (optional)
+     */
+    updateGeofile(fileName) {
+        const url = fileName
+            ? `/panel/api/server/updateGeofile/${fileName}`
+            : '/panel/api/server/updateGeofile';
+        return this._request('post', url);
+    }
+
+    /**
+     * Import database
+     * @param {FormData} formData - FormData containing the database file
+     */
+    async importDB(formData) {
+        // Ensure authenticated before direct API call
+        if (!this.cookie) {
+            await this._ensureAuthenticated();
+        }
+        // Use direct api call to handle multipart/form-data correctly
+        return this.api.post('/panel/api/server/importDB', formData);
+    }
+
+    // ===========================================
+    // SERVER-SIDE GENERATORS
+    // ===========================================
+
+    getNewUUID() {
+        return this._request('get', '/panel/api/server/getNewUUID');
+    }
+
+    getNewX25519Cert() {
+        return this._request('get', '/panel/api/server/getNewX25519Cert');
+    }
+
+    getNewmldsa65() {
+        return this._request('get', '/panel/api/server/getNewmldsa65');
+    }
+
+    getNewmlkem768() {
+        return this._request('get', '/panel/api/server/getNewmlkem768');
+    }
+
+    getNewVlessEnc() {
+        return this._request('get', '/panel/api/server/getNewVlessEnc');
+    }
+
+    getNewEchCert() {
+        return this._request('post', '/panel/api/server/getNewEchCert');
+    }
+
+    // ===========================================
+    // PANEL SETTINGS
+    // ===========================================
+
+    /**
+     * Get all panel settings
+     */
+    getAllSettings() {
+        return this._request('post', '/panel/setting/all');
+    }
+
+    /**
+     * Update panel settings
+     * @param {Object} settings - Settings to update
+     */
+    updateSetting(settings) {
+        return this._request('post', '/panel/setting/update', settings);
+    }
+
+    /**
+     * Update admin username and password
+     * @param {string} oldUsername - Current username
+     * @param {string} oldPassword - Current password
+     * @param {string} newUsername - New username
+     * @param {string} newPassword - New password
+     */
+    updateUser(oldUsername, oldPassword, newUsername, newPassword) {
+        return this._request('post', '/panel/setting/updateUser', {
+            oldUsername,
+            oldPassword,
+            newUsername,
+            newPassword
+        });
+    }
+
+    /**
+     * Restart the panel
+     */
+    restartPanel() {
+        return this._request('post', '/panel/setting/restartPanel');
+    }
+
+    /**
+     * Get default settings
+     */
+    getDefaultSettings() {
+        return this._request('post', '/panel/setting/defaultSettings');
+    }
+
+    /**
+     * Get default Xray JSON config
+     */
+    getDefaultJsonConfig() {
+        return this._request('get', '/panel/setting/getDefaultJsonConfig');
+    }
+
+    // ===========================================
+    // XRAY CONFIGURATION
+    // ===========================================
+
+    /**
+     * Get Xray configuration
+     */
+    getXrayConfig() {
+        return this._request('post', '/panel/xray/');
+    }
+
+    /**
+     * Update Xray configuration
+     * @param {string} config - Xray configuration content
+     */
+    updateXrayConfig(config) {
+        return this._request('post', '/panel/xray/update', { content: config });
+    }
+
+    /**
+     * Manage WARP
+     * @param {string} action - Action to perform (data, del, config, reg, license)
+     * @param {Object} [data] - Additional data for the action
+     */
+    manageWarp(action, data = {}) {
+        return this._request('post', `/panel/xray/warp/${action}`, data);
+    }
+
+    /**
+     * Get outbound traffic statistics
+     */
+    getOutboundsTraffic() {
+        return this._request('get', '/panel/xray/getOutboundsTraffic');
+    }
+
+    /**
+     * Reset outbound traffic statistics
+     */
+    resetOutboundsTraffic() {
+        return this._request('post', '/panel/xray/resetOutboundsTraffic');
+    }
+
+    /**
+     * Get Xray execution result
+     */
+    getXrayResult() {
+        return this._request('get', '/panel/xray/getXrayResult');
     }
 
     // Security Methods

@@ -278,11 +278,10 @@ declare module '3xui-api-client' {
     deleteDepletedClients(inboundId: number): Promise<any>;
     getOnlineClients(): Promise<any>;
     createBackup(): Promise<any>;
+    backupToTgBot(): Promise<any>;
 
-    // Static exports
-    static CredentialGenerator: typeof CredentialGenerator;
-    static SessionManager: typeof SessionManager;
-    static createSessionManager: (options?: SessionConfig) => SessionManager;
+    // Server Management
+    getServerStatus(): Promise<any>;
   }
 
   // ===========================================

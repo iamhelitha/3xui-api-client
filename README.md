@@ -7,7 +7,8 @@ A Node.js client library for 3x-ui panel API that provides easy-to-use methods f
 
 ## Features
 
-- ✅ **Authentication** - Secure login with automatic session management
+- ✅ **Authentication** - Secure login with automatic session management and cookie handling
+- ✅ **Security** - Built-in input validation, secure headers, and rate limiting
 - ✅ **Inbound Management** - Get, add, update, and delete inbounds
 - ✅ **Client Management** - Add, update, delete clients and monitor traffic
 - ✅ **Traffic Management** - Monitor, reset, and manage traffic limits
@@ -43,6 +44,41 @@ client.getInbounds()
   });
 ```
 
+## Configuration & Best Practices
+
+### Using Environment Variables (Recommended)
+Never hardcode your credentials in your code. Use environment variables to store sensitive information.
+
+> **IMPORTANT NOTE**: The `PANEL_URL` should be the root URL of your server **WITHOUT** the `/panel` suffix.
+> - ✅ Correct: `https://your-domain.com:2053` or `https://your-domain.com/secret-path`
+> - ❌ Incorrect: `https://your-domain.com:2053/panel`
+> 
+> The library automatically appends `/panel` and other necessary paths. Including it in your configuration will cause 404 errors.
+
+1. Create a `.env` file in your project root:
+```env
+PANEL_URL=http://your-server-ip:2053
+PANEL_USERNAME=admin
+PANEL_PASSWORD=your_secure_password
+```
+
+2. Install `dotenv`:
+```bash
+npm install dotenv
+```
+
+3. Initialize the client:
+```javascript
+require('dotenv').config();
+const ThreeXUI = require('3xui-api-client');
+
+const client = new ThreeXUI(
+    process.env.PANEL_URL,
+    process.env.PANEL_USERNAME,
+    process.env.PANEL_PASSWORD
+);
+```
+
 ## Authentication & Security
 
 ### Automatic Login
@@ -53,7 +89,7 @@ The client automatically handles authentication. When you make your first API ca
 4. Automatically re-login if the session expires
 
 ### Server-Side Cookie Storage (Recommended)
-For production applications, store the session cookie securely on your server:
+For production applications, store the session cookie securely on your server. The `login()` method returns the cookie for this purpose:
 
 ```javascript
 const ThreeXUI = require('3xui-api-client');
@@ -67,7 +103,9 @@ class SecureThreeXUIManager {
   async ensureAuthenticated() {
     if (!this.sessionCookie) {
       const loginResult = await this.client.login();
-      this.sessionCookie = this.client.cookie;
+      
+      // The cookie is returned in the login result
+      this.sessionCookie = loginResult.cookie;
       
       // Store in secure session storage (Redis, database, etc.)
       await this.storeSessionSecurely(this.sessionCookie);
@@ -92,6 +130,13 @@ class SecureThreeXUIManager {
   }
 }
 ```
+
+### Security Features
+The library includes several security enhancements:
+- **Input Validation**: Validates URLs, usernames, and passwords to prevent injection attacks.
+- **Secure Headers**: Automatically adds security headers to requests.
+- **Rate Limiting**: Prevents abuse by limiting request rates (configurable).
+- **Error Sanitization**: Hides sensitive details in production errors.
 
 ## API Reference
 
@@ -245,6 +290,18 @@ const result = await client.createBackup();
 console.log('Backup created:', result);
 ```
 
+#### Send Backup to Telegram Bot
+```javascript
+const tgResult = await client.backupToTgBot();
+console.log('Backup sent to Telegram:', tgResult);
+```
+
+#### Get Server Status
+```javascript
+const status = await client.getServerStatus();
+console.log('Server status:', status);
+```
+
 ## Documentation
 
 For comprehensive guides, examples, and implementation patterns, visit our [Wiki](https://github.com/iamhelitha/3xui-api-client/wiki):
@@ -314,4 +371,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-⚠️ **Security Notice**: Always store credentials and session cookies securely. Never expose them in client-side code or commit them to version control. 
+⚠️ **Security Notice**: Always store credentials and session cookies securely. Never expose them in client-side code or commit them to version control.

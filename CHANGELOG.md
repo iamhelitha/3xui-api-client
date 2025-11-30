@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1] - 2025-11-30
+
+### Fixed
+- 🐛 **Login Response**: `login()` method now explicitly returns the `cookie` in the response object, making it easier to store sessions in databases.
+- 🔧 **Configuration Auto-fix**: Automatically detects and fixes `PANEL_URL` configuration errors (removing trailing `/panel`) to prevent 404 errors.
+
+### Documentation
+- 📝 **Configuration Guide**: Added critical warning about `PANEL_URL` format in README.
+
 ## [2.1.0] - 2025-08-30
 
 ### Added
@@ -143,4 +152,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automated semantic releases
 - Enhanced unit test coverage
 - Performance benchmarking tools
-- Advanced monitoring and analytics 
+- Advanced monitoring and analytics

@@ -346,6 +346,33 @@ try {
 
 Create a new inbound with your desired configuration:
 
+### Import Inbounds
+Bulk import inbounds from an array of configurations.
+
+```javascript
+const inboundsToImport = [
+  {
+    remark: "Imported Server 1",
+    port: 8001,
+    protocol: "vless",
+    // ... other settings
+  },
+  {
+    remark: "Imported Server 2",
+    port: 8002,
+    protocol: "vmess",
+    // ... other settings
+  }
+];
+
+try {
+  const result = await client.importInbounds(inboundsToImport);
+  console.log('Inbounds imported:', result);
+} catch (error) {
+  console.error('Import failed:', error.message);
+}
+```
+
 ### Basic VLESS Example
 ```javascript
 const inboundConfig = {

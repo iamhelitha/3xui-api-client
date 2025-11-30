@@ -1,6 +1,6 @@
 # 3xui-api-client Documentation
 
-Welcome to the comprehensive documentation for **3xui-api-client v2.0** - a secure, feature-rich Node.js library for programmatic management of 3x-ui VPN panels with built-in credential generation, advanced session management, and enterprise-grade security.
+Welcome to the comprehensive documentation for **3xui-api-client v2.1** - a secure, feature-rich Node.js library for programmatic management of 3x-ui VPN panels with built-in credential generation, advanced session management, and enterprise-grade security.
 
 ## 🚀 Quick Start
 
@@ -44,7 +44,13 @@ console.log('Client created:', result.credentials);
 
 ⚠️ **Important**: This library is **server-side only** due to session cookie security requirements.
 
-## ✨ What's New in v2.0
+## ✨ What's New in v2.1
+
+### 🖥️ **Server & Panel Management**
+- **Full Server Control** - Monitor CPU/RAM, restart services, and manage Xray core
+- **Panel Settings** - Update panel configuration, admin users, and backup settings
+- **Database Management** - Import/Export database and manage backups
+- **Log Access** - Retrieve Panel and Xray logs programmatically
 
 ### 🔐 **Automatic Credential Generation**
 - **Zero configuration** - Generate secure UUIDs, passwords, and keys automatically

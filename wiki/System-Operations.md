@@ -6,6 +6,10 @@ This guide covers all system-level operations using the 3xui-api-client library.
 
 ## Table of Contents
 - [Overview](#overview)
+- [Server Management](#server-management)
+- [Xray Configuration](#xray-configuration)
+- [Panel Settings](#panel-settings)
+- [Generators](#generators)
 - [Get Online Clients](#get-online-clients)
 - [Create System Backup](#create-system-backup)
 - [Server-Side Implementation](#server-side-implementation)
@@ -17,12 +21,162 @@ This guide covers all system-level operations using the 3xui-api-client library.
 
 System operations provide essential monitoring and maintenance capabilities for your 3X-UI server:
 
+- **Server Status**: Monitor CPU, RAM, and Xray status
+- **Xray Management**: Manage Xray core, configuration, and versions
+- **Panel Settings**: Configure panel preferences and user credentials
+- **Generators**: Generate UUIDs, keys, and certificates
 - **Online Client Monitoring**: Track currently connected clients in real-time
 - **System Backups**: Create backups of your entire 3X-UI configuration
-- **Health Monitoring**: Monitor system status and connectivity
-- **Maintenance Operations**: Perform routine system maintenance tasks
 
 ⚠️ **Important**: These operations affect the entire system and should be used with appropriate permissions and monitoring.
+
+## Server Management
+
+Monitor and manage the underlying server and Xray core.
+
+### Get Server Status
+Retrieve current server resource usage (CPU, RAM, Disk) and uptime.
+
+```javascript
+const status = await client.getServerStatus();
+console.log('Server Status:', status);
+```
+
+### Get CPU History
+Get historical CPU usage data.
+
+```javascript
+// bucket can be 'min' or 'hour'
+const cpuHistory = await client.getCPUHistory('min');
+console.log('CPU History:', cpuHistory);
+```
+
+### Get Xray Version
+Check the currently installed Xray core version.
+
+```javascript
+const version = await client.getXrayVersion();
+console.log('Xray Version:', version);
+```
+
+### Manage Xray Service
+Stop or restart the Xray core service.
+
+```javascript
+// Stop Xray
+await client.stopXrayService();
+
+// Restart Xray
+await client.restartXrayService();
+```
+
+### Install Xray Version
+Install a specific version of Xray core.
+
+```javascript
+await client.installXray('v1.8.4');
+```
+
+### Get Logs
+Retrieve panel or Xray logs for debugging.
+
+```javascript
+// Get last 100 panel logs
+const panelLogs = await client.getPanelLogs(100);
+
+// Get last 100 Xray logs
+const xrayLogs = await client.getXrayLogs(100);
+```
+
+### Database Operations
+Download or import the database.
+
+```javascript
+// Download DB
+const db = await client.getDb();
+
+// Import DB (requires FormData)
+const formData = new FormData();
+formData.append('file', fs.createReadStream('3x-ui.db'));
+await client.importDB(formData);
+```
+
+## Xray Configuration
+
+Manage the Xray configuration file directly.
+
+### Get/Update Config
+```javascript
+// Get current config
+const config = await client.getXrayConfig();
+
+// Update config
+await client.updateXrayConfig(JSON.stringify(newConfig));
+```
+
+### Manage WARP
+Manage Cloudflare WARP integration.
+
+```javascript
+// Register WARP
+await client.manageWarp('reg');
+
+// Get WARP config
+const warpConfig = await client.manageWarp('config');
+```
+
+## Panel Settings
+
+Configure the 3X-UI panel itself.
+
+### Get/Update Settings
+```javascript
+// Get all settings
+const settings = await client.getAllSettings();
+
+// Update settings
+await client.updateSetting({
+  webPort: 2053,
+  webCertFile: '/path/to/cert',
+  webKeyFile: '/path/to/key'
+});
+```
+
+### Update Admin User
+Change the admin username and password.
+
+```javascript
+await client.updateUser(
+  'oldUser', 
+  'oldPass', 
+  'newUser', 
+  'newPass'
+);
+```
+
+### Restart Panel
+Restart the panel service (required after some setting changes).
+
+```javascript
+await client.restartPanel();
+```
+
+## Generators
+
+Utility methods to generate credentials and keys on the server.
+
+```javascript
+// Generate UUID
+const uuid = await client.getNewUUID();
+
+// Generate Key Pairs
+const x25519 = await client.getNewX25519Cert();
+const mldsa = await client.getNewmldsa65();
+const mlkem = await client.getNewmlkem768();
+
+// Generate VLESS Encoding
+const vlessEnc = await client.getNewVlessEnc();
+```
 
 ## Get Online Clients
 

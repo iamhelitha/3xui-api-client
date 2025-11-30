@@ -289,6 +289,31 @@ const result = await deleteDepletedClients(5);
 }
 ```
 
+## Outbound Traffic Management
+
+Manage traffic statistics for Xray outbounds (server-side traffic).
+
+### Get Outbound Traffic
+```javascript
+const traffic = await client.getOutboundsTraffic();
+console.log('Outbound traffic:', traffic.obj);
+```
+
+### Reset Outbound Traffic
+Reset all accumulated traffic statistics for outbounds.
+
+```javascript
+async function resetOutbounds() {
+  console.log('⚠️ WARNING: This will reset all outbound traffic stats!');
+  const response = await client.resetOutboundsTraffic();
+  
+  if (response.success) {
+    console.log('✅ Outbound traffic reset successfully');
+  }
+  return response;
+}
+```
+
 ## Server-Side Implementation
 
 Complete traffic management system with database integration:

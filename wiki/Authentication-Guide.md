@@ -310,6 +310,79 @@ const client = new ThreeXUI(url, username, password, {
 });
 ```
 
+### 5. Firestore (Custom Session Store)
+
+Use Firestore by providing a small adapter via the custom handler. This keeps the canonical session logic in this package while storing the cookie in your Firestore collection.
+
+```javascript
+// Firestore adapter example (Node.js Admin SDK)
+// Assumes: const admin = require('firebase-admin'); admin.initializeApp({/* ... */});
+const db = admin.firestore();
+
+const FirestoreSessionHandler = {
+    getSession: async (key) => {
+        const snap = await db.collection('xui_sessions').doc(key).get();
+        if (!snap.exists) return null;
+        const data = snap.data();
+        if (!data || Date.now() > data.expiresAt) {
+            return null; // Treat as expired
+        }
+        return data.session; // e.g., { cookie: '3x-ui=...', createdAt, expiresAt }
+    },
+    setSession: async (key, value, ttlSeconds = 3600) => {
+        const expiresAt = Date.now() + ttlSeconds * 1000;
+        await db.collection('xui_sessions').doc(key).set({
+            session: value,
+            createdAt: Date.now(),
+            expiresAt
+        }, { merge: true });
+    },
+    deleteSession: async (key) => {
+        await db.collection('xui_sessions').doc(key).delete();
+    }
+};
+
+// Wire the custom handler into ThreeXUI
+const client = new ThreeXUI(url, username, password, {
+    sessionManager: {
+        type: 'custom',
+        customHandler: FirestoreSessionHandler,
+        defaultTTL: 3600
+    }
+});
+
+// Optional: periodic cleanup of expired sessions
+async function cleanupExpiredSessions() {
+    const now = Date.now();
+    const q = await db.collection('xui_sessions').where('expiresAt', '<=', now).get();
+    const batch = db.batch();
+    q.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
+}
+```
+
+Notes:
+- The stored object can be minimal (e.g., `{ cookie: string }`) or include metadata like `createdAt` and `expiresAt`.
+- Keep this server-side; never expose session cookies to browsers.
+- For high throughput, consider using Redis; Firestore is suitable when you already run on Firebase.
+
+## Authentication Methods
+
+### Logout
+Explicitly end the session and clear stored cookies.
+
+```javascript
+await client.logout();
+```
+
+### Check Two-Factor Authentication
+Check if 2FA is enabled on the server.
+
+```javascript
+const status = await client.getTwoFactorEnable();
+console.log('2FA Enabled:', status.obj); // true/false
+```
+
 ## Authentication Response
 
 ### Login Response Structure
@@ -431,66 +504,7 @@ const xui = new ThreeXUI(
         }
     }
 );
-```
 
-
-### 5. Firestore (Custom Session Store)
-
-Use Firestore by providing a small adapter via the custom handler. This keeps the canonical session logic in this package while storing the cookie in your Firestore collection.
-
-```javascript
-// Firestore adapter example (Node.js Admin SDK)
-// Assumes: const admin = require('firebase-admin'); admin.initializeApp({/* ... */});
-const db = admin.firestore();
-
-const FirestoreSessionHandler = {
-    getSession: async (key) => {
-        const snap = await db.collection('xui_sessions').doc(key).get();
-        if (!snap.exists) return null;
-        const data = snap.data();
-        if (!data || Date.now() > data.expiresAt) {
-            return null; // Treat as expired
-        }
-        return data.session; // e.g., { cookie: '3x-ui=...', createdAt, expiresAt }
-    },
-    setSession: async (key, value, ttlSeconds = 3600) => {
-        const expiresAt = Date.now() + ttlSeconds * 1000;
-        await db.collection('xui_sessions').doc(key).set({
-            session: value,
-            createdAt: Date.now(),
-            expiresAt
-        }, { merge: true });
-    },
-    deleteSession: async (key) => {
-        await db.collection('xui_sessions').doc(key).delete();
-    }
-};
-
-// Wire the custom handler into ThreeXUI
-const client = new ThreeXUI(url, username, password, {
-    sessionManager: {
-        type: 'custom',
-        customHandler: FirestoreSessionHandler,
-        defaultTTL: 3600
-    }
-});
-
-// Optional: periodic cleanup of expired sessions
-async function cleanupExpiredSessions() {
-    const now = Date.now();
-    const q = await db.collection('xui_sessions').where('expiresAt', '<=', now).get();
-    const batch = db.batch();
-    q.forEach(doc => batch.delete(doc.ref));
-    await batch.commit();
-}
-```
-
-Notes:
-- The stored object can be minimal (e.g., `{ cookie: string }`) or include metadata like `createdAt` and `expiresAt`.
-- Keep this server-side; never expose session cookies to browsers.
-- For high throughput, consider using Redis; Firestore is suitable when you already run on Firebase.
-
-```javascript
 export default async function handler(req, res) {
     try {
         switch (req.method) {

@@ -214,6 +214,22 @@ if (result.success) {
 } else {
     console.error('❌ Failed to delete client:', result.msg);
 }
+
+// Delete client by Email/Identifier (NEW!)
+const resultEmail = await client.deleteClientByEmail(inboundId, "client_identifier_001");
+```
+
+### Updating Client Traffic Limits
+Update just the traffic limits and expiry without changing other settings:
+
+```javascript
+// Update traffic limit and expiry by email
+const trafficConfig = {
+    totalGB: 100,  // New limit in GB
+    expiryTime: Date.now() + 30 * 24 * 60 * 60 * 1000 // New expiry date
+};
+
+const result = await client.updateClientTraffic("client_identifier_001", trafficConfig);
 ```
 
 ## Bulk Operations

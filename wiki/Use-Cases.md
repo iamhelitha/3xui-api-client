@@ -1,8 +1,8 @@
 # Use Cases Guide
 
-✅ **Status**: Fully tested and working with v2.0 auto-generation features
+✅ **Status**: Fully tested and working with v3.0
 
-This guide provides comprehensive real-world use cases and implementation examples for the enhanced 3xui-api-client v2.0 library. Each use case showcases the new auto-generation features, security enhancements, and modern integration patterns.
+This guide provides comprehensive real-world use cases and implementation examples for 3xui-api-client v3.0. Each use case showcases credential generation, API token auth, modern API routes, security enhancements, and integration patterns.
 
 ## Table of Contents
 - [VPN Service Provider](#vpn-service-provider)
@@ -1118,4 +1118,4 @@ async function processManyClients(clients) {
 |----------|------|
 | [← System Operations](System-Operations.md) | [Home](Home.md) |
 
-*Last updated: September 2025*  
+*Last updated: June 2026*  

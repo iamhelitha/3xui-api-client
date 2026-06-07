@@ -32,15 +32,9 @@ class ThreeXUI {
      * @param {number} options.timeout - Request timeout in milliseconds (default: 30000)
      * @throws {Error} If baseURL, username, or password is missing
      */
-    constructor(baseURL, username, password, options = {}) {
+    constructor(baseURL, usernameOrOptions, password, options = {}) {
         if (!baseURL) {
             throw new Error('baseURL is required');
-        }
-        if (!username) {
-            throw new Error('username is required');
-        }
-        if (!password) {
-            throw new Error('password is required');
         }
 
         // Apply security validations
@@ -53,8 +47,32 @@ class ThreeXUI {
             this.baseURL = this.baseURL.replace(/\/panel\/?$/, '');
         }
 
-        this.username = InputValidator.validateUsername(username);
-        this.password = InputValidator.validatePassword(password);
+        // Object containing configs as 2nd parameter
+        if (typeof usernameOrOptions === 'object' && usernameOrOptions !== null) {
+            options = usernameOrOptions;
+            this.username = options.username;
+            this.password = options.password;
+        } else {
+            this.username = usernameOrOptions;
+            this.password = password;
+        }
+
+        this.token = options.token || options.apiToken || null;
+
+        if (this.token) {
+            this.username = this.username || 'token-auth'; // prevent missing args error
+            this.password = this.password || 'token-auth';
+        } else {
+            if (!this.username) {
+                throw new Error('username is required');
+            }
+            if (!this.password) {
+                throw new Error('password is required');
+            }
+            this.username = InputValidator.validateUsername(this.username);
+            this.password = InputValidator.validatePassword(this.password);
+        }
+
         this.cookie = null;
         this.options = options;
         this.loginMutex = false; // Add mutex to prevent concurrent logins
@@ -81,15 +99,21 @@ class ThreeXUI {
         }
 
         // Create axios instance with security best practices
+        const secureHeaders = SecureHeaders.getSecureHeaders({
+            userAgent: options.userAgent || '3xui-api-client/2.0.0 (Security-Enhanced)',
+            enableCSP: options.enableCSP || false
+        });
+
+        if (this.token) {
+            secureHeaders['Authorization'] = `Bearer ${this.token}`;
+        }
+
         this.api = axios.create({
             baseURL: this.baseURL,
             timeout: options.timeout || 30000, // 30 second timeout
             maxRedirects: 5,
             validateStatus: (status) => status >= 200 && status < 300,
-            headers: SecureHeaders.getSecureHeaders({
-                userAgent: options.userAgent || '3xui-api-client/2.0.0 (Security-Enhanced)',
-                enableCSP: options.enableCSP || false
-            })
+            headers: secureHeaders
         });
 
         // Add request interceptor for security headers
@@ -120,6 +144,14 @@ class ThreeXUI {
      * @returns {Object} Login response
      */
     async login(forceRefresh = false) {
+        // If API token is configured, skip cookie auth
+        if (this.token) {
+            return {
+                success: true,
+                message: 'Authenticated successfully using API Token'
+            };
+        }
+
         // Check rate limiting first
         const identifier = CredentialSecurity.hashForLogging(this.username);
         if (!this.securityMonitor.checkRateLimit(identifier, 'login')) {
@@ -238,11 +270,13 @@ class ThreeXUI {
     }
 
     async _request(method, path, data = {}) {
-        // Check session validity first with mutex protection
-        if (!this.loginMutex && this.sessionManager && !await this.sessionManager.hasValidSession(this.baseURL, this.username)) {
-            await this._ensureAuthenticated();
-        } else if (!this.loginMutex && !this.cookie) {
-            await this._ensureAuthenticated();
+        // Check session validity first with mutex protection if token is not provided
+        if (!this.token) {
+            if (!this.loginMutex && this.sessionManager && !await this.sessionManager.hasValidSession(this.baseURL, this.username)) {
+                await this._ensureAuthenticated();
+            } else if (!this.loginMutex && !this.cookie) {
+                await this._ensureAuthenticated();
+            }
         }
 
         try {
@@ -257,6 +291,9 @@ class ThreeXUI {
             return response.data;
         } catch (error) {
             if (error.response && error.response.status === 401) {
+                if (this.token) {
+                    throw new Error('API Token is invalid or expired. Please check your credentials.');
+                }
                 // Cookie might have expired, try to login again with retry limit
                 if (this.loginRetryCount < this.maxLoginRetries) {
                     await this._ensureAuthenticated(true); // Force refresh
@@ -533,10 +570,320 @@ class ThreeXUI {
      * @returns {boolean} Session validity
      */
     async isSessionValid() {
+        if (this.token) {
+            return true;
+        }
         if (this.sessionManager) {
             return await this.sessionManager.hasValidSession(this.baseURL, this.username);
         }
         return !!this.cookie;
+    }
+
+    // ===========================================
+    // MODERN API METHODS (3X-UI >= 2.x)
+    // ===========================================
+
+    // --- Clients ---
+
+    /**
+     * Get list of all clients
+     * @returns {Promise<Object>} Formatted list of all clients
+     */
+    getClients() {
+        return this._request('get', '/panel/api/clients/list');
+    }
+
+    /**
+     * Get paginated list of clients
+     * @param {Object} params - Pagination parameters
+     * @param {number} params.page - Page number (default: 1)
+     * @param {number} params.size - Items per page (default: 10)
+     * @param {string} params.sort - Sort field (e.g., 'email', 'expireTime')
+     * @param {string} params.order - Sort order ('asc' or 'desc')
+     * @param {string} params.email - Filter by email
+     * @returns {Promise<Object>} Paginated clients
+     */
+    getPagedClients(params = {}) {
+        const queryParams = new URLSearchParams();
+        if (params.page !== undefined) {
+            queryParams.append('page', params.page);
+        }
+        if (params.size !== undefined) {
+            queryParams.append('size', params.size);
+        }
+        if (params.sort !== undefined) {
+            queryParams.append('sort', params.sort);
+        }
+        if (params.order !== undefined) {
+            queryParams.append('order', params.order);
+        }
+        if (params.email !== undefined) {
+            queryParams.append('email', params.email);
+        }
+
+        const queryString = queryParams.toString();
+        const url = queryString ? `/panel/api/clients/list/paged?${queryString}` : '/panel/api/clients/list/paged';
+
+        return this._request('get', url);
+    }
+
+    /**
+     * Get client by email
+     * @param {string} email - Exact client email address
+     * @returns {Promise<Object>} Client metadata
+     */
+    getClient(email) {
+        return this._request('get', `/panel/api/clients/get/${encodeURIComponent(email)}`);
+    }
+
+    /**
+     * Get client traffic by email
+     * @param {string} email - Exact client email
+     * @returns {Promise<Object>} Client traffic details
+     */
+    getClientTraffic(email) {
+        return this._request('get', `/panel/api/clients/traffic/${encodeURIComponent(email)}`);
+    }
+
+    /**
+     * Get subscription links for a client by subscription ID
+     * @param {string} subId - Subscription ID (UUID)
+     * @returns {Promise<Object>} Subscription details and links
+     */
+    getSubLinks(subId) {
+        return this._request('get', `/panel/api/clients/subLinks/${encodeURIComponent(subId)}`);
+    }
+
+    /**
+     * Get generic client links by email
+     * @param {string} email - Exact client email
+     * @returns {Promise<Object>} Link strings
+     */
+    getClientLinks(email) {
+        return this._request('get', `/panel/api/clients/links/${encodeURIComponent(email)}`);
+    }
+
+    /**
+     * Add a new client via Modern API
+     * @param {Object} data - Client payload
+     * @returns {Promise<Object>} Addition response
+     */
+    addModernClient(data) {
+        return this._request('post', '/panel/api/clients/add', data);
+    }
+
+    /**
+     * Update client by email via Modern API
+     * @param {string} email - Exact client email
+     * @param {Object} data - Update payload
+     * @returns {Promise<Object>} Update response
+     */
+    updateModernClient(email, data) {
+        return this._request('post', `/panel/api/clients/update/${encodeURIComponent(email)}`, data);
+    }
+
+    /**
+     * Delete client by email via Modern API
+     * @param {string} email - Exact client email
+     * @returns {Promise<Object>} Delete response
+     */
+    deleteModernClient(email) {
+        return this._request('post', `/panel/api/clients/del/${encodeURIComponent(email)}`);
+    }
+
+    attachClientToInbounds(email, data) {
+        return this._request('post', `/panel/api/clients/${encodeURIComponent(email)}/attach`, data);
+    }
+
+    detachClientFromInbounds(email, data) {
+        return this._request('post', `/panel/api/clients/${encodeURIComponent(email)}/detach`, data);
+    }
+
+    resetAllModernClientTraffics() {
+        return this._request('post', '/panel/api/clients/resetAllTraffics');
+    }
+
+    deleteDepletedModernClients() {
+        return this._request('post', '/panel/api/clients/delDepleted');
+    }
+
+    bulkAdjustModernClients(data) {
+        return this._request('post', '/panel/api/clients/bulkAdjust', data);
+    }
+
+    bulkDeleteModernClients(data) {
+        return this._request('post', '/panel/api/clients/bulkDel', data);
+    }
+
+    bulkCreateModernClients(data) {
+        return this._request('post', '/panel/api/clients/bulkCreate', data);
+    }
+
+    bulkAttachModernClients(data) {
+        return this._request('post', '/panel/api/clients/bulkAttach', data);
+    }
+
+    bulkDetachModernClients(data) {
+        return this._request('post', '/panel/api/clients/bulkDetach', data);
+    }
+
+    bulkResetTrafficModernClients(data) {
+        return this._request('post', '/panel/api/clients/bulkResetTraffic', data);
+    }
+
+    resetModernClientTrafficByEmail(email) {
+        return this._request('post', `/panel/api/clients/resetTraffic/${encodeURIComponent(email)}`);
+    }
+
+    updateModernClientTrafficByEmail(email, data) {
+        return this._request('post', `/panel/api/clients/updateTraffic/${encodeURIComponent(email)}`, data);
+    }
+
+    getModernClientIps(email) {
+        return this._request('post', `/panel/api/clients/ips/${encodeURIComponent(email)}`);
+    }
+
+    clearModernClientIps(email) {
+        return this._request('post', `/panel/api/clients/clearIps/${encodeURIComponent(email)}`);
+    }
+
+    getOnlines() {
+        return this._request('post', '/panel/api/clients/onlines');
+    }
+
+    getModernLastOnline() {
+        return this._request('post', '/panel/api/clients/lastOnline');
+    }
+
+    // --- Client Groups ---
+
+    /**
+     * Get list of all client groups
+     * @returns {Promise<Object>} List of client groups
+     */
+    getGroups() {
+        return this._request('get', '/panel/api/clients/groups');
+    }
+
+    /**
+     * Get list of emails belonging to a specific group
+     * @param {string} groupName - The name of the group
+     * @returns {Promise<Object>} List of emails in the group
+     */
+    getGroupEmails(groupName) {
+        return this._request('get', `/panel/api/clients/groups/${encodeURIComponent(groupName)}/emails`);
+    }
+
+    createGroup(data) {
+        return this._request('post', '/panel/api/clients/groups/create', data);
+    }
+
+    renameGroup(data) {
+        return this._request('post', '/panel/api/clients/groups/rename', data);
+    }
+
+    deleteGroup(data) {
+        return this._request('post', '/panel/api/clients/groups/delete', data);
+    }
+
+    bulkAddGroups(data) {
+        return this._request('post', '/panel/api/clients/groups/bulkAdd', data);
+    }
+
+    bulkRemoveGroups(data) {
+        return this._request('post', '/panel/api/clients/groups/bulkRemove', data);
+    }
+
+    // --- Nodes ---
+
+    /**
+     * Get list of all nodes
+     * @returns {Promise<Object>} List of nodes
+     */
+    getNodes() {
+        return this._request('get', '/panel/api/nodes/list');
+    }
+
+    /**
+     * Get specific node by ID
+     * @param {number|string} id - Node ID
+     * @returns {Promise<Object>} Node details
+     */
+    getNode(id) {
+        return this._request('get', `/panel/api/nodes/get/${encodeURIComponent(id)}`);
+    }
+
+    /**
+     * Get history metrics for a node
+     * @param {number|string} id - Node ID
+     * @param {string} metric - Metric name (e.g., 'cpu', 'memory')
+     * @param {string} bucket - Time bucket size
+     * @returns {Promise<Object>} Node history data
+     */
+    getNodeHistory(id, metric, bucket) {
+        return this._request('get', `/panel/api/nodes/history/${encodeURIComponent(id)}/${encodeURIComponent(metric)}/${encodeURIComponent(bucket)}`);
+    }
+
+    addNode(data) {
+        return this._request('post', '/panel/api/nodes/add', data);
+    }
+
+    updateNode(id, data) {
+        return this._request('post', `/panel/api/nodes/update/${encodeURIComponent(id)}`, data);
+    }
+
+    deleteNode(id) {
+        return this._request('post', `/panel/api/nodes/del/${encodeURIComponent(id)}`);
+    }
+
+    setNodeEnable(id) {
+        return this._request('post', `/panel/api/nodes/setEnable/${encodeURIComponent(id)}`);
+    }
+
+    testNode(data) {
+        return this._request('post', '/panel/api/nodes/test', data);
+    }
+
+    probeNode(id) {
+        return this._request('post', `/panel/api/nodes/probe/${encodeURIComponent(id)}`);
+    }
+
+    // --- Custom Geo ---
+
+    /**
+     * Get list of custom geo sites/ips
+     * @returns {Promise<Object>} List of custom geos
+     */
+    getCustomGeos() {
+        return this._request('get', '/panel/api/custom-geo/list');
+    }
+
+    /**
+     * Get aliases for custom geos
+     * @returns {Promise<Object>} Custom geo aliases
+     */
+    getGeoAliases() {
+        return this._request('get', '/panel/api/custom-geo/aliases');
+    }
+
+    addCustomGeo(data) {
+        return this._request('post', '/panel/api/custom-geo/add', data);
+    }
+
+    updateCustomGeo(id, data) {
+        return this._request('post', `/panel/api/custom-geo/update/${encodeURIComponent(id)}`, data);
+    }
+
+    deleteCustomGeo(id) {
+        return this._request('post', `/panel/api/custom-geo/delete/${encodeURIComponent(id)}`);
+    }
+
+    downloadCustomGeo(id) {
+        return this._request('post', `/panel/api/custom-geo/download/${encodeURIComponent(id)}`);
+    }
+
+    updateAllCustomGeo() {
+        return this._request('post', '/panel/api/custom-geo/update-all');
     }
 
     // ===========================================

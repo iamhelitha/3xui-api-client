@@ -16,6 +16,8 @@ declare module '3xui-api-client' {
     isDevelopment?: boolean;
     enableCSP?: boolean;
     userAgent?: string;
+    token?: string;
+    apiToken?: string;
   }
 
   export interface LoginResponse {
@@ -226,6 +228,7 @@ declare module '3xui-api-client' {
 
   export default class ThreeXUI {
     constructor(baseURL: string, username: string, password: string, options?: ThreeXUIOptions);
+    constructor(baseURL: string, options: ThreeXUIOptions);
     
     // Authentication
     login(forceRefresh?: boolean): Promise<LoginResponse>;
@@ -252,14 +255,82 @@ declare module '3xui-api-client' {
 
     // Enhanced Client Management
     addClientWithCredentials(inboundId: number, protocol: string, options?: CredentialOptions): Promise<any>;
-  updateClientWithCredentials(clientId: string, inboundId: number, options?: CredentialOptions): Promise<any>;
+    updateClientWithCredentials(clientId: string, inboundId: number, options?: CredentialOptions): Promise<any>;
 
     // Session Management
     getSessionStats(): Promise<any>;
     clearAllSessions(): Promise<void>;
     isSessionValid(): Promise<boolean>;
 
+    // ===========================================
+    // Modern API Methods (3X-UI >= 2.x)
+    // ===========================================
+
+    // --- Clients ---
+    getClients(): Promise<any>;
+    getPagedClients(params?: {
+        page?: number;
+        size?: number;
+        sort?: string;
+        order?: 'asc' | 'desc';
+        email?: string;
+    }): Promise<any>;
+    getClient(email: string): Promise<any>;
+    getClientTraffic(email: string): Promise<any>;
+    getSubLinks(subId: string): Promise<any>;
+    getClientLinks(email: string): Promise<any>;
+    addModernClient(data: any): Promise<any>;
+    updateModernClient(email: string, data: any): Promise<any>;
+    deleteModernClient(email: string): Promise<any>;
+    attachClientToInbounds(email: string, data: any): Promise<any>;
+    detachClientFromInbounds(email: string, data: any): Promise<any>;
+    resetAllModernClientTraffics(): Promise<any>;
+    deleteDepletedModernClients(): Promise<any>;
+    bulkAdjustModernClients(data: any): Promise<any>;
+    bulkDeleteModernClients(data: any): Promise<any>;
+    bulkCreateModernClients(data: any): Promise<any>;
+    bulkAttachModernClients(data: any): Promise<any>;
+    bulkDetachModernClients(data: any): Promise<any>;
+    bulkResetTrafficModernClients(data: any): Promise<any>;
+    resetModernClientTrafficByEmail(email: string): Promise<any>;
+    updateModernClientTrafficByEmail(email: string, data: any): Promise<any>;
+    getModernClientIps(email: string): Promise<any>;
+    clearModernClientIps(email: string): Promise<any>;
+    getOnlines(): Promise<any>;
+    getModernLastOnline(): Promise<any>;
+
+    // --- Client Groups ---
+    getGroups(): Promise<any>;
+    getGroupEmails(groupName: string): Promise<any>;
+    createGroup(data: any): Promise<any>;
+    renameGroup(data: any): Promise<any>;
+    deleteGroup(data: any): Promise<any>;
+    bulkAddGroups(data: any): Promise<any>;
+    bulkRemoveGroups(data: any): Promise<any>;
+
+    // --- Nodes ---
+    getNodes(): Promise<any>;
+    getNode(id: number | string): Promise<any>;
+    getNodeHistory(id: number | string, metric: string, bucket: string): Promise<any>;
+    addNode(data: any): Promise<any>;
+    updateNode(id: number | string, data: any): Promise<any>;
+    deleteNode(id: number | string): Promise<any>;
+    setNodeEnable(id: number | string): Promise<any>;
+    testNode(data: any): Promise<any>;
+    probeNode(id: number | string): Promise<any>;
+
+    // --- Custom Geo ---
+    getCustomGeos(): Promise<any>;
+    getGeoAliases(): Promise<any>;
+    addCustomGeo(data: any): Promise<any>;
+    updateCustomGeo(id: string | number, data: any): Promise<any>;
+    deleteCustomGeo(id: string | number): Promise<any>;
+    downloadCustomGeo(id: string | number): Promise<any>;
+    updateAllCustomGeo(): Promise<any>;
+
+    // ===========================================
     // Original API Methods
+    // ===========================================
     getInbounds(): Promise<any>;
     getInbound(id: number): Promise<any>;
     addInbound(inboundConfig: InboundConfig): Promise<any>;

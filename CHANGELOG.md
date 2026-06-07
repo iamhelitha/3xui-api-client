@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-06-07
+
+### Added
+- 🔑 **API Token Authentication** — Pass `token` or `apiToken` in options to authenticate via Bearer token instead of cookie-based login. Resolves compatibility with 3x-ui v3.0.2+ where the legacy login mechanism changed. ([#1](https://github.com/iamhelitha/3xui-api-client/issues/1))
+- 🆕 **Object-style constructor** — `new ThreeXUI(url, { username, password, token })` as an alternative to the positional `(url, user, pass)` signature.
+- 📡 **48 new Modern API routes** (3x-ui v2.x/v3.x endpoints):
+  - **Clients** (25 routes): `getClients`, `getPagedClients`, `getClient`, `getClientTraffic`, `getSubLinks`, `getClientLinks`, `addModernClient`, `updateModernClient`, `deleteModernClient`, `attachClientToInbounds`, `detachClientFromInbounds`, `resetAllModernClientTraffics`, `deleteDepletedModernClients`, bulk operations (`bulkAdjust`, `bulkDel`, `bulkCreate`, `bulkAttach`, `bulkDetach`, `bulkResetTraffic`), `resetModernClientTrafficByEmail`, `updateModernClientTrafficByEmail`, `getModernClientIps`, `clearModernClientIps`, `getOnlines`, `getModernLastOnline`
+  - **Client Groups** (7 routes): `getGroups`, `getGroupEmails`, `createGroup`, `renameGroup`, `deleteGroup`, `bulkAddGroups`, `bulkRemoveGroups`
+  - **Nodes** (9 routes): `getNodes`, `getNode`, `getNodeHistory`, `addNode`, `updateNode`, `deleteNode`, `setNodeEnable`, `testNode`, `probeNode`
+  - **Custom Geo** (7 routes): `getCustomGeos`, `getGeoAliases`, `addCustomGeo`, `updateCustomGeo`, `deleteCustomGeo`, `downloadCustomGeo`, `updateAllCustomGeo`
+
+### Changed
+- Constructor signature extended to accept an options object as the second argument (fully backward compatible — existing `(url, user, pass)` usage is unchanged).
+- `_request()` and `login()` skip cookie-based auth flow when a token is configured.
+- `isSessionValid()` returns `true` immediately when token auth is active.
+
+### Fixed
+- ESLint errors (trailing whitespace, missing curly braces) introduced in new route additions.
+- Indentation inconsistency in TypeScript declarations (`updateClientWithCredentials`).
+
+### Backward Compatibility
+- All existing `(url, username, password)` constructor calls continue to work without any changes.
+- All 55 original API routes are unchanged.
+- Verified against older 3x-ui servers — cookie-based login, session management, and all core routes function identically.
+
 ## [2.1.1] - 2025-11-30
 
 ### Fixed

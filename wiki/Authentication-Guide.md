@@ -1,11 +1,12 @@
 # Authentication Guide
 
-✅ **Status**: Fully tested and working with v2.0 security enhancements
+✅ **Status**: Fully tested and working with v3.0 — supports API token and cookie-based authentication.
 
-This guide explains authentication, session management, and security features in the enhanced 3xui-api-client package.
+This guide explains both authentication methods, session management, and security features in 3xui-api-client.
 
 ## Table of Contents
-- [Quick Start](#quick-start)
+- [API Token Authentication (v3.0.2+)](#api-token-authentication-v302)
+- [Cookie-Based Login (all versions)](#cookie-based-login-all-versions)
 - [Security Features](#security-features)
 - [Session Management Options](#session-management-options)
 - [Authentication Response](#authentication-response)
@@ -14,22 +15,96 @@ This guide explains authentication, session management, and security features in
 - [Security Monitoring](#security-monitoring)
 - [Troubleshooting](#troubleshooting)
 
-## Quick Start
+## API Token Authentication (v3.0.2+)
 
-### Basic Authentication (Auto-managed)
+3x-ui v3.0.2 introduced native API token support. When a token is configured, the library skips cookie login entirely and sends `Authorization: Bearer <token>` on every request.
+
+### How to get your API token — manual, one-time setup
+
+The API token is **not returned by `login()`** and **cannot be generated programmatically**. It is a static credential you create once inside the 3x-ui panel UI:
+
+```
+3x-ui Panel → Settings → Security → API Token → Generate → Copy
+```
+
+Copy the token, store it in your environment, and pass it to the constructor. That's the entire setup — there is no refresh, no rotation, and no expiry unless you manually revoke it in the panel.
+
+### Initialize with a token
 ```javascript
 const ThreeXUI = require('3xui-api-client');
 
-// Simple setup - sessions handled automatically
+// Recommended: read from environment variable
+const client = new ThreeXUI(process.env.XUI_URL, {
+    token: process.env.XUI_API_TOKEN
+});
+
+// No login() call needed — token is sent on every request automatically
+const inbounds = await client.getInbounds();
+```
+
+```javascript
+// Alternative: positional constructor with options
+const client = new ThreeXUI('https://your-panel.com:2053', 'admin', 'password', {
+    token: 'your-api-token-here'
+});
+```
+
+### Token lifecycle
+| Property | Behaviour |
+|----------|-----------|
+| **Source** | Generated manually in the 3x-ui panel UI — never returned by `login()` |
+| **Expiry** | Never expires automatically — valid until you revoke it in the panel |
+| **Refresh** | None — no automatic renewal |
+| **Storage by library** | RAM only (`this.token` + axios default header). Never written to disk or session store |
+| **Where you store it** | Your `.env` file, secrets manager (AWS Secrets Manager, Vault, etc.), or CI secret |
+| **On 401** | Throws `'API Token is invalid or expired'` immediately — no retry |
+
+### Token behaviour inside the library
+- `login()` returns `{ success: true, message: 'Authenticated successfully using API Token' }` immediately without any network call
+- `isSessionValid()` always returns `true` when a token is configured
+- The session manager (Redis/database/memory) is **not used** — token auth bypasses it completely
+
+---
+
+## Cookie-Based Login (all versions)
+
+```javascript
+const ThreeXUI = require('3xui-api-client');
+
+// Simple setup — sessions handled automatically
 const client = new ThreeXUI(
     'https://your-3xui-server.com',
     'your-username',
     'your-password'
 );
 
-// No manual login needed - auto-authenticates on first API call
+// No manual login() needed — auto-authenticates on first API call
 const inbounds = await client.getInbounds();
 ```
+
+### What login() actually returns
+`login()` returns a **session cookie**, not an API token. The cookie is extracted from the `Set-Cookie` response header and stored in the session manager for automatic reuse:
+
+```
+Set-Cookie: 3x-ui=MTc4MDgyNTM2...  Max-Age=3600; HttpOnly
+```
+
+The library stores this cookie and sends it on every subsequent request. On expiry (1 hour), it logs in again automatically.
+
+---
+
+## Choosing an auth method
+
+| | Cookie login | API token |
+|---|---|---|
+| **3x-ui versions** | All versions | v3.0.2+ only |
+| **How you get it** | Constructor username + password | Panel UI → Settings → Security → API Token |
+| **Expiry** | 1 hour — auto-renewed | Never — until manually revoked |
+| **Stored by library** | Session manager (Redis/DB/memory) | RAM only — never persisted |
+| **On session expiry** | Logs in again automatically | N/A |
+| **On 401 response** | Retries login up to 3 times | Throws immediately, no retry |
+| **login() behaviour** | Hits the network, returns cookie | Returns immediately, no network call |
+| **Best for** | Older panels, no token setup required | 3x-ui v3.0.2+, more stable long-running apps |
 
 ### Enhanced Security Setup
 ```javascript
@@ -643,6 +718,6 @@ client.setDevelopmentMode(false);
 
 | Previous | Next |
 |----------|------|
-| [← Home](Home.md) | [Inbound Management →](Inbound-Management.md) |
+| [← Home](Home.md) | [Modern API →](Modern-API.md) |
 
-*Last updated: September 2025* 
+*Last updated: June 2026*

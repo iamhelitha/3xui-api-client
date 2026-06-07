@@ -1,6 +1,10 @@
 # Client Management Guide
 
-✅ **Status**: Fully tested and working with v2.0 auto-generation features
+✅ **Status**: Fully tested and working with v3.0
+
+This guide covers **legacy client management** (the `/panel/api/inbounds/` endpoints that work on all 3x-ui versions) with automatic credential generation, security validation, and bulk operations.
+
+> For the newer `/panel/api/clients/` endpoints introduced in 3x-ui v2.x/v3.x, see the [Modern API Guide](Modern-API.md).
 
 This guide covers client management operations with automatic credential generation, security validation, and bulk operations using the enhanced 3xui-api-client library.
 
@@ -827,5 +831,5 @@ try {
 |----------|------|
 | [← Inbound Management](Inbound-Management.md) | [Traffic Management →](Traffic-Management.md) |
 
-*Last updated: September 2025* 
+*Last updated: June 2026* 
 ```

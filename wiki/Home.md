@@ -1,406 +1,279 @@
 # 3xui-api-client Documentation
 
-Welcome to the comprehensive documentation for **3xui-api-client v2.1** - a secure, feature-rich Node.js library for programmatic management of 3x-ui VPN panels with built-in credential generation, advanced session management, and enterprise-grade security.
+Welcome to the documentation for **3xui-api-client v3.0.0** — a Node.js client library for managing 3x-ui VPN panels. Supports both **API token authentication** (3x-ui v3.0.2+) and legacy cookie-based login, with 103 API routes, built-in credential generation, session management, and enterprise security.
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 ```bash
 npm install 3xui-api-client
 ```
 
-### Basic Usage
+### Cookie-based login (all 3x-ui versions)
 ```javascript
 const ThreeXUI = require('3xui-api-client');
 
-// Initialize with security enhancements
 const client = new ThreeXUI(
-    'https://your-3xui-server.com',
-    'your-username',
-    'your-password',
-    {
-        // Security options
-        maxRequestsPerMinute: 60,
-        maxLoginAttemptsPerHour: 10,
-        isDevelopment: false,
-        enableCSP: true,
-        
-        // Session management (optional)
-        sessionManager: {
-            type: 'redis',  // or 'memory', 'database'
-            redis: redisClient
-        }
-    }
+    'https://your-panel.com:2053',
+    'admin',
+    'your-password'
 );
 
-// Create a client with auto-generated credentials (NEW!)
-const result = await client.addClientWithCredentials(inboundId, 'vless', {
-    email: 'user_example_001'  // Optional - will auto-generate if not provided
+const inbounds = await client.getInbounds(); // auto-authenticates
+```
+
+### API token authentication (3x-ui v3.0.2+)
+```javascript
+const client = new ThreeXUI('https://your-panel.com:2053', {
+    token: 'your-api-token-here'
 });
 
-console.log('Client created:', result.credentials);
-// Output: Complete VLESS config with UUID, email, flow settings, etc.
+// No login() needed — token is sent on every request
+const inbounds = await client.getInbounds();
 ```
 
-⚠️ **Important**: This library is **server-side only** due to session cookie security requirements.
+> **Server-side only.** Never use this library in browser/client-side code — session cookies and tokens are sensitive credentials.
 
-## ✨ What's New in v2.1
+---
 
-### 🖥️ **Server & Panel Management**
-- **Full Server Control** - Monitor CPU/RAM, restart services, and manage Xray core
-- **Panel Settings** - Update panel configuration, admin users, and backup settings
-- **Database Management** - Import/Export database and manage backups
-- **Log Access** - Retrieve Panel and Xray logs programmatically
+## What's New in v3.0.0
 
-### 🔐 **Automatic Credential Generation**
-- **Zero configuration** - Generate secure UUIDs, passwords, and keys automatically
-- **All protocols supported** - VLESS, VMess, Trojan, Shadowsocks, WireGuard, etc.
-- **Production-ready defaults** - Secure ciphers, optimal settings out of the box
-- **Bulk generation** - Create multiple clients with one call
+### 🔑 API Token Authentication
+Pass `token` or `apiToken` in options to authenticate with Bearer token headers instead of cookie login. Required for 3x-ui v3.0.2+ where the panel enforces token-based access for API operations.
 
-### 🛡️ **Enterprise Security**
-- **Rate limiting** - Configurable request and login attempt limits
-- **Input validation** - Automatic sanitization of all inputs
-- **Secure error handling** - Sanitized error messages in production
-- **Security monitoring** - Track suspicious activities and blocked IPs
-- **Secure headers** - Content Security Policy, XSS protection, etc.
+### 📡 48 New Modern API Routes (3x-ui v2.x/v3.x)
+Full coverage of the modern `/panel/api/clients/`, `/panel/api/nodes/`, and `/panel/api/custom-geo/` endpoints. See [Modern API Guide](Modern-API.md).
 
-### 🔄 **Advanced Session Management**
-- **Auto-renewal** - Sessions refresh automatically before expiry
-- **Multiple storage options** - Memory, Redis, Database, or custom handlers
-- **Race condition protection** - Mutex-protected login operations
-- **Database integration** - Built-in SQL session store with cleanup
-
-### 🌐 **Web Integration Ready**
-- **Express middleware** - Ready-to-use proxy for web applications
-- **React hooks** - Simplified state management for React apps
-- **Next.js helpers** - API route handlers with session management
-- **CORS handling** - Secure proxy implementation for browser apps
-
-## 🔒 Security Overview
-
-### Built-in Security Features
-✅ **Automatic Session Management**
-- Sessions expire after 1 hour with auto-renewal
-- Secure cookie handling with HttpOnly flags
-- Rate limiting with configurable IP blocking
-- Session security monitoring and anomaly detection
-
-✅ **Input Validation & Sanitization** 
-- URL validation and sanitization
-- Username/password validation with complexity checking
-- Client and inbound configuration validation
-- Protocol validation with secure defaults
-- Port range validation (1-65535)
-
-✅ **Rate Limiting & Monitoring**
-- Configurable rate limits (60 requests/minute default)
-- Login attempt limiting (10 attempts/hour default)
-- Automatic IP blocking for abuse patterns
-- Suspicious activity logging and alerts
-- Security event monitoring dashboard
-
-✅ **HTTP Security Headers**
-- X-Content-Type-Options: nosniff
-- X-Frame-Options: DENY
-- X-XSS-Protection: 1; mode=block
-- Referrer-Policy: strict-origin-when-cross-origin
-- Content Security Policy (configurable)
-- Cache-Control: no-cache, no-store
-
-✅ **Credential Security**
-- Secure credential strength validation
-- Cryptographic session tokens
-- Secure logging with data redaction
-- Password complexity checking
-- UUID format validation and generation
-
-✅ **Production-Ready Error Handling**
-- Sanitized error messages in production mode
-- Sensitive data redaction from logs
-- Development/production mode switching
-- Generic error responses for security
-- Secure error logging patterns
-
-### Security Best Practices Included
-- **Server-side only** - Never use in browser applications
-- **Environment variables** - Credential storage best practices
-- **Session storage** - Redis/Database integration for scalability
-- **Access controls** - Built-in rate limiting and IP blocking
-- **Audit trails** - Comprehensive security event logging
-
-## 📚 Core Documentation
-
-### 🔐 [Authentication Guide](Authentication-Guide.md)
-Session management, security best practices, and database integration patterns.
-- Auto-login and session renewal
-- Multiple storage backends (Redis, Database, Memory)
-- Security monitoring and rate limiting
-
-### 🛠️ [Inbound Management](Inbound-Management.md) 
-Complete guide to managing VPN server configurations with auto-generation.
-- Protocol builders (VLESS, VMess, Trojan, Shadowsocks)
-- Auto-generated security configurations
-- Port and network management
-
-### 👥 [Client Management](Client-Management.md)
-User account operations with automatic credential generation.
-- Auto-generated UUIDs and passwords
-- Bulk client creation and management
-- Traffic limits and IP restrictions
- 
- Note: In 3x-ui, the `email` field is a client identifier, not an email address. See the note in the Client Management guide.
-
-### 📊 [Traffic Management](Traffic-Management.md)
-Monitor and control data usage with real-time capabilities.
-- Real-time traffic monitoring
-- Automated usage limits and resets
-- Bulk cleanup operations
-
-### 🖥️ [System Operations](System-Operations.md)
-Administrative operations and system maintenance with security features.
-- Online client monitoring
-- Secure backup operations
-- Health checking and diagnostics
-
-### 💡 [Use Cases & Examples](Use-Cases.md)
-Real-world implementation examples with web integration patterns.
-- VPN service provider automation
-- Web application integration
-- Real-time monitoring dashboards
-- Security best practices
-
-## 🎯 API Reference
-
-### Enhanced Authentication (Auto-managed)
+### 🔄 Flexible Constructor
+Three equivalent ways to initialize the client:
 ```javascript
-// Automatic login with session persistence
-const client = new ThreeXUI(url, username, password, {
-    sessionManager: { redis: redisClient }  // Auto-handles sessions
-});
+// Original positional style (unchanged)
+new ThreeXUI(url, username, password)
+new ThreeXUI(url, username, password, options)
 
-// Sessions are handled automatically - no manual login needed!
-const inbounds = await client.getInbounds();  // Auto-authenticates if needed
+// New object style
+new ThreeXUI(url, { username, password })
+new ThreeXUI(url, { token: 'api-token' })
 ```
 
-### Credential Generation (NEW!)
-```javascript
-// Generate credentials for any protocol
-const vlessCredentials = client.generateCredentials('vless');
-const trojanCredentials = client.generateCredentials('trojan');
-const bulkCredentials = client.generateBulkCredentials('vless', 10);
+---
 
-// Create clients with auto-generated credentials
-const client = await api.addClientWithCredentials(inboundId, 'vless', {
-    email: 'custom_user_123'  // Optional
-});
-// Auto-generates: UUID, flow settings, security config, etc.
+## Documentation
+
+| Guide | Description |
+|-------|-------------|
+| [Authentication Guide](Authentication-Guide.md) | Cookie login, API token auth, session management, security |
+| [Modern API Guide](Modern-API.md) | All 48 new routes — Clients, Groups, Nodes, Custom Geo |
+| [Inbound Management](Inbound-Management.md) | Create and manage VPN server inbounds |
+| [Client Management](Client-Management.md) | User accounts, credential generation, bulk operations |
+| [Traffic Management](Traffic-Management.md) | Monitor and reset traffic, manage depleted clients |
+| [System Operations](System-Operations.md) | Server status, Xray config, panel settings, backups |
+| [Use Cases](Use-Cases.md) | Real-world examples and integration patterns |
+
+---
+
+## Full API Reference
+
+### Authentication
+```javascript
+await client.login(forceRefresh?)      // Cookie auth — usually called automatically
+await client.logout()                  // Clear session and cookie
+await client.getTwoFactorEnable()      // Check if 2FA is enabled
+await client.isSessionValid()          // Returns true if session or token is active
+await client.getSessionStats()         // Session cache statistics
+await client.clearAllSessions()        // Clear all cached sessions
 ```
 
-### Security Methods (NEW!)
+### Modern API — Clients (3x-ui v2.x/v3.x)
 ```javascript
-// Monitor security events
-const stats = client.getSecurityStats();
-console.log('Blocked IPs:', stats.blockedIPs);
-console.log('Suspicious activities:', stats.recentActivities);
+// Read
+await client.getClients()
+await client.getPagedClients({ page, size, sort, order, email })
+await client.getClient(email)
+await client.getClientTraffic(email)
+await client.getSubLinks(subId)
+await client.getClientLinks(email)
+await client.getModernClientIps(email)
+await client.getOnlines()
+await client.getModernLastOnline()
 
-// Validate credential strength
-const validation = client.validateCredentialStrength('myPassword123', 'password');
-if (!validation.isValid) {
-    console.error('Weak credentials:', validation.issues);
-}
+// Write
+await client.addModernClient(data)
+await client.updateModernClient(email, data)
+await client.deleteModernClient(email)
+await client.attachClientToInbounds(email, data)
+await client.detachClientFromInbounds(email, data)
+await client.resetModernClientTrafficByEmail(email)
+await client.updateModernClientTrafficByEmail(email, data)
+await client.clearModernClientIps(email)
+await client.resetAllModernClientTraffics()
+await client.deleteDepletedModernClients()
 
-// Clear security blocks (admin function)
-client.clearBlockedIPs();
+// Bulk
+await client.bulkCreateModernClients(data)
+await client.bulkAdjustModernClients(data)
+await client.bulkDeleteModernClients(data)
+await client.bulkAttachModernClients(data)
+await client.bulkDetachModernClients(data)
+await client.bulkResetTrafficModernClients(data)
 ```
 
-### All Available Methods (24+ total)
+### Modern API — Client Groups
 ```javascript
-// Authentication (Auto-managed)
-await client.login()  // Usually not needed - auto-called
+await client.getGroups()
+await client.getGroupEmails(groupName)
+await client.createGroup(data)
+await client.renameGroup(data)
+await client.deleteGroup(data)
+await client.bulkAddGroups(data)
+await client.bulkRemoveGroups(data)
+```
 
-// Credential Generation (NEW!)
-client.generateCredentials(protocol, options)
-client.generateBulkCredentials(protocol, count, options)
-client.generateUUID(secure)
-client.generatePassword(length, options)
+### Modern API — Nodes
+```javascript
+await client.getNodes()
+await client.getNode(id)
+await client.getNodeHistory(id, metric, bucket)
+await client.addNode(data)
+await client.updateNode(id, data)
+await client.deleteNode(id)
+await client.setNodeEnable(id)
+await client.testNode(data)
+await client.probeNode(id)
+```
 
-// Enhanced Client Operations
-await client.addClientWithCredentials(inboundId, protocol, options)  // NEW!
-await client.updateClientWithCredentials(clientId, inboundId, options)  // NEW!
+### Modern API — Custom Geo
+```javascript
+await client.getCustomGeos()
+await client.getGeoAliases()
+await client.addCustomGeo(data)
+await client.updateCustomGeo(id, data)
+await client.deleteCustomGeo(id)
+await client.downloadCustomGeo(id)
+await client.updateAllCustomGeo()
+```
+
+### Inbounds (all 3x-ui versions)
+```javascript
+await client.getInbounds()
+await client.getInbound(id)
+await client.addInbound(config)
+await client.updateInbound(id, config)
+await client.deleteInbound(id)
+await client.importInbounds(inbounds)
+await client.getLastOnline()
+```
+
+### Clients — Legacy API (all 3x-ui versions)
+```javascript
 await client.addClient(config)
 await client.updateClient(clientId, config)
 await client.deleteClient(inboundId, clientId)
-
-// Inbound Operations (Enhanced with validation)
-await client.getInbounds()
-await client.getInbound(id)
-await client.addInbound(config)  // Now with input validation
-await client.updateInbound(id, config)  // Now with input validation
-await client.deleteInbound(id)
-
-// Traffic Operations
+await client.deleteClientByEmail(inboundId, email)
+await client.updateClientTraffic(email, trafficConfig)
 await client.getClientTrafficsByEmail(email)
 await client.getClientTrafficsById(id)
+await client.getClientIps(email)
+await client.clearClientIps(email)
+
+// Auto-credential helpers
+await client.addClientWithCredentials(inboundId, protocol, options)
+await client.updateClientWithCredentials(clientId, inboundId, options)
+```
+
+### Traffic (all 3x-ui versions)
+```javascript
 await client.resetClientTraffic(inboundId, email)
 await client.resetAllTraffics()
 await client.resetAllClientTraffics(inboundId)
 await client.deleteDepletedClients(inboundId)
+```
 
-// System Operations
+### System
+```javascript
 await client.getOnlineClients()
 await client.createBackup()
-await client.getClientIps(email)
-await client.clearClientIps(email)
-
-// Security Operations (NEW!)
-await client.getSecurityStats()
-await client.clearBlockedIPs()
-await client.validateCredentialStrength(credential, type)
-await client.generateSecureToken()
-await client.setDevelopmentMode(enabled)
+await client.backupToTgBot()
+await client.getServerStatus()
+await client.getCPUHistory(bucket?)
+await client.getXrayVersion()
+await client.getConfigJson()
+await client.getDb()
+await client.stopXrayService()
+await client.restartXrayService()
+await client.installXray(version)
+await client.getPanelLogs(count?)
+await client.getXrayLogs(count?)
+await client.updateGeofile(fileName?)
+await client.importDB(formData)
 ```
 
-## 🛡️ Security Features
-
-### Built-in Security Enhancements
-- ✅ **Rate Limiting** - 60 requests/minute, 10 login attempts/hour (configurable)
-- ✅ **Input Validation** - All inputs sanitized and validated
-- ✅ **Secure Headers** - CSP, XSS protection, content type validation
-- ✅ **Error Sanitization** - Sensitive data redacted in production
-- ✅ **IP Blocking** - Automatic blocking of suspicious activities
-- ✅ **Session Security** - Encrypted storage with auto-renewal
-
-### Example Secure Configuration
+### Panel Settings
 ```javascript
-const client = new ThreeXUI(url, username, password, {
-    // Stricter security settings
-    maxRequestsPerMinute: 30,
-    maxLoginAttemptsPerHour: 5,
-    isDevelopment: false,           // Production mode
-    enableCSP: true,               // Content Security Policy
-    timeout: 15000,                // 15 second timeout
-    
-    // Enterprise session management
-    sessionManager: {
-        type: 'database',
-        database: dbConnection,
-        tableName: 'xui_sessions',
-        defaultTTL: 3600,
-        autoRefresh: true
-    }
-});
+await client.getAllSettings()
+await client.updateSetting(settings)
+await client.updateUser(oldUsername, oldPassword, newUsername, newPassword)
+await client.restartPanel()
+await client.getDefaultSettings()
+await client.getDefaultJsonConfig()
 ```
 
-## 🔧 Web Integration Examples
-
-### Express.js Backend
+### Xray Configuration
 ```javascript
-const express = require('express');
-const ThreeXUI = require('3xui-api-client');
-
-const app = express();
-const xui = new ThreeXUI(url, username, password, {
-    sessionManager: { redis: redisClient }
-});
-
-// Secure API endpoint
-app.post('/api/create-client', async (req, res) => {
-    try {
-        const result = await xui.addClientWithCredentials(
-            req.body.inboundId,
-            'vless',
-            { email: req.body.clientId }
-        );
-        res.json(result);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+await client.getXrayConfig()
+await client.updateXrayConfig(config)
+await client.manageWarp(action, data?)
+await client.getOutboundsTraffic()
+await client.resetOutboundsTraffic()
+await client.getXrayResult()
 ```
 
-### Next.js API Route
+### Server-Side Generators
 ```javascript
-// pages/api/3xui/create-client.js
-import { ThreeXUI } from '3xui-api-client';
-
-const xui = new ThreeXUI(
-    process.env.XUI_URL,
-    process.env.XUI_USERNAME,
-    process.env.XUI_PASSWORD,
-    { sessionManager: { database: db } }
-);
-
-export default async function handler(req, res) {
-    const client = await xui.addClientWithCredentials(
-        req.body.inboundId,
-        'vless'
-    );
-    res.json(client);
-}
+await client.getNewUUID()
+await client.getNewX25519Cert()
+await client.getNewmldsa65()
+await client.getNewmlkem768()
+await client.getNewVlessEnc()
+await client.getNewEchCert()
 ```
 
-## 🚀 Protocol Support
+### Credential Generation (local, no network)
+```javascript
+client.generateCredentials(protocol, options)
+client.generateBulkCredentials(protocol, count, options)
+client.generateUUID(secure?)
+client.generatePassword(length?, options?)
+client.generateWireGuardKeys()
+client.generateRealityKeys()
+client.generatePort(min?, max?)
+client.validateCredentials(credentials, protocol)
+client.getShadowsocksCiphers()
+client.getRecommendedShadowsocksCipher()
+```
 
-### Supported Protocols (9 total)
-1. **VLESS** - UUID authentication with Reality/XTLS support
-2. **VMess** - UUID authentication (legacy V2Ray)
-3. **Trojan** - Password-based with TLS
-4. **Shadowsocks** - Password + cipher method
-5. **Shadowsocks2022** - Enhanced with modern AEAD
-6. **WireGuard** - Public/private key pairs
-7. **SOCKS5** - Username/password (optional)
-8. **HTTP** - Basic auth (optional)
-9. **Dokodemo-door** - No authentication (port forwarding)
-
-### Auto-Generated Defaults
-- **VLESS**: UUID + xtls-rprx-vision flow + Reality config
-- **Trojan**: 16-char secure password + TLS settings
-- **Shadowsocks**: chacha20-ietf-poly1305 cipher + secure password
-- **WireGuard**: Curve25519 key pairs + client config
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-**Authentication Errors**
-- Check rate limiting: `client.getSecurityStats()`
-- Verify credentials and server accessibility
-- Review security logs: `ErrorSecurity.logError()`
-
-**Session Problems**
-- Sessions auto-refresh at 80% expiration
-- Check session store connectivity (Redis/Database)
-- Monitor with `client.getSessionStats()`
-
-**Web Integration Issues**
-- Use server-side proxy for browser applications
-- Implement proper CORS handling
-- Store sessions securely server-side only
-
-### Getting Help
-
-- 📖 **Documentation**: Browse the guides above for detailed information
-- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/iamhelitha/3xui-api-client/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/iamhelitha/3xui-api-client/discussions)
-- 📧 **Contact**: [Helitha Guruge](https://github.com/iamhelitha)
-
-## 📦 Package Information
-
-- **Current Version**: 2.0.0
-- **License**: MIT
-- **Node.js Support**: 16.0.0+
-- **Security Enhanced**: ✅ Enterprise-grade security features
-- **Web Integration**: ✅ Express, Next.js, React ready
-- **GitHub**: [iamhelitha/3xui-api-client](https://github.com/iamhelitha/3xui-api-client)
-- **npm**: [3xui-api-client](https://www.npmjs.com/package/3xui-api-client)
+### Security
+```javascript
+client.getSecurityStats()
+client.clearBlockedIPs()
+client.validateCredentialStrength(credential, type)
+client.generateSecureToken()
+client.setDevelopmentMode(enabled)
+```
 
 ---
 
-## Navigation
+## Package Information
 
-| Previous | Next |
-|----------|------|
-| - | [Authentication Guide →](Authentication-Guide.md) |
+| | |
+|---|---|
+| **Version** | 3.0.0 |
+| **License** | MIT |
+| **Node.js** | ≥ 16.0.0 |
+| **3x-ui compatibility** | All versions (token auth requires v3.0.2+) |
+| **npm** | [3xui-api-client](https://www.npmjs.com/package/3xui-api-client) |
+| **GitHub** | [iamhelitha/3xui-api-client](https://github.com/iamhelitha/3xui-api-client) |
 
-*Last updated: September 2025*  
+---
+
+*Last updated: June 2026*

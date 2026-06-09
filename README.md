@@ -3,17 +3,42 @@
 A Node.js client library for 3x-ui panel API that provides easy-to-use methods for managing your 3x-ui server.
 
 [![npm version](https://badge.fury.io/js/3xui-api-client.svg)](https://badge.fury.io/js/3xui-api-client)
+[![npm downloads](https://img.shields.io/npm/dm/3xui-api-client.svg)](https://www.npmjs.com/package/3xui-api-client)
+[![GitHub stars](https://img.shields.io/github/stars/iamhelitha/3xui-api-client.svg)](https://github.com/iamhelitha/3xui-api-client)
+[![Node.js Version](https://img.shields.io/node/v/3xui-api-client.svg)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/iamhelitha/3xui-api-client/graphs/commit-activity)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
+
+## 🚀 Context7 MCP Integration
+
+This library is available through **[Context7 MCP](https://context7.com/iamhelitha/3xui-api-client)** for enhanced development experience with intelligent documentation integration. Use the package name `3xui-api-client` to get AI-powered context and documentation.
+
+---
+
+## Table of Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [API Methods](#api-methods)
+- [Documentation](#documentation)
+- [Requirements](#requirements)
+- [Contributing](#contributing)
+- [Testing](#testing)
+- [FAQ](#faq)
+- [License](#license)
 
 ## Features
 
-- ✅ **Authentication** - Secure login with automatic session management and cookie handling
-- ✅ **Security** - Built-in input validation, secure headers, and rate limiting
-- ✅ **Inbound Management** - Get, add, update, and delete inbounds
-- ✅ **Client Management** - Add, update, delete clients and monitor traffic
-- ✅ **Traffic Management** - Monitor, reset, and manage traffic limits
-- ✅ **System Operations** - Backup creation and online client monitoring
-- ✅ **Complete API Coverage** - All 19 API routes fully tested and working
+- ✅ **API Token Authentication** - Support for API token auth (3x-ui v3.0.2+) and cookie-based login
+- ✅ **Automatic Credential Generation** - Built-in UUID, password, and key pair generators
+- ✅ **Session Management** - Automatic login, session caching, and expiry handling
+- ✅ **Security** - Input validation, secure headers, rate limiting, and error sanitization
+- ✅ **Modern API Support** - Complete modern API (v2.x+) with advanced client management
+- ✅ **Legacy API Support** - Full backward compatibility with legacy API methods
+- ✅ **TypeScript Definitions** - Complete type definitions for IDE support
+- ✅ **103+ API Routes** - Comprehensive coverage of all 3x-ui panel operations
 
 ## Installation
 
@@ -21,13 +46,9 @@ A Node.js client library for 3x-ui panel API that provides easy-to-use methods f
 npm install 3xui-api-client
 ```
 
-## Context7 MCP Integration
-
-This library can be implemented with the help of [Context7 MCP](https://context7.com/iamhelitha/3xui-api-client). Use the package name `3xui-api-client` to get context and documentation through Context7's Model Context Protocol integration.
-
-Learn more about [Context7 MCP](https://context7.com) for enhanced development experience.
-
 ## Quick Start
+
+### Cookie-Based Authentication
 
 ```javascript
 const ThreeXUI = require('3xui-api-client');
@@ -35,311 +56,211 @@ const ThreeXUI = require('3xui-api-client');
 const client = new ThreeXUI('https://your-3xui-server.com', 'username', 'password');
 
 // Get all inbounds
-client.getInbounds()
-  .then(inbounds => {
-    console.log('Inbounds:', inbounds);
-  })
-  .catch(error => {
-    console.error('Error:', error.message);
-  });
-```
-
-## Configuration & Best Practices
-
-### Using Environment Variables (Recommended)
-Never hardcode your credentials in your code. Use environment variables to store sensitive information.
-
-> **IMPORTANT NOTE**: The `PANEL_URL` should be the root URL of your server **WITHOUT** the `/panel` suffix.
-> - ✅ Correct: `https://your-domain.com:2053` or `https://your-domain.com/secret-path`
-> - ❌ Incorrect: `https://your-domain.com:2053/panel`
-> 
-> The library automatically appends `/panel` and other necessary paths. Including it in your configuration will cause 404 errors.
-
-1. Create a `.env` file in your project root:
-```env
-PANEL_URL=http://your-server-ip:2053
-PANEL_USERNAME=admin
-PANEL_PASSWORD=your_secure_password
-```
-
-2. Install `dotenv`:
-```bash
-npm install dotenv
-```
-
-3. Initialize the client:
-```javascript
-require('dotenv').config();
-const ThreeXUI = require('3xui-api-client');
-
-const client = new ThreeXUI(
-    process.env.PANEL_URL,
-    process.env.PANEL_USERNAME,
-    process.env.PANEL_PASSWORD
-);
-```
-
-## Authentication & Security
-
-### Automatic Login
-The client automatically handles authentication. When you make your first API call, it will:
-1. Login with your credentials
-2. Store the session cookie
-3. Use the cookie for subsequent requests
-4. Automatically re-login if the session expires
-
-### Server-Side Cookie Storage (Recommended)
-For production applications, store the session cookie securely on your server. The `login()` method returns the cookie for this purpose:
-
-```javascript
-const ThreeXUI = require('3xui-api-client');
-
-class SecureThreeXUIManager {
-  constructor(baseURL, username, password) {
-    this.client = new ThreeXUI(baseURL, username, password);
-    this.sessionCookie = null;
-  }
-
-  async ensureAuthenticated() {
-    if (!this.sessionCookie) {
-      const loginResult = await this.client.login();
-      
-      // The cookie is returned in the login result
-      this.sessionCookie = loginResult.cookie;
-      
-      // Store in secure session storage (Redis, database, etc.)
-      await this.storeSessionSecurely(this.sessionCookie);
-    } else {
-      // Restore from secure storage
-      this.client.cookie = this.sessionCookie;
-      this.client.api.defaults.headers.Cookie = this.sessionCookie;
-    }
-  }
-
-  async storeSessionSecurely(cookie) {
-    // Example: Store in Redis with expiration
-    // await redis.setex('3xui_session', 3600, cookie);
-    
-    // Example: Store in database
-    // await db.sessions.upsert({ service: '3xui', cookie, expires_at: new Date(Date.now() + 3600000) });
-  }
-
-  async getInbounds() {
-    await this.ensureAuthenticated();
-    return this.client.getInbounds();
-  }
-}
-```
-
-### Security Features
-The library includes several security enhancements:
-- **Input Validation**: Validates URLs, usernames, and passwords to prevent injection attacks.
-- **Secure Headers**: Automatically adds security headers to requests.
-- **Rate Limiting**: Prevents abuse by limiting request rates (configurable).
-- **Error Sanitization**: Hides sensitive details in production errors.
-
-## API Reference
-
-### Constructor
-```javascript
-new ThreeXUI(baseURL, username, password)
-```
-
-- `baseURL` (string): Your 3x-ui server URL (e.g., 'https://your-server.com')
-- `username` (string): Admin username
-- `password` (string): Admin password
-
-### Inbound Management (✅ Tested & Working)
-
-#### Get All Inbounds
-```javascript
 const inbounds = await client.getInbounds();
 console.log(inbounds);
 ```
 
-#### Get Specific Inbound
+### API Token Authentication (v3.0.2+)
+
 ```javascript
-const inbound = await client.getInbound(inboundId);
-console.log(inbound);
+const client = new ThreeXUI('https://your-3xui-server.com', {
+  token: 'your-api-token'
+});
+
+const inbounds = await client.getInbounds();
 ```
 
-#### Add New Inbound
-```javascript
-const inboundConfig = {
-  remark: "My VPN Server",
-  port: 443,
-  protocol: "vless",
-  settings: {
-    // Your inbound settings
-  }
-};
+## API Methods
 
-const result = await client.addInbound(inboundConfig);
-console.log('Inbound added:', result);
-```
+### Client Management (Modern API - v2.x+)
 
-#### Update Inbound
-```javascript
-const updatedConfig = {
-  remark: "Updated VPN Server",
-  // Other updated settings
-};
+#### Read Operations
+- `getClients()` - Get all clients
+- `getPagedClients(params)` - Get paginated client list
+- `getClient(email)` - Get specific client by email
+- `getClientTraffic(email)` - Get client traffic statistics
+- `getSubLinks(subId)` - Get subscription links by subscription ID
+- `getClientLinks(email)` - Get generic client links
+- `getGroups()` - Get all client groups
+- `getGroupEmails(groupName)` - Get emails in specific group
+- `getOnlines()` - Get currently online clients
+- `getModernLastOnline()` - Get last online status
+- `getModernClientIps(email)` - Get client IP list
 
-const result = await client.updateInbound(inboundId, updatedConfig);
-console.log('Inbound updated:', result);
-```
+#### Write Operations
+- `addModernClient(data)` - Add new client (modern API)
+- `updateModernClient(email, data)` - Update client details
+- `deleteModernClient(email)` - Delete client
+- `attachClientToInbounds(email, data)` - Attach client to inbounds
+- `detachClientFromInbounds(email, data)` - Detach client from inbounds
+- `resetModernClientTrafficByEmail(email)` - Reset client traffic
+- `updateModernClientTrafficByEmail(email, data)` - Update traffic limits
+- `clearModernClientIps(email)` - Clear client IP restrictions
 
-#### Delete Inbound
-```javascript
-const result = await client.deleteInbound(inboundId);
-console.log('Inbound deleted:', result);
-```
+#### Bulk Operations
+- `bulkCreateModernClients(data)` - Bulk create clients
+- `bulkDeleteModernClients(data)` - Bulk delete clients
+- `bulkAttachModernClients(data)` - Bulk attach to inbounds
+- `bulkDetachModernClients(data)` - Bulk detach from inbounds
+- `bulkAdjustModernClients(data)` - Bulk adjust settings
+- `bulkResetTrafficModernClients(data)` - Bulk reset traffic
+- `resetAllModernClientTraffics()` - Reset all client traffic
+- `deleteDepletedModernClients()` - Delete depleted clients
 
-### Client Management (✅ Tested & Working)
+#### Group Management
+- `createGroup(data)` - Create client group
+- `renameGroup(data)` - Rename existing group
+- `deleteGroup(data)` - Delete group
+- `bulkAddGroups(data)` - Bulk add groups
+- `bulkRemoveGroups(data)` - Bulk remove groups
 
-#### Add Client to Inbound
-```javascript
-const clientConfig = {
-  id: inboundId,
-  settings: JSON.stringify({
-    clients: [{
-      id: "client-uuid-here",
-      email: "user23c5n7",
-      limitIp: 0,
-      totalGB: 0,
-      expiryTime: 0,
-      enable: true
-    }]
-  })
-};
+### Client Management (Legacy API)
 
-const result = await client.addClient(clientConfig);
-```
+- `addClient(clientConfig)` - Add client
+- `updateClient(clientId, clientConfig)` - Update client
+- `deleteClient(inboundId, clientId)` - Delete client
+- `deleteClientByEmail(inboundId, email)` - Delete by email
+- `getClientTrafficsByEmail(email)` - Get traffic by email
+- `getClientTrafficsById(id)` - Get traffic by ID
+- `getClientIps(email)` - Get client IPs
+- `clearClientIps(email)` - Clear IP restrictions
+- `updateClientTraffic(email, trafficConfig)` - Update traffic limits
+- `resetClientTraffic(inboundId, email)` - Reset traffic
+- `resetAllTraffics()` - Reset all traffic globally
+- `resetAllClientTraffics(inboundId)` - Reset inbound traffic
+- `deleteDepletedClients(inboundId)` - Delete depleted clients
 
-#### Update Client
-```javascript
-const updateConfig = {
-  id: inboundId,
-  settings: JSON.stringify({
-    clients: [/* updated client settings */]
-  })
-};
+### Inbound Management
 
-const result = await client.updateClient(clientUUID, updateConfig);
-```
+- `getInbounds()` - Get all inbounds
+- `getInbound(id)` - Get specific inbound
+- `addInbound(inboundConfig)` - Add new inbound
+- `updateInbound(id, inboundConfig)` - Update inbound
+- `deleteInbound(id)` - Delete inbound
+- `importInbounds(inbounds)` - Bulk import inbounds
+- `getLastOnline()` - Get last online info
 
-#### Delete Client
-```javascript
-const result = await client.deleteClient(inboundId, clientUUID);
-```
+### Node Management
 
-#### Get Client Traffic by Email
-```javascript
-const traffic = await client.getClientTrafficsByEmail("user23c5n7");
-console.log('Client traffic:', traffic);
-```
+- `getNodes()` - Get all nodes
+- `getNode(id)` - Get specific node
+- `getNodeHistory(id, metric, bucket)` - Get node metrics history
+- `addNode(data)` - Add new node
+- `updateNode(id, data)` - Update node
+- `deleteNode(id)` - Delete node
+- `setNodeEnable(id)` - Enable node
+- `testNode(data)` - Test node connectivity
+- `probeNode(id)` - Probe node status
 
-#### Get Client Traffic by UUID
-```javascript
-const traffic = await client.getClientTrafficsById("client-uuid");
-console.log('Client traffic:', traffic);
-```
+### Custom Geo Management
 
-#### Manage Client IPs
-```javascript
-// Get client IPs
-const ips = await client.getClientIps("user23c5n7");
+- `getCustomGeos()` - Get custom geo sites/IPs
+- `getGeoAliases()` - Get geo aliases
+- `addCustomGeo(data)` - Add custom geo
+- `updateCustomGeo(id, data)` - Update geo
+- `deleteCustomGeo(id)` - Delete geo
+- `downloadCustomGeo(id)` - Download geo data
+- `updateAllCustomGeo()` - Update all geo data
 
-// Clear client IPs
-const result = await client.clearClientIps("user23c5n7");
-```
+### Server Management
 
-### Traffic Management (✅ Tested & Working)
+- `getServerStatus()` - Get CPU, RAM, uptime
+- `getCPUHistory(bucket)` - Get CPU usage history
+- `getXrayVersion()` - Get Xray version
+- `getConfigJson()` - Get Xray config JSON
+- `getDb()` - Download database
+- `stopXrayService()` - Stop Xray core
+- `restartXrayService()` - Restart Xray core
+- `installXray(version)` - Install specific Xray version
+- `getPanelLogs(count)` - Get panel logs
+- `getXrayLogs(count)` - Get Xray logs
+- `updateGeofile(fileName)` - Update GeoIP/GeoSite files
+- `importDB(formData)` - Import database
 
-#### Reset Individual Client Traffic
-```javascript
-const result = await client.resetClientTraffic(inboundId, "user23c5n7");
-```
+### Panel Settings
 
-#### Reset All Traffic (Global)
-```javascript
-const result = await client.resetAllTraffics();
-```
+- `getAllSettings()` - Get all panel settings
+- `updateSetting(settings)` - Update settings
+- `updateUser(oldUsername, oldPassword, newUsername, newPassword)` - Change admin credentials
+- `restartPanel()` - Restart panel
+- `getDefaultSettings()` - Get default settings
+- `getDefaultJsonConfig()` - Get default Xray JSON config
 
-#### Reset All Client Traffic in Inbound
-```javascript
-const result = await client.resetAllClientTraffics(inboundId);
-```
+### Xray Configuration
 
-#### Delete Depleted Clients
-```javascript
-const result = await client.deleteDepletedClients(inboundId);
-```
+- `getXrayConfig()` - Get Xray configuration
+- `updateXrayConfig(config)` - Update Xray configuration
+- `manageWarp(action, data)` - Manage WARP settings
+- `getOutboundsTraffic()` - Get outbound traffic statistics
+- `resetOutboundsTraffic()` - Reset outbound traffic
+- `getXrayResult()` - Get Xray execution result
 
-### System Operations (✅ Tested & Working)
+### Server-Side Generators
 
-#### Get Online Clients
-```javascript
-const onlineClients = await client.getOnlineClients();
-console.log('Currently online:', onlineClients);
-```
+- `getNewUUID()` - Generate UUID server-side
+- `getNewX25519Cert()` - Generate X25519 certificate
+- `getNewmldsa65()` - Generate MLDSA65 key
+- `getNewmlkem768()` - Generate ML-KEM-768 key
+- `getNewVlessEnc()` - Generate VLESS encryption
+- `getNewEchCert()` - Generate ECH certificate
 
-#### Create System Backup
-```javascript
-const result = await client.createBackup();
-console.log('Backup created:', result);
-```
+### Credential Generation
 
-#### Send Backup to Telegram Bot
-```javascript
-const tgResult = await client.backupToTgBot();
-console.log('Backup sent to Telegram:', tgResult);
-```
+- `generateCredentials(protocol, options)` - Generate protocol-specific credentials
+- `generateUUID(secure)` - Generate UUID
+- `generatePassword(length, options)` - Generate password
+- `generateBulkCredentials(protocol, count, options)` - Bulk generate credentials
+- `generateWireGuardKeys()` - Generate WireGuard key pair
+- `generateRealityKeys()` - Generate Reality key pair
+- `generatePort(min, max)` - Generate random port
+- `getShadowsocksCiphers()` - List SS cipher methods
+- `getRecommendedShadowsocksCipher()` - Get recommended cipher
+- `validateCredentials(credentials, protocol)` - Validate credentials
 
-#### Get Server Status
-```javascript
-const status = await client.getServerStatus();
-console.log('Server status:', status);
-```
+### Enhanced Client Management
+
+- `addClientWithCredentials(inboundId, protocol, options)` - Add client with auto-generated credentials
+- `updateClientWithCredentials(clientId, inboundId, options)` - Update client with credential management
+
+### Session Management
+
+- `login(forceRefresh)` - Authenticate with credentials/token
+- `logout()` - Clear session
+- `isSessionValid()` - Check session validity
+- `getSessionStats()` - Get session statistics
+- `clearAllSessions()` - Clear all cached sessions
+- `getTwoFactorEnable()` - Check 2FA status
+
+### System
+
+- `getOnlineClients()` - Get online clients
+- `createBackup()` - Create system backup
+- `backupToTgBot()` - Send backup to Telegram
+- `getSecurityStats()` - Get security monitoring data
 
 ## Documentation
 
-For comprehensive guides, examples, and implementation patterns, visit our [Wiki](https://github.com/iamhelitha/3xui-api-client/wiki):
+For comprehensive guides, examples, and implementation patterns, visit our **[Wiki](https://github.com/iamhelitha/3xui-api-client/wiki)**:
 
-- 📚 [**Use Cases & Examples**](https://github.com/iamhelitha/3xui-api-client/wiki/Use-Cases) - VPN service provider, server administration, monitoring dashboards
-- 🔐 [**Authentication Guide**](https://github.com/iamhelitha/3xui-api-client/wiki/Authentication-Guide) - Secure login and session management  
-- 🌐 [**Inbound Management**](https://github.com/iamhelitha/3xui-api-client/wiki/Inbound-Management) - Server configuration and setup
-- 👥 [**Client Management**](https://github.com/iamhelitha/3xui-api-client/wiki/Client-Management) - User account operations
-- 📊 [**Traffic Management**](https://github.com/iamhelitha/3xui-api-client/wiki/Traffic-Management) - Usage monitoring and billing
-- ⚙️ [**System Operations**](https://github.com/iamhelitha/3xui-api-client/wiki/System-Operations) - Backup and maintenance
-
-## Error Handling
-
-```javascript
-try {
-  const inbounds = await client.getInbounds();
-  console.log(inbounds);
-} catch (error) {
-  if (error.message.includes('Login failed')) {
-    console.error('Authentication error:', error.message);
-  } else if (error.response?.status === 401) {
-    console.error('Unauthorized - check your credentials');
-  } else {
-    console.error('API error:', error.message);
-  }
-}
-```
+- 📚 [Use Cases & Examples](https://github.com/iamhelitha/3xui-api-client/wiki/Use-Cases)
+- 🔐 [Authentication Guide](https://github.com/iamhelitha/3xui-api-client/wiki/Authentication-Guide)
+- 🌐 [Inbound Management](https://github.com/iamhelitha/3xui-api-client/wiki/Inbound-Management)
+- 👥 [Client Management](https://github.com/iamhelitha/3xui-api-client/wiki/Client-Management)
+- 📊 [Traffic Management](https://github.com/iamhelitha/3xui-api-client/wiki/Traffic-Management)
+- ⚙️ [System Operations](https://github.com/iamhelitha/3xui-api-client/wiki/System-Operations)
+- 🌐 [Modern API Guide](https://github.com/iamhelitha/3xui-api-client/wiki/Modern-API)
 
 ## Requirements
 
 - Node.js >= 14.0.0
-- 3x-ui panel with API access enabled
+- 3x-ui panel v2.0+ (or v3.0.2+ for API token authentication)
+- API access enabled on your 3x-ui server
 
 ## Contributing
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
@@ -353,7 +274,28 @@ npm run test:login
 npm test
 ```
 
+## FAQ
 
+**Q: Do I need to call `login()` explicitly?**
+A: No, the client automatically logs in before the first API call. Just create the client and start using it.
+
+**Q: Can I use API tokens instead of username/password?**
+A: Yes, use `{ token: 'your-api-token' }` instead of username/password (requires 3x-ui v3.0.2+).
+
+**Q: How do I store session cookies securely?**
+A: See the [Authentication Guide](https://github.com/iamhelitha/3xui-api-client/wiki/Authentication-Guide) for server-side session storage patterns.
+
+**Q: Which authentication method is more secure?**
+A: API tokens are recommended for production. See [Authentication Guide](https://github.com/iamhelitha/3xui-api-client/wiki/Authentication-Guide) for comparison.
+
+**Q: Can I use the client in browsers?**
+A: No, this is a Node.js library. Use it on your server side with proper CORS/security headers.
+
+**Q: How do I migrate from v2.x to v3.x?**
+A: The library is backward compatible. See [CHANGELOG.md](CHANGELOG.md) for breaking changes (if any).
+
+**Q: Can I bulk operations with this client?**
+A: Yes, use the `bulk*` methods for efficient batch operations. See [Client Management](https://github.com/iamhelitha/3xui-api-client/wiki/Client-Management) for examples.
 
 ## License
 

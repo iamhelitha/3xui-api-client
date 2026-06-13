@@ -81,6 +81,9 @@ tmp/
 temp/
 
 # Test coverage
-.nyc_output 
+.nyc_output
+
+# Live API test output (generated, varies per run)
+test/live-*-results.json
 
 .cursor/

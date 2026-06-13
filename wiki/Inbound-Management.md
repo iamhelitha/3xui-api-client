@@ -347,7 +347,9 @@ try {
 Create a new inbound with your desired configuration:
 
 ### Import Inbounds
-Bulk import inbounds from an array of configurations.
+Import one or more inbound configurations. The panel only accepts one inbound
+per request, so `importInbounds` sends a separate request per inbound and
+resolves to an array of responses (one per inbound, in the same order).
 
 ```javascript
 const inboundsToImport = [
@@ -366,11 +368,14 @@ const inboundsToImport = [
 ];
 
 try {
-  const result = await client.importInbounds(inboundsToImport);
-  console.log('Inbounds imported:', result);
+  const results = await client.importInbounds(inboundsToImport);
+  results.forEach((r, i) => console.log(`Inbound ${i + 1}:`, r.success ? 'imported' : r.msg));
 } catch (error) {
   console.error('Import failed:', error.message);
 }
+
+// A single inbound config is also accepted directly (not wrapped in an array)
+await client.importInbounds(inboundsToImport[0]);
 ```
 
 ### Basic VLESS Example

@@ -16,7 +16,7 @@ async function debugLogin() {
         console.log('--- Login Result Structure ---');
         console.log(JSON.stringify(result, null, 2));
         console.log('------------------------------');
-        
+
         console.log('Cookie value:', client.cookie);
 
     } catch (error) {

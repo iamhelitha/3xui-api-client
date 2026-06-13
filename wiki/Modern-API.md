@@ -9,6 +9,7 @@ This guide covers the 48 new API routes added in v3.0.0 for 3x-ui v2.x/v3.x pane
 - [Clients](#clients)
 - [Client Groups](#client-groups)
 - [Nodes](#nodes)
+- [Server-Side Generators](#server-side-generators)
 - [Custom Geo](#custom-geo)
 
 ---
@@ -25,7 +26,24 @@ const client = new ThreeXUI('https://your-panel.com:2053', {
 
 // With username/password (all versions)
 const client = new ThreeXUI('https://your-panel.com:2053', 'admin', 'password');
+await client.login();
 ```
+
+### Login compatibility (old vs. new panels)
+
+`login()` automatically detects which generation of panel you're talking to:
+
+- **Newer (React-based) panels** require a CSRF token + session cookie obtained
+  from `GET /csrf-token` before `POST /login` will accept credentials, plus
+  an `X-CSRF-Token` header on every subsequent non-GET request.
+- **Older (Vue-based) panels** don't expose `/csrf-token` (404) and accept a
+  direct `POST /login` with form-urlencoded credentials.
+
+`login()` probes `/csrf-token` first; if it's available it performs the CSRF
+flow and stores the resulting token for use on later POST/PUT/DELETE requests,
+otherwise it falls back to the classic direct login. No configuration is
+needed - the same `username`/`password` constructor call works against both
+generations.
 
 ---
 
@@ -48,13 +66,20 @@ const result = await client.getPagedClients({
     email: 'alice'  // filter by email (partial match)
 });
 // GET /panel/api/clients/list/paged?page=1&size=20&sort=email&order=asc
+// Returns: { success: true, obj: {
+//   items: [ { email, subId, enable, totalGB, expiryTime, limitIp, reset, inboundIds, traffic: {...}, createdAt, updatedAt }, ... ],
+//   total: 1, filtered: 1, page: 1, pageSize: 25, summary: { total: 1, ... }
+// } }
 ```
 
 ### Get client by email
 ```javascript
 const result = await client.getClient('alice_vpn');
 // GET /panel/api/clients/get/alice_vpn
-// Returns: { success: true, obj: { email, id, inboundIds, ... } }
+// Returns: { success: true, obj: {
+//   client: { id, email, subId, uuid, password, flow, limitIp, totalGB, expiryTime, enable, group, ... },
+//   inboundIds: [1]
+// } }
 ```
 
 ### Get client traffic by email
@@ -81,17 +106,19 @@ const result = await client.getClientLinks('alice_vpn');
 ### Add a client
 ```javascript
 const result = await client.addModernClient({
-    username: 'alice_vpn',
-    email: 'alice_vpn',
-    id: '550e8400-e29b-41d4-a716-446655440000', // UUID for VLESS/VMess
-    inboundIds: [1, 3],                          // which inbounds to attach to
-    totalGB: 50,                                 // data limit in GB (0 = unlimited)
-    expiryTime: 1751500800000,                   // Unix ms timestamp (0 = never)
-    enable: true,
-    flow: 'xtls-rprx-vision',
-    limitIp: 2
+    inboundIds: [1, 3],   // which inbounds to attach to
+    client: {
+        email: 'alice_vpn',
+        id: '550e8400-e29b-41d4-a716-446655440000', // UUID for VLESS/VMess
+        totalGB: 50,                                // data limit in GB (0 = unlimited)
+        expiryTime: 1751500800000,                  // Unix ms timestamp (0 = never)
+        enable: true,
+        flow: 'xtls-rprx-vision',
+        limitIp: 2
+    }
 });
 // POST /panel/api/clients/add
+// Returns: { success: true, msg: "Inbound client(s) have been added.", obj: null }
 ```
 
 ### Update a client by email
@@ -131,7 +158,8 @@ const result = await client.detachClientFromInbounds('alice_vpn', {
 ```javascript
 const result = await client.getModernClientIps('alice_vpn');
 // POST /panel/api/clients/ips/alice_vpn
-// Returns list of IPs the client has connected from
+// Returns: { success: true, obj: [...ipAddresses] } when IPs are recorded,
+// or { success: true, obj: "No IP Record" } (string, not array) when none exist
 ```
 
 ### Clear client IPs
@@ -165,13 +193,14 @@ const result = await client.resetAllModernClientTraffics();
 ```javascript
 const result = await client.deleteDepletedModernClients();
 // POST /panel/api/clients/delDepleted
+// Returns: { success: true, obj: { deleted: 0 } }
 ```
 
 ### Get currently online clients
 ```javascript
 const result = await client.getOnlines();
 // POST /panel/api/clients/onlines
-// Returns list of emails currently connected
+// Returns: { success: true, obj: [...emails] } - list of emails currently connected
 ```
 
 ### Get last online time for all clients
@@ -183,23 +212,28 @@ const result = await client.getModernLastOnline();
 
 ### Bulk create clients
 ```javascript
-const result = await client.bulkCreateModernClients({
-    clients: [
-        { email: 'user_001', id: '...uuid...', inboundIds: [1] },
-        { email: 'user_002', id: '...uuid...', inboundIds: [1] }
-    ]
-});
+// NOTE: the request body is a raw array, not wrapped in a `clients` object
+const result = await client.bulkCreateModernClients([
+    { inboundIds: [1], client: { email: 'user_001', id: '...uuid...', totalGB: 0, expiryTime: 0, enable: true } },
+    { inboundIds: [1], client: { email: 'user_002', id: '...uuid...', totalGB: 0, expiryTime: 0, enable: true } }
+]);
 // POST /panel/api/clients/bulkCreate
+// Returns: { success: true, obj: { created: 2 } }
+// or, if some emails already exist: { success: true, obj: { created: 1, skipped: [{ email, reason }] } }
 ```
 
-### Bulk adjust clients (traffic/expiry)
+### Bulk adjust clients (traffic/expiry deltas)
 ```javascript
 const result = await client.bulkAdjustModernClients({
     emails: ['user_001', 'user_002'],
-    totalGB: 100,
-    expiryTime: 1751500800000
+    addDays: 30,            // shifts expiryTime by this many days (can be negative)
+    addBytes: 10737418240   // shifts totalGB by this many bytes (can be negative)
 });
 // POST /panel/api/clients/bulkAdjust
+// Returns: { success: true, obj: { adjusted: 2 } }
+// Clients with unlimited expiry (expiryTime: 0) are skipped for addDays,
+// and clients with unlimited traffic (totalGB: 0) are skipped for addBytes:
+// { success: true, obj: { adjusted: 0, skipped: [{ email, reason: "unlimited expiry" }, ...] } }
 ```
 
 ### Bulk delete clients
@@ -208,6 +242,8 @@ const result = await client.bulkDeleteModernClients({
     emails: ['user_001', 'user_002']
 });
 // POST /panel/api/clients/bulkDel
+// Returns: { success: true, obj: { deleted: 2 } }
+// or: { success: true, obj: { deleted: 0, skipped: [{ email, reason: "client not found" }, ...] } }
 ```
 
 ### Bulk attach clients to inbounds
@@ -217,6 +253,7 @@ const result = await client.bulkAttachModernClients({
     inboundIds: [1, 2]
 });
 // POST /panel/api/clients/bulkAttach
+// Returns: { success: true, obj: { attached: [...]|null, skipped: [...]|null, errors: ["user_001: record not found", ...] } }
 ```
 
 ### Bulk detach clients from inbounds
@@ -226,6 +263,7 @@ const result = await client.bulkDetachModernClients({
     inboundIds: [2]
 });
 // POST /panel/api/clients/bulkDetach
+// Returns: { success: true, obj: { detached: [...]|null, skipped: [...]|null, errors: [...] } }
 ```
 
 ### Bulk reset traffic
@@ -234,6 +272,7 @@ const result = await client.bulkResetTrafficModernClients({
     emails: ['user_001', 'user_002']
 });
 // POST /panel/api/clients/bulkResetTraffic
+// Returns: { success: true, obj: { affected: 2 } }
 ```
 
 ---
@@ -246,7 +285,7 @@ Groups let you tag clients with labels and apply bulk operations to all members 
 ```javascript
 const result = await client.getGroups();
 // GET /panel/api/clients/groups
-// Returns: { success: true, obj: ['premium', 'trial', ...] }
+// Returns: { success: true, obj: [ { name: 'premium', clientCount: 3, trafficUsed: 1073741824 }, ... ] }
 ```
 
 ### Get emails in a group
@@ -279,95 +318,237 @@ const result = await client.deleteGroup({ name: 'trial' });
 
 ### Add clients to a group (bulk)
 ```javascript
+// NOTE: `group` is a single group name (string), not a `groups` array
 const result = await client.bulkAddGroups({
     emails: ['alice_vpn', 'bob_vpn'],
-    groups: ['premium']
+    group: 'premium'
 });
 // POST /panel/api/clients/groups/bulkAdd
+// Returns: { success: true, obj: { affected: 2 } }
 ```
 
 ### Remove clients from a group (bulk)
 ```javascript
+// NOTE: only `emails` is accepted - this removes each client from
+// whatever group it currently belongs to. There is no `group`/`groups` field.
 const result = await client.bulkRemoveGroups({
-    emails: ['alice_vpn'],
-    groups: ['premium']
+    emails: ['alice_vpn']
 });
 // POST /panel/api/clients/groups/bulkRemove
+// Returns: { success: true, obj: { affected: 1 } }
 ```
 
 ---
 
 ## Nodes
 
-Nodes represent additional servers in a multi-server 3x-ui cluster.
+Nodes represent additional servers in a multi-server 3x-ui cluster. Each node
+is itself a 3x-ui panel (or another panel's API), reachable over HTTP(S) and
+authenticated with an API token.
 
 ### Get all nodes
 ```javascript
 const result = await client.getNodes();
 // GET /panel/api/nodes/list
-// Returns: { success: true, obj: [ ...nodes ] }
+// Returns: { success: true, obj: [ ...nodes ] } - see "Node object shape" below
 ```
 
 ### Get a specific node
 ```javascript
 const result = await client.getNode(2);
 // GET /panel/api/nodes/get/2
-// Returns: { success: true, obj: { id, name, address, port, ... } }
+// Returns: { success: true, obj: { ...node } } - see "Node object shape" below
 ```
 
 ### Get node history metrics
 ```javascript
-const result = await client.getNodeHistory(2, 'cpu', '1h');
-// GET /panel/api/nodes/history/2/cpu/1h
-// metric: 'cpu' | 'memory' | 'network'
-// bucket: time resolution e.g. '1m', '5m', '1h'
+const result = await client.getNodeHistory(2, 'cpu', 60);
+// GET /panel/api/nodes/history/2/cpu/60
+// metric: 'cpu' | 'memory' | ... (whatever metrics the node reports)
+// bucket: number of data points/seconds to return
+// Returns: { success: true, obj: [ { t: 1781106540, v: 2.1624436777220635 }, ... ] }
+// t = unix timestamp (seconds), v = metric value at that time
 ```
 
 ### Add a node
 ```javascript
 const result = await client.addNode({
     name: 'SG Node 1',
-    address: '10.0.0.2',
+    remark: 'Singapore secondary panel',
+    scheme: 'https',                 // 'http' | 'https'
+    address: 'sg-node.example.com',
     port: 2053,
-    apiPort: 2096,
-    enable: true
+    basePath: '/AbCdEfGhIj/',        // the node panel's web base path, must end with '/'
+    apiToken: 'the-remote-nodes-api-token', // required - the API token configured on the target node's panel
+    enable: true,
+    allowPrivateAddress: false,      // set true to allow private/loopback addresses (e.g. self-registration)
+    tlsVerifyMode: 'verify',         // optional, defaults to 'verify'
+    pinnedCertSha256: ''             // optional, used when pinning a self-signed cert
 });
 // POST /panel/api/nodes/add
+// Returns: { success: true, msg: "Add node", obj: { ...node } }
+// Unless `allowPrivateAddress: true` is set, `address` must be a public/non-private
+// address reachable from the panel, otherwise the panel rejects it with
+// "blocked private/internal address".
 ```
 
 ### Update a node
 ```javascript
 const result = await client.updateNode(2, {
     name: 'SG Node 1 (updated)',
-    enable: true
+    remark: 'Singapore secondary panel',
+    scheme: 'https',
+    address: 'sg-node.example.com',
+    port: 2053,
+    basePath: '/AbCdEfGhIj/',
+    apiToken: 'the-remote-nodes-api-token',
+    enable: true,
+    allowPrivateAddress: false
 });
 // POST /panel/api/nodes/update/2
+// Returns: { success: true, msg: "Update node", obj: null }
 ```
 
 ### Delete a node
 ```javascript
 const result = await client.deleteNode(2);
 // POST /panel/api/nodes/del/2
+// Returns: { success: true, msg: "Delete node", obj: null }
 ```
 
 ### Enable/disable a node
 ```javascript
-const result = await client.setNodeEnable(2);
+const result = await client.setNodeEnable(2, false); // explicitly disable
+const result2 = await client.setNodeEnable(2, true);  // explicitly enable
+const result3 = await client.setNodeEnable(2);        // toggles the current state
 // POST /panel/api/nodes/setEnable/2
-// Toggles the enabled state of the node
+// Body (when `enable` is a boolean): { enable: true|false }
+// Returns: { success: true, msg: "Update node", obj: null }
 ```
 
 ### Test node connectivity
 ```javascript
-const result = await client.testNode({ address: '10.0.0.2', port: 2053 });
+const result = await client.testNode({
+    scheme: 'https',
+    address: 'sg-node.example.com',
+    port: 2053,
+    basePath: '/AbCdEfGhIj/',
+    apiToken: 'the-remote-nodes-api-token'
+});
 // POST /panel/api/nodes/test
+// Returns: { success: true, obj: {
+//   status: 'online' | 'offline', latencyMs, xrayVersion, panelVersion,
+//   cpuPct, memPct, uptimeSecs, error, xrayState, xrayError
+// } }
 ```
 
 ### Probe a node (health check)
 ```javascript
 const result = await client.probeNode(2);
 // POST /panel/api/nodes/probe/2
-// Returns latency and status information
+// Returns the same shape as testNode():
+// { success: true, obj: { status, latencyMs, xrayVersion, panelVersion, cpuPct, memPct, uptimeSecs, error, xrayState, xrayError } }
+```
+
+### Node object shape
+
+`getNodes()`, `getNode(id)`, and `addNode()` all return node objects with this shape:
+
+```javascript
+{
+    id: 3,
+    name: 'SG Node 1',
+    remark: 'Singapore secondary panel',
+    scheme: 'https',
+    address: 'sg-node.example.com',
+    port: 2053,
+    basePath: '/AbCdEfGhIj/',
+    apiToken: 'the-remote-nodes-api-token',
+    enable: true,
+    allowPrivateAddress: false,
+    tlsVerifyMode: 'verify',
+    pinnedCertSha256: '',
+    guid: '',
+    status: 'unknown',       // 'unknown' | 'online' | 'offline' (updated by probe/heartbeat)
+    lastHeartbeat: 0,
+    latencyMs: 0,
+    xrayVersion: '',
+    panelVersion: '',
+    cpuPct: 0,
+    memPct: 0,
+    uptimeSecs: 0,
+    lastError: '',
+    xrayState: '',
+    xrayError: '',
+    configDirty: false,
+    configDirtyAt: 0,
+    inboundCount: 0,
+    clientCount: 0,
+    onlineCount: 0,
+    depletedCount: 0,
+    createdAt: 1781106907531,
+    updatedAt: 1781106907531
+}
+```
+
+---
+
+## Server-Side Generators
+
+These routes ask the panel itself to generate keys/certs (e.g. for Reality,
+ECH, post-quantum key exchange) so the client never needs a local crypto
+implementation.
+
+### Generate a new UUID
+```javascript
+const result = await client.getNewUUID();
+// GET /panel/api/server/getNewUUID
+// Returns: { success: true, obj: { uuid: '...' } }
+```
+
+### Generate an X25519 key pair (Reality)
+```javascript
+const result = await client.getNewX25519Cert();
+// GET /panel/api/server/getNewX25519Cert
+// Returns: { success: true, obj: { privateKey: '...', publicKey: '...' } }
+```
+
+### Generate an ML-DSA-65 key pair
+```javascript
+const result = await client.getNewmldsa65();
+// GET /panel/api/server/getNewmldsa65
+// Returns: { success: true, obj: { seed: '...', verify: '...' } }
+```
+
+### Generate an ML-KEM-768 key pair
+```javascript
+const result = await client.getNewmlkem768();
+// GET /panel/api/server/getNewmlkem768
+// Returns: { success: true, obj: { seed: '...', client: '...' } }
+```
+
+### Generate VLESS encryption settings
+```javascript
+const result = await client.getNewVlessEnc();
+// GET /panel/api/server/getNewVlessEnc
+// Returns: { success: true, obj: { auths: [ { id, label, decryption, encryption }, ... ] } }
+```
+
+### Generate an ECH certificate
+```javascript
+const result = await client.getNewEchCert();              // without SNI
+const result2 = await client.getNewEchCert('example.com'); // with SNI
+// POST /panel/api/server/getNewEchCert
+// `sni` (when provided) is sent as application/x-www-form-urlencoded,
+// matching how the panel reads it via c.PostForm.
+// Returns: { success: true, obj: { echConfigList: '...', echServerKeys: '...' } }
+```
+
+### Get web certificate file paths
+```javascript
+const result = await client.getWebCertFiles();
+// GET /panel/api/server/getWebCertFiles
+// Returns: { success: true, obj: { webCertFile: '/path/to/fullchain.pem', webKeyFile: '/path/to/privkey.pem' } }
 ```
 
 ---
@@ -380,33 +561,41 @@ Custom Geo lets you define and manage custom geographic IP/domain lists used in 
 ```javascript
 const result = await client.getCustomGeos();
 // GET /panel/api/custom-geo/list
-// Returns: { success: true, obj: [ { id, name, type, ... } ] }
+// Returns: { success: true, obj: [ { id, type, alias, url, localPath, lastUpdatedAt, lastModified, createdAt, updatedAt }, ... ] }
 ```
 
 ### Get geo aliases
 ```javascript
 const result = await client.getGeoAliases();
 // GET /panel/api/custom-geo/aliases
-// Returns alias mappings for built-in geo files
+// Returns: { success: true, obj: { geosite: [...] | null, geoip: [...] | null } }
+// alias mappings for built-in geo files
 ```
 
 ### Add a custom geo entry
 ```javascript
+// NOTE: only `type`, `alias`, and `url` are accepted - there is no `name`/`data` field
 const result = await client.addCustomGeo({
-    name: 'my-blocked-sites',
-    type: 'domain',    // 'domain' | 'ip'
-    data: 'example.com\nmalicious.net'
+    type: 'geosite',   // 'geosite' | 'geoip' (NOT 'domain'/'ip')
+    alias: 'my-blocked-sites-alias',
+    url: 'https://example.com/path/to/geosite.dat' // remote file the panel downloads
 });
 // POST /panel/api/custom-geo/add
+// The panel downloads `url` and validates it as a geosite/geoip data file -
+// a URL that doesn't resolve to one will fail with "Add custom geo (Download failed)".
+// Returns: { success: true, msg: "Add custom geo", obj: null }
+// To get the new entry's id, call getCustomGeos() afterwards and match by alias.
 ```
 
 ### Update a custom geo entry
 ```javascript
 const result = await client.updateCustomGeo(3, {
-    name: 'my-blocked-sites',
-    data: 'example.com\nmalicious.net\nnewsite.org'
+    type: 'geosite',
+    alias: 'my-blocked-sites-alias',
+    url: 'https://example.com/path/to/geosite.dat'
 });
 // POST /panel/api/custom-geo/update/3
+// Returns: { success: true, msg: "...", obj: null }
 ```
 
 ### Delete a custom geo entry
@@ -427,6 +616,7 @@ const result = await client.downloadCustomGeo(3);
 const result = await client.updateAllCustomGeo();
 // POST /panel/api/custom-geo/update-all
 // Fetches latest versions of all subscribed geo lists
+// Returns: { success: true, obj: { succeeded: [...]|null, failed: [...]|null } }
 ```
 
 ---

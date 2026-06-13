@@ -28,7 +28,7 @@ async function test08_updateClient(testState) {
         // NEW WAY: Simple, focused updates with smart defaults
         const updateOptions = {
             email: `updated_auto_${Date.now()}`,
-                    limitIp: 2,
+            limitIp: 2,
             totalGB: 10, // 10GB (auto-converted to bytes)
             expiryDays: 30, // 30 days from now (auto-calculated)
             enable: true

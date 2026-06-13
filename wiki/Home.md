@@ -160,11 +160,16 @@ await client.getInbound(id)
 await client.addInbound(config)
 await client.updateInbound(id, config)
 await client.deleteInbound(id)
-await client.importInbounds(inbounds)
-await client.getLastOnline()
+await client.importInbounds(inbounds) // accepts a single config or an array; returns an array of results
 ```
 
-### Clients — Legacy API (all 3x-ui versions)
+### Clients — Legacy API (older Vue-based panels only)
+> ⚠️ **v3.x panels (React-based) have removed these `/panel/api/inbounds/*`
+> client routes** - use the [Modern Client API](#clients--modern-api) instead
+> (`addModernClient`, `updateModernClient`, `deleteModernClient`,
+> `getClientTraffic`, `getModernClientIps`, `clearModernClientIps`,
+> `getModernLastOnline`, `getOnlines`, etc). These legacy methods only work on
+> older, pre-v3.x panels.
 ```javascript
 await client.addClient(config)
 await client.updateClient(clientId, config)
@@ -175,24 +180,26 @@ await client.getClientTrafficsByEmail(email)
 await client.getClientTrafficsById(id)
 await client.getClientIps(email)
 await client.clearClientIps(email)
+await client.getLastOnline()
+await client.getOnlineClients()
 
 // Auto-credential helpers
 await client.addClientWithCredentials(inboundId, protocol, options)
 await client.updateClientWithCredentials(clientId, inboundId, options)
 ```
 
-### Traffic (all 3x-ui versions)
+### Traffic
 ```javascript
+await client.resetAllTraffics() // all 3x-ui versions - resets traffic for ALL clients
+
+// Legacy API - older Vue-based panels only (removed in v3.x, use Modern API equivalents)
 await client.resetClientTraffic(inboundId, email)
-await client.resetAllTraffics()
 await client.resetAllClientTraffics(inboundId)
 await client.deleteDepletedClients(inboundId)
 ```
 
 ### System
 ```javascript
-await client.getOnlineClients()
-await client.createBackup()
 await client.backupToTgBot()
 await client.getServerStatus()
 await client.getCPUHistory(bucket?)

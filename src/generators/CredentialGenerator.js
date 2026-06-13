@@ -102,24 +102,29 @@ class CredentialGenerator {
     }
 
     /**
+     * Generate a Curve25519 (X25519) key pair using Node's crypto module
+     * @returns {{privateKeyBytes: Buffer, publicKeyBytes: Buffer}} Raw 32-byte key pair
+     */
+    static _generateX25519KeyPair() {
+        const { publicKey, privateKey } = crypto.generateKeyPairSync('x25519');
+        const privateJwk = privateKey.export({ format: 'jwk' });
+        const publicJwk = publicKey.export({ format: 'jwk' });
+
+        return {
+            privateKeyBytes: Buffer.from(privateJwk.d, 'base64url'),
+            publicKeyBytes: Buffer.from(publicJwk.x, 'base64url')
+        };
+    }
+
+    /**
      * Generate WireGuard key pair
      * @returns {Object} Object containing private and public keys
      */
     static generateWireGuardKeys() {
-        // Generate 32 random bytes for private key
-        const privateKeyBytes = crypto.randomBytes(32);
-
-        // Clamp the private key (standard WireGuard key clamping)
-        privateKeyBytes[0] &= 248;
-        privateKeyBytes[31] &= 127;
-        privateKeyBytes[31] |= 64;
+        // WireGuard uses Curve25519 (X25519) key pairs encoded as standard base64
+        const { privateKeyBytes, publicKeyBytes } = this._generateX25519KeyPair();
 
         const privateKey = privateKeyBytes.toString('base64');
-
-        // For the public key, we would normally use Curve25519 scalar multiplication
-        // This is a simplified implementation - in production, use a proper crypto library
-        // like noble-curves or libsodium for accurate public key derivation
-        const publicKeyBytes = crypto.randomBytes(32); // Placeholder
         const publicKey = publicKeyBytes.toString('base64');
 
         return {
@@ -140,13 +145,11 @@ class CredentialGenerator {
      * @returns {Object} Object containing private and public keys
      */
     static generateRealityKeys() {
-        // Reality uses X25519 key exchange
-        const privateKeyBytes = crypto.randomBytes(32);
-        const privateKey = privateKeyBytes.toString('base64').replace(/\//g, '_').replace(/\+/g, '-');
+        // Reality uses X25519 key exchange, keys encoded as base64url without padding
+        const { privateKeyBytes, publicKeyBytes } = this._generateX25519KeyPair();
 
-        // Public key derivation (simplified - use proper X25519 in production)
-        const publicKeyBytes = crypto.randomBytes(32);
-        const publicKey = publicKeyBytes.toString('base64').replace(/\//g, '_').replace(/\+/g, '-');
+        const privateKey = privateKeyBytes.toString('base64url');
+        const publicKey = publicKeyBytes.toString('base64url');
 
         return {
             privateKey,

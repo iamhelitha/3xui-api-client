@@ -74,6 +74,7 @@ class ThreeXUI {
         }
 
         this.cookie = null;
+        this.csrfToken = null;
         this.options = options;
         this.loginMutex = false; // Add mutex to prevent concurrent logins
         this.loginRetryCount = 0; // Add retry counter
@@ -168,6 +169,9 @@ class ThreeXUI {
             if (existingSession && existingSession.cookie) {
                 this.cookie = existingSession.cookie;
                 this.api.defaults.headers.Cookie = this.cookie;
+                if (existingSession.csrfToken) {
+                    this.csrfToken = existingSession.csrfToken;
+                }
                 // Reset retry count on successful session restore
                 this.loginRetryCount = 0;
                 return {
@@ -183,10 +187,23 @@ class ThreeXUI {
             params.append('username', this.username);
             params.append('password', this.password);
 
+            const loginHeaders = {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            };
+
+            // Newer (React-based) 3x-ui panels require a CSRF token + session
+            // cookie obtained from /csrf-token before /login will accept
+            // credentials. Older (Vue-based) panels don't expose this
+            // endpoint (404), in which case we fall back to the classic
+            // direct login below.
+            const csrfInfo = await this._getCsrfToken();
+            if (csrfInfo) {
+                loginHeaders['X-CSRF-Token'] = csrfInfo.token;
+                loginHeaders['Cookie'] = csrfInfo.cookie;
+            }
+
             const response = await this.api.post('/login', params, {
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
+                headers: loginHeaders
             });
 
             if (response.data.success) {
@@ -195,11 +212,18 @@ class ThreeXUI {
                     this.cookie = cookies[0].split(';')[0];
                     this.api.defaults.headers.Cookie = this.cookie;
 
+                    // On newer panels, every non-safe request (POST/PUT/DELETE)
+                    // also requires this CSRF token, not just /login.
+                    if (csrfInfo) {
+                        this.csrfToken = csrfInfo.token;
+                    }
+
                     // Store session if session manager is available
                     if (this.sessionManager) {
                         try {
                             await this.sessionManager.storeSession(this.baseURL, this.username, {
                                 cookie: this.cookie,
+                                csrfToken: this.csrfToken,
                                 loginTime: new Date().toISOString()
                             });
                         } catch (sessionError) {
@@ -244,6 +268,43 @@ class ThreeXUI {
     }
 
     /**
+     * Detect newer (React-based) 3x-ui panels and obtain the CSRF token +
+     * session cookie required by their /login endpoint.
+     *
+     * Older (Vue-based) panels don't expose /csrf-token and respond with a
+     * 404, in which case this returns null so login() falls back to the
+     * classic direct login flow.
+     *
+     * @returns {Promise<{token: string, cookie: string} | null>}
+     */
+    async _getCsrfToken() {
+        try {
+            const response = await this.api.get('/csrf-token', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                validateStatus: (status) => status === 200 || status === 404
+            });
+
+            if (response.status !== 200 || !response.data || !response.data.success || !response.data.obj) {
+                return null;
+            }
+
+            const cookies = response.headers['set-cookie'];
+            if (!cookies || cookies.length === 0) {
+                return null;
+            }
+
+            return {
+                token: response.data.obj,
+                cookie: cookies[0].split(';')[0]
+            };
+        } catch {
+            // /csrf-token unreachable or errored - treat as an old panel
+            // and let login() proceed with the classic flow.
+            return null;
+        }
+    }
+
+    /**
      * Logout and clear session
      */
     async logout() {
@@ -254,6 +315,7 @@ class ThreeXUI {
         }
 
         this.cookie = null;
+        this.csrfToken = null;
         delete this.api.defaults.headers.Cookie;
 
         if (this.sessionManager) {
@@ -269,7 +331,7 @@ class ThreeXUI {
         return this._request('post', '/getTwoFactorEnable');
     }
 
-    async _request(method, path, data = {}) {
+    async _request(method, path, data = {}, extraHeaders = {}) {
         // Check session validity first with mutex protection if token is not provided
         if (!this.token) {
             if (!this.loginMutex && this.sessionManager && !await this.sessionManager.hasValidSession(this.baseURL, this.username)) {
@@ -284,7 +346,7 @@ class ThreeXUI {
                 method,
                 url: path,
                 data,
-                ...(method.toLowerCase() === 'post' ? { headers: { 'Content-Type': 'application/json' } } : {})
+                headers: { ...this._buildRequestHeaders(method), ...extraHeaders }
             });
             // Reset retry counter on successful request
             this.loginRetryCount = 0;
@@ -301,7 +363,7 @@ class ThreeXUI {
                         method,
                         url: path,
                         data,
-                        ...(method.toLowerCase() === 'post' ? { headers: { 'Content-Type': 'application/json' } } : {})
+                        headers: { ...this._buildRequestHeaders(method), ...extraHeaders }
                     });
                     return response.data;
                 } else {
@@ -310,6 +372,30 @@ class ThreeXUI {
             }
             throw error;
         }
+    }
+
+    /**
+     * Build per-request headers, including the JSON content type for POST
+     * bodies and (on cookie-authenticated sessions against newer
+     * React-based panels) the X-CSRF-Token header required for non-safe
+     * HTTP methods.
+     *
+     * @param {string} method - HTTP method for the request
+     * @returns {Object} Headers to merge into the request
+     */
+    _buildRequestHeaders(method) {
+        const headers = {};
+
+        if (method.toLowerCase() === 'post') {
+            headers['Content-Type'] = 'application/json';
+        }
+
+        const isSafeMethod = ['get', 'head', 'options'].includes(method.toLowerCase());
+        if (!isSafeMethod && !this.token && this.csrfToken) {
+            headers['X-CSRF-Token'] = this.csrfToken;
+        }
+
+        return headers;
     }
 
     /**
@@ -836,8 +922,15 @@ class ThreeXUI {
         return this._request('post', `/panel/api/nodes/del/${encodeURIComponent(id)}`);
     }
 
-    setNodeEnable(id) {
-        return this._request('post', `/panel/api/nodes/setEnable/${encodeURIComponent(id)}`);
+    /**
+     * Enable or disable a node.
+     * @param {number|string} id - Node ID
+     * @param {boolean} [enable] - Desired enabled state. If omitted, the panel toggles the current state.
+     * @returns {Promise<Object>} Result of the operation
+     */
+    setNodeEnable(id, enable) {
+        const data = typeof enable === 'boolean' ? { enable } : {};
+        return this._request('post', `/panel/api/nodes/setEnable/${encodeURIComponent(id)}`, data);
     }
 
     testNode(data) {
@@ -916,11 +1009,21 @@ class ThreeXUI {
     }
 
     /**
-     * Import inbounds
-     * @param {Array} inbounds - Array of inbound configurations
+     * Import one or more inbounds. The panel endpoint only accepts a single
+     * inbound per request (as a form-encoded `data` field containing the
+     * inbound JSON), so each inbound is sent as a separate request.
+     * @param {Object|Object[]} inbounds - Inbound configuration, or array of configurations
+     * @returns {Promise<Object[]>} One response object per imported inbound
      */
     importInbounds(inbounds) {
-        return this._request('post', '/panel/api/inbounds/import', { inbounds });
+        const list = Array.isArray(inbounds) ? inbounds : [inbounds];
+        return Promise.all(list.map((inboundConfig) => {
+            const validatedConfig = InputValidator.validateInboundConfig(inboundConfig);
+            const body = new URLSearchParams({ data: JSON.stringify(validatedConfig) }).toString();
+            return this._request('post', '/panel/api/inbounds/import', body, {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            });
+        }));
     }
 
     /**
@@ -1027,10 +1130,10 @@ class ThreeXUI {
 
     /**
      * Get CPU usage history
-     * @param {string} bucket - Time bucket (e.g., 'min', 'hour')
+     * @param {number} bucket - Bucket size in seconds. Must be one of: 2, 30, 60, 120, 180, 300
      */
-    getCPUHistory(bucket = 'min') {
-        return this._request('get', `/panel/api/server/cpuHistory/${bucket}`);
+    getCPUHistory(bucket = 60) {
+        return this._request('get', `/panel/api/server/cpuHistory/${encodeURIComponent(bucket)}`);
     }
 
     /**
@@ -1049,6 +1152,7 @@ class ThreeXUI {
 
     /**
      * Download database
+     * @returns {Promise<string>} Raw SQLite database file content as a string (starts with "SQLite format 3 ..."), not a Buffer
      */
     getDb() {
         return this._request('get', '/panel/api/server/getDb');
@@ -1140,8 +1244,25 @@ class ThreeXUI {
         return this._request('get', '/panel/api/server/getNewVlessEnc');
     }
 
-    getNewEchCert() {
-        return this._request('post', '/panel/api/server/getNewEchCert');
+    /**
+     * Generate a new ECH (Encrypted Client Hello) certificate.
+     * @param {string} [sni] - Optional SNI to embed in the generated certificate.
+     *   Sent as `application/x-www-form-urlencoded` since the panel reads it via `c.PostForm`.
+     * @returns {Promise<Object>} Generated ECH certificate data
+     */
+    getNewEchCert(sni) {
+        const body = sni ? new URLSearchParams({ sni }).toString() : '';
+        return this._request('post', '/panel/api/server/getNewEchCert', body, {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        });
+    }
+
+    /**
+     * Get the panel's configured web certificate/key file paths.
+     * @returns {Promise<Object>} Web certificate file info
+     */
+    getWebCertFiles() {
+        return this._request('get', '/panel/api/server/getWebCertFiles');
     }
 
     // ===========================================
@@ -1152,52 +1273,93 @@ class ThreeXUI {
      * Get all panel settings
      */
     getAllSettings() {
-        return this._request('post', '/panel/setting/all');
+        return this._request('post', '/panel/api/setting/all');
     }
 
     /**
      * Update panel settings
-     * @param {Object} settings - Settings to update
+     * ⚠️ NOTE: API returns "request body failed validation" error
+     * See test/PHASE-C-CRITICAL-FINDINGS.md for troubleshooting.
+     * The correct payload format needs to be determined from panel API source.
+     * @param {Object} settings - Settings to update (e.g., {language:'en_US', theme:'light'})
+     * @returns {Promise} Response from /panel/api/setting/update
      */
     updateSetting(settings) {
-        return this._request('post', '/panel/setting/update', settings);
+        if (!settings || typeof settings !== 'object') {
+            throw new Error('settings must be an object');
+        }
+        return this._request('post', '/panel/api/setting/update', settings);
     }
 
     /**
      * Update admin username and password
+     * ⚠️ CRITICAL: This endpoint changes your login credentials.
+     * After a successful update, the internal client credentials are refreshed
+     * and the session is re-authenticated with new credentials.
      * @param {string} oldUsername - Current username
      * @param {string} oldPassword - Current password
      * @param {string} newUsername - New username
      * @param {string} newPassword - New password
      */
-    updateUser(oldUsername, oldPassword, newUsername, newPassword) {
-        return this._request('post', '/panel/setting/updateUser', {
+    async updateUser(oldUsername, oldPassword, newUsername, newPassword) {
+        const response = await this._request('post', '/panel/api/setting/updateUser', {
             oldUsername,
             oldPassword,
             newUsername,
             newPassword
         });
+
+        if (response && response.success) {
+            // Update internal credentials to match new credentials
+            const oldUsername_ = this.username;
+            this.username = newUsername;
+            this.password = newPassword;
+
+            // Clear old session from session manager
+            if (this.sessionManager) {
+                try {
+                    await this.sessionManager.deleteSession(this.baseURL, oldUsername_);
+                } catch (error) {
+                    console.warn('[3xui-api-client] Could not delete old session:', error.message);
+                }
+            }
+
+            // Re-authenticate with new credentials to ensure session is valid
+            try {
+                await this.login(true); // Force refresh with new credentials
+            } catch (error) {
+                // If login fails after credential change, restore old credentials and re-throw
+                this.username = oldUsername;
+                this.password = oldPassword;
+                if (this.sessionManager) {
+                    await this.sessionManager.deleteSession(this.baseURL, newUsername);
+                }
+                throw new Error(`Credential update succeeded but re-authentication failed: ${error.message}`);
+            }
+        }
+
+        return response;
     }
 
     /**
      * Restart the panel
      */
     restartPanel() {
-        return this._request('post', '/panel/setting/restartPanel');
+        return this._request('post', '/panel/api/setting/restartPanel');
     }
 
     /**
      * Get default settings
      */
     getDefaultSettings() {
-        return this._request('post', '/panel/setting/defaultSettings');
+        return this._request('post', '/panel/api/setting/defaultSettings');
     }
 
     /**
      * Get default Xray JSON config
      */
     getDefaultJsonConfig() {
-        return this._request('get', '/panel/setting/getDefaultJsonConfig');
+        return this._request('get', '/panel/api/setting/getDefaultJsonConfig');
     }
 
     // ===========================================
@@ -1208,7 +1370,7 @@ class ThreeXUI {
      * Get Xray configuration
      */
     getXrayConfig() {
-        return this._request('post', '/panel/xray/');
+        return this._request('post', '/panel/api/xray/');
     }
 
     /**
@@ -1216,37 +1378,37 @@ class ThreeXUI {
      * @param {string} config - Xray configuration content
      */
     updateXrayConfig(config) {
-        return this._request('post', '/panel/xray/update', { content: config });
+        return this._request('post', '/panel/api/xray/update', { content: config });
     }
 
     /**
      * Manage WARP
-     * @param {string} action - Action to perform (data, del, config, reg, license)
+     * @param {string} action - Action to perform (data, del, config, reg, changeIp, license, interval)
      * @param {Object} [data] - Additional data for the action
      */
     manageWarp(action, data = {}) {
-        return this._request('post', `/panel/xray/warp/${action}`, data);
+        return this._request('post', `/panel/api/xray/warp/${action}`, data);
     }
 
     /**
      * Get outbound traffic statistics
      */
     getOutboundsTraffic() {
-        return this._request('get', '/panel/xray/getOutboundsTraffic');
+        return this._request('get', '/panel/api/xray/getOutboundsTraffic');
     }
 
     /**
      * Reset outbound traffic statistics
      */
     resetOutboundsTraffic() {
-        return this._request('post', '/panel/xray/resetOutboundsTraffic');
+        return this._request('post', '/panel/api/xray/resetOutboundsTraffic');
     }
 
     /**
      * Get Xray execution result
      */
     getXrayResult() {
-        return this._request('get', '/panel/xray/getXrayResult');
+        return this._request('get', '/panel/api/xray/getXrayResult');
     }
 
     // Security Methods

@@ -591,6 +591,7 @@ class ThreeXUI {
                     enable: true,
                     expiryTime: options.expiryTime || 0,
                     limitIp: options.limitIp || 0,
+                    // Note: Despite the name 'totalGB', 3x-ui expects this value in BYTES.
                     totalGB: options.totalGB || 0,
                     subId: options.subId || this.generateUUID()
                 }]
@@ -635,7 +636,7 @@ class ThreeXUI {
             const processedOptions = {
                 email: options.email || existingClients[clientIndex].email,
                 limitIp: options.limitIp !== undefined ? options.limitIp : existingClients[clientIndex].limitIp,
-                // totalGB is specified in gigabytes in 3x-ui config; do not convert to bytes
+                // Note: Despite the name 'totalGB', 3x-ui expects this value in BYTES.
                 totalGB: options.totalGB !== undefined ? options.totalGB : existingClients[clientIndex].totalGB,
                 expiryTime: options.expiryDays ? Date.now() + (options.expiryDays * 24 * 60 * 60 * 1000) : existingClients[clientIndex].expiryTime,
                 enable: options.enable !== undefined ? options.enable : existingClients[clientIndex].enable,
@@ -666,7 +667,7 @@ class ThreeXUI {
                 ...result,
                 updatedOptions: processedOptions,
                 conversions: {
-                    totalGB: options.totalGB !== undefined ? `${options.totalGB}GB` : 'unchanged',
+                    totalGB: options.totalGB !== undefined ? `${options.totalGB} bytes` : 'unchanged',
                     expiryDays: options.expiryDays ? `${options.expiryDays} days → ${new Date(processedOptions.expiryTime).toISOString()}` : 'unchanged'
                 }
             };

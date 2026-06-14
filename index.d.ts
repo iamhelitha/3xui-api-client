@@ -72,6 +72,7 @@ declare module '3xui-api-client' {
     flow?: string;
     security?: string;
     limitIp?: number;
+    /** The quota limit in BYTES (not gigabytes, despite the name) */
     totalGB?: number;
     expiryTime?: number;
     enable?: boolean;
@@ -276,6 +277,7 @@ declare module '3xui-api-client' {
     method?: string;
     username?: string;
     limitIp?: number;
+    /** The quota limit in BYTES (not gigabytes, despite the name) */
     totalGB?: number;
     expiryTime?: number;
     enable?: boolean;

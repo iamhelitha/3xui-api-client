@@ -12,13 +12,8 @@
     }
   },
   "scripts": {
-    "test": "node test/main-test.js",
+    "test": "echo \"No automated tests configured. Tests require a live panel environment.\"",
     "test:jest": "jest",
-    "test:manual": "node test/main-test.js",
-    "test:main": "node test/main-test.js",
-    "test:login": "node test/login-test.js",
-    "test:inbounds": "node test/inbounds-test.js",
-    "test:create": "node test/create-inbound-test.js",
     "lint": "eslint index.js src/",
     "prepublishOnly": "echo 'Skipping tests for publishing'"
   },

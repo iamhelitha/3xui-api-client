@@ -1,6 +1,6 @@
 # Modern API Guide
 
-This guide covers the 48 new API routes added in v3.0.2+ for 3x-ui v2.x/v3.x panels. These routes use the `/panel/api/clients/`, `/panel/api/nodes/`, and `/panel/api/custom-geo/` endpoints.
+This guide covers the 48 new API routes added in v3.1.0 for 3x-ui v2.x/v3.x panels. These routes use the `/panel/api/clients/`, `/panel/api/nodes/`, and `/panel/api/custom-geo/` endpoints.
 
 > **Version requirement**: These routes require 3x-ui v2.x or later. For older panels, use the [legacy API methods](Client-Management.md) under `/panel/api/inbounds/`.
 

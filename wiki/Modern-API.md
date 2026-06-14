@@ -1,6 +1,6 @@
 # Modern API Guide
 
-This guide covers the 48 new API routes added in v3.0.0 for 3x-ui v2.x/v3.x panels. These routes use the `/panel/api/clients/`, `/panel/api/nodes/`, and `/panel/api/custom-geo/` endpoints.
+This guide covers the 48 new API routes added in v3.0.2+ for 3x-ui v2.x/v3.x panels. These routes use the `/panel/api/clients/`, `/panel/api/nodes/`, and `/panel/api/custom-geo/` endpoints.
 
 > **Version requirement**: These routes require 3x-ui v2.x or later. For older panels, use the [legacy API methods](Client-Management.md) under `/panel/api/inbounds/`.
 
@@ -31,19 +31,12 @@ await client.login();
 
 ### Login compatibility (old vs. new panels)
 
-`login()` automatically detects which generation of panel you're talking to:
+The library features automatic **Dual Panel Support** to detect which generation of panel you're talking to:
 
-- **Newer (React-based) panels** require a CSRF token + session cookie obtained
-  from `GET /csrf-token` before `POST /login` will accept credentials, plus
-  an `X-CSRF-Token` header on every subsequent non-GET request.
-- **Older (Vue-based) panels** don't expose `/csrf-token` (404) and accept a
-  direct `POST /login` with form-urlencoded credentials.
+- **Modern (React-based) panels**: The client tries `/panel/api/login` first. It automatically handles the `/panel/api/csrf-token` CSRF protection and uses the modern endpoints.
+- **Legacy (Vue-based) panels**: If the modern login endpoint returns a 404, it seamlessly falls back to `/login` (pure cookie-based auth without CSRF).
 
-`login()` probes `/csrf-token` first; if it's available it performs the CSRF
-flow and stores the resulting token for use on later POST/PUT/DELETE requests,
-otherwise it falls back to the classic direct login. No configuration is
-needed - the same `username`/`password` constructor call works against both
-generations.
+The detected `panelType` is cached in the session so subsequent logins and API calls are instantly routed to the correct endpoints without re-detection. You can also explicitly specify `{ panelVersion: 'modern' | 'legacy' | 'auto' }` in the constructor options.
 
 ---
 

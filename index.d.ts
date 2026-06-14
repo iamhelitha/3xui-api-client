@@ -18,6 +18,14 @@ declare module '3xui-api-client' {
     userAgent?: string;
     token?: string;
     apiToken?: string;
+    /**
+     * Panel version detection mode.
+     * - 'auto': Automatically detect panel version (tries modern first, falls back to legacy)
+     * - 'modern': Use only modern panel endpoints (/panel/api/login)
+     * - 'legacy': Use only legacy panel endpoints (/login)
+     * @default 'auto'
+     */
+    panelVersion?: 'auto' | 'modern' | 'legacy';
   }
 
   export interface LoginResponse {
@@ -581,9 +589,14 @@ declare module '3xui-api-client' {
      * Download database.
      * @returns Raw SQLite database file content as a string (starts with "SQLite format 3 ..."), not a Buffer
      */
-    getDb(): Promise<string>;
+    getDb(): Promise<ModernApiResponse<string>>;
     stopXrayService(): Promise<any>;
     restartXrayService(): Promise<any>;
+    /**
+     * Install specific Xray version.
+     * @param version - Version to install (e.g., "1.8.0").
+     * @throws {Error} If `version` is not a non-empty string or is "latest".
+     */
     installXray(version: string): Promise<any>;
     getPanelLogs(count?: number): Promise<any>;
     getXrayLogs(count?: number): Promise<any>;
@@ -598,11 +611,12 @@ declare module '3xui-api-client' {
     getAllSettings(): Promise<any>;
     /**
      * Update panel settings
-     * ⚠️ NOTE: API returns "request body failed validation" error.
-     * Correct payload format needs verification from panel v3.x API source.
-     * See test/PHASE-C-CRITICAL-FINDINGS.md for details.
+     * NOTE: API requires ALL settings to be sent together.
+     * This method automatically fetches current settings, merges your updates, and sends all.
+     * @param updates - Partial settings object (will be merged with current settings)
+     * Example: updateSetting({ webPort: 7070 }) - will fetch all settings, update webPort, send all
      */
-    updateSetting(settings: Record<string, any>): Promise<any>;
+    updateSetting(updates: Record<string, any>): Promise<any>;
     /**
      * Update admin username and password
      * ⚠️ CRITICAL: This endpoint changes your login credentials.
@@ -617,7 +631,12 @@ declare module '3xui-api-client' {
 
     // --- Xray Configuration ---
     getXrayConfig(): Promise<any>;
-    updateXrayConfig(config: string): Promise<any>;
+    /**
+     * Update Xray configuration.
+     * @param config - Xray configuration content (JSON string or object).
+     * @throws {Error} If `config` is an invalid JSON string or not a valid object.
+     */
+    updateXrayConfig(config: string | object): Promise<any>;
     /**
      * Manage WARP.
      * @param action - Action to perform (data, del, config, reg, changeIp, license, interval)

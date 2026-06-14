@@ -68,19 +68,28 @@ const client = new ThreeXUI('https://your-panel.com:2053', 'admin', 'password', 
 
 ## Cookie-Based Login (all versions)
 
+The library automatically detects the panel version (Modern or Legacy) during cookie login, handling the correct endpoints and CSRF tokens seamlessly.
+
 ```javascript
 const ThreeXUI = require('3xui-api-client');
 
-// Simple setup — sessions handled automatically
+// Simple setup — sessions handled automatically.
+// Tries modern endpoints first, falls back to legacy if needed.
 const client = new ThreeXUI(
     'https://your-3xui-server.com',
     'your-username',
-    'your-password'
+    'your-password',
+    { panelVersion: 'auto' } // 'auto' is default. Can also be 'modern' or 'legacy'
 );
 
 // No manual login() needed — auto-authenticates on first API call
 const inbounds = await client.getInbounds();
 ```
+
+### How Dual Panel Detection Works
+- **Modern Panels (React-based)**: The client tries `/panel/api/login`, retrieves the cookie, and automatically handles the `/panel/api/csrf-token` security token required for subsequent requests.
+- **Legacy Panels (Vue-based)**: If the modern endpoint fails, it falls back to `/login` and uses pure cookie authentication (no CSRF).
+- The detected `panelType` is securely cached in the session so subsequent logins are instant without re-detection.
 
 ### What login() actually returns
 `login()` returns a **session cookie**, not an API token. The cookie is extracted from the `Set-Cookie` response header and stored in the session manager for automatic reuse:

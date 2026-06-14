@@ -79,6 +79,7 @@ class ThreeXUI {
         this.loginMutex = false; // Add mutex to prevent concurrent logins
         this.loginRetryCount = 0; // Add retry counter
         this.maxLoginRetries = 3; // Maximum login attempts
+        this.panelType = options.panelType || 'auto'; // 'modern', 'legacy', or 'auto' for detection
 
         // Initialize security monitoring
         this.securityMonitor = new SecurityMonitor({
@@ -172,6 +173,10 @@ class ThreeXUI {
                 if (existingSession.csrfToken) {
                     this.csrfToken = existingSession.csrfToken;
                 }
+                // Restore panel type from session if auto-detection was used
+                if (existingSession.panelType && this.panelType === 'auto') {
+                    this.panelType = existingSession.panelType;
+                }
                 // Reset retry count on successful session restore
                 this.loginRetryCount = 0;
                 return {
@@ -202,9 +207,55 @@ class ThreeXUI {
                 loginHeaders['Cookie'] = csrfInfo.cookie;
             }
 
-            const response = await this.api.post('/login', params, {
-                headers: loginHeaders
-            });
+            // Try modern endpoint first (/panel/api/login), then fall back to legacy endpoint (/login)
+            // This supports both newer (React-based) and older (Vue-based) 3x-ui panels
+            let response;
+            let lastError;
+            let detectedPanelType = this.panelType;
+
+            // Determine which endpoint to try based on panelType setting
+            const tryModernFirst = this.panelType !== 'legacy';
+            const tryLegacyFallback = this.panelType !== 'modern';
+
+            if (tryModernFirst) {
+                // Try modern endpoint first (/panel/api/login)
+                try {
+                    response = await this.api.post('/panel/api/login', params, {
+                        headers: loginHeaders
+                    });
+                    if (this.panelType === 'auto') {
+                        detectedPanelType = 'modern';
+                    }
+                } catch (modernError) {
+                    lastError = modernError;
+                    // If modern endpoint fails and fallback is enabled, try legacy endpoint
+                    if (tryLegacyFallback) {
+                        try {
+                            response = await this.api.post('/login', params, {
+                                headers: loginHeaders
+                            });
+                            if (this.panelType === 'auto') {
+                                detectedPanelType = 'legacy';
+                            }
+                        } catch (legacyError) {
+                            // Both endpoints failed, throw the last error
+                            throw lastError;
+                        }
+                    } else {
+                        throw modernError;
+                    }
+                }
+            } else {
+                // Try legacy endpoint first (/login) if explicitly set
+                try {
+                    response = await this.api.post('/login', params, {
+                        headers: loginHeaders
+                    });
+                    detectedPanelType = 'legacy';
+                } catch (legacyError) {
+                    throw legacyError;
+                }
+            }
 
             if (response.data.success) {
                 const cookies = response.headers['set-cookie'];
@@ -218,12 +269,18 @@ class ThreeXUI {
                         this.csrfToken = csrfInfo.token;
                     }
 
+                    // Update panel type after successful detection
+                    if (this.panelType === 'auto') {
+                        this.panelType = detectedPanelType;
+                    }
+
                     // Store session if session manager is available
                     if (this.sessionManager) {
                         try {
                             await this.sessionManager.storeSession(this.baseURL, this.username, {
                                 cookie: this.cookie,
                                 csrfToken: this.csrfToken,
+                                panelType: detectedPanelType, // Store detected panel type for future use
                                 loginTime: new Date().toISOString()
                             });
                         } catch (sessionError) {
@@ -1154,8 +1211,22 @@ class ThreeXUI {
      * Download database
      * @returns {Promise<string>} Raw SQLite database file content as a string (starts with "SQLite format 3 ..."), not a Buffer
      */
-    getDb() {
-        return this._request('get', '/panel/api/server/getDb');
+    async getDb() {
+        const response = await this._request('get', '/panel/api/server/getDb');
+        // Add response validation
+        if (!response || typeof response !== 'object') {
+            throw new Error('getDb: Invalid response format');
+        }
+        if (response.success === false) {
+            throw new Error(`getDb failed: ${response.msg || 'Unknown error'}`);
+        }
+        if (!response.obj) {
+            throw new Error('getDb: Response missing database content');
+        }
+        if (typeof response.obj !== 'string') {
+            throw new Error(`getDb: Expected string content, got ${typeof response.obj}`);
+        }
+        return response;
     }
 
     /**
@@ -1174,9 +1245,20 @@ class ThreeXUI {
 
     /**
      * Install specific Xray version
-     * @param {string} version - Version to install
+     * @param {string} version - Version to install (e.g., "1.8.0")
      */
     installXray(version) {
+        // Validate version parameter
+        if (!version || typeof version !== 'string') {
+            throw new Error('installXray: version must be a non-empty string');
+        }
+        if (version.toLowerCase() === 'latest') {
+            throw new Error(
+                'installXray: "latest" is not a valid version. ' +
+                'Use client.getXrayVersion() to get available versions, ' +
+                'then pass a specific version like "1.8.0"'
+            );
+        }
         return this._request('post', `/panel/api/server/installXray/${version}`);
     }
 
@@ -1278,17 +1360,30 @@ class ThreeXUI {
 
     /**
      * Update panel settings
-     * ⚠️ NOTE: API returns "request body failed validation" error
-     * See test/PHASE-C-CRITICAL-FINDINGS.md for troubleshooting.
-     * The correct payload format needs to be determined from panel API source.
-     * @param {Object} settings - Settings to update (e.g., {language:'en_US', theme:'light'})
+     * NOTE: The API requires ALL settings to be sent together, not just the changed ones.
+     * This method automatically fetches current settings, applies your changes, and sends all.
+     * @param {Object} updates - Settings to update (partial object, will be merged with current)
      * @returns {Promise} Response from /panel/api/setting/update
      */
-    updateSetting(settings) {
-        if (!settings || typeof settings !== 'object') {
-            throw new Error('settings must be an object');
+    async updateSetting(updates) {
+        if (!updates || typeof updates !== 'object') {
+            throw new Error('updates must be an object');
         }
-        return this._request('post', '/panel/api/setting/update', settings);
+
+        // Fetch current settings
+        const currentResponse = await this.getAllSettings();
+        if (!currentResponse.success || !currentResponse.obj) {
+            throw new Error('Failed to fetch current settings for merge');
+        }
+
+        // Merge updates with current settings (updates override current)
+        const mergedSettings = {
+            ...currentResponse.obj,
+            ...updates
+        };
+
+        // Send all settings together
+        return this._request('post', '/panel/api/setting/update', mergedSettings);
     }
 
     /**
@@ -1375,10 +1470,22 @@ class ThreeXUI {
 
     /**
      * Update Xray configuration
-     * @param {string} config - Xray configuration content
+     * @param {string|object} config - Xray configuration content (JSON string or object)
      */
     updateXrayConfig(config) {
-        return this._request('post', '/panel/api/xray/update', { content: config });
+        // Parse JSON string to object before sending
+        if (typeof config === 'string') {
+            try {
+                config = JSON.parse(config);
+            } catch (error) {
+                throw new Error(`updateXrayConfig: Invalid JSON: ${error.message}`);
+            }
+        }
+        // Validate it's an object
+        if (!config || typeof config !== 'object') {
+            throw new Error('updateXrayConfig: config must be a valid JSON object or string');
+        }
+        return this._request('post', '/panel/api/xray/update', { content: JSON.stringify(config) });
     }
 
     /**

@@ -31,6 +31,8 @@ This library is available through **[Context7 MCP](https://context7.com/iamhelit
 
 ## Features
 
+- ✅ **Dual Panel Support** - Works with both modern (React, v2.x+) and legacy (Vue, v1.x) 3x-ui panels
+- ✅ **Auto-Detection** - Automatically detects panel version and uses correct endpoints
 - ✅ **API Token Authentication** - Support for API token auth (3x-ui v3.0.2+) and cookie-based login
 - ✅ **Automatic Credential Generation** - Built-in UUID, password, and key pair generators
 - ✅ **Session Management** - Automatic login, session caching, and expiry handling
@@ -38,7 +40,7 @@ This library is available through **[Context7 MCP](https://context7.com/iamhelit
 - ✅ **Modern API Support** - Complete modern API (v2.x+) with advanced client management
 - ✅ **Legacy API Support** - Full backward compatibility with legacy API methods
 - ✅ **TypeScript Definitions** - Complete type definitions for IDE support
-- ✅ **103+ API Routes** - Comprehensive coverage of all 3x-ui panel operations
+- ✅ **124 API Methods** - Comprehensive coverage of all 3x-ui panel operations
 
 ## Installation
 
@@ -69,6 +71,31 @@ const client = new ThreeXUI('https://your-3xui-server.com', {
 
 const inbounds = await client.getInbounds();
 ```
+
+### Panel Version Support
+
+This library **automatically supports both modern and legacy 3x-ui panels**:
+
+```javascript
+// Automatic detection (recommended)
+// Works with both modern and legacy panels
+const client = new ThreeXUI('https://your-3xui-server.com', 'username', 'password');
+await client.login();
+// Automatically detects panel version and uses correct endpoints
+
+// Explicit version (optional, for performance)
+const client = new ThreeXUI('https://your-3xui-server.com', 'username', 'password', {
+  panelVersion: 'modern'  // or 'legacy' or 'auto' (default)
+});
+```
+
+**Supported Panel Types:**
+- ✅ **Modern Panels** - React-based, v2.x+ with `/panel/api/*` endpoints
+- ✅ **Legacy Panels** - Vue-based, v1.x with `/login` endpoint
+- ✅ **Auto-Detection** - Tries modern first, falls back to legacy if needed
+- ✅ **Session Caching** - Detected version is cached for faster subsequent logins
+
+See [PANEL-VERSION-SUPPORT.md](./PANEL-VERSION-SUPPORT.md) for detailed version support documentation.
 
 ## API Methods
 

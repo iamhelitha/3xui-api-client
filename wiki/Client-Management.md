@@ -118,13 +118,16 @@ console.log(`Generated ${bulkVlessCredentials.length} VLESS credentials`);
 console.log(`Generated ${bulkTrojanCredentials.length} Trojan credentials`);
 ```
 
+> [!IMPORTANT]
+> **Data Limits (`totalGB`)**: Despite the parameter name `totalGB` (which is inherited directly from the 3x-ui internal API), **all data limits must be specified in BYTES**. For example, to set a 100 GB limit, you must pass `100 * 1024 ** 3`. Passing `100` will result in a 100-byte limit which depletes instantly!
+
 ### Custom Options
 ```javascript
 // Customize auto-generation
 const customClient = await client.addClientWithCredentials(inboundId, 'vless', {
     email: 'custom_identifier_123',     // Custom identifier
     limitIp: 2,                         // Limit to 2 concurrent IPs
-    totalGB: 100,                       // 100GB data limit
+    totalGB: 100 * 1024 ** 3,           // 100GB data limit (MUST BE IN BYTES)
     expiryTime: Date.now() + 2592000000, // Expire in 30 days
     flow: 'xtls-rprx-splice'           // Different flow control
 });
@@ -197,8 +200,8 @@ const updateConfig = {
         clients: [{
             id: "existing-client-uuid",
             email: "updated_client_identifier",
-            limitIp: 2,      // Limit to 2 IPs
-            totalGB: 50,     // 50GB limit
+            expiryDays: 30,  // 30 days expiry
+            totalGB: 50 * 1024 ** 3, // 50GB limit (MUST BE IN BYTES)
             expiryTime: Date.now() + 2592000000,  // 30 days
             enable: true
         }]

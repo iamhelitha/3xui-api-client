@@ -96,6 +96,9 @@ const result = await client.getClientLinks('alice_vpn');
 // Returns protocol-specific connection strings (vless://, vmess://, etc.)
 ```
 
+> [!IMPORTANT]
+> **Data Limits (`totalGB`)**: Despite the parameter name `totalGB`, the 3x-ui API actually expects this value in **BYTES**. For example, to set a 50 GB limit, you must convert it using `50 * 1024 ** 3`. Passing `50` will result in a 50-byte limit!
+
 ### Add a client
 ```javascript
 const result = await client.addModernClient({
@@ -103,7 +106,7 @@ const result = await client.addModernClient({
     client: {
         email: 'alice_vpn',
         id: '550e8400-e29b-41d4-a716-446655440000', // UUID for VLESS/VMess
-        totalGB: 50,                                // data limit in GB (0 = unlimited)
+        totalGB: 50 * 1024 ** 3,                    // data limit in BYTES (0 = unlimited)
         expiryTime: 1751500800000,                  // Unix ms timestamp (0 = never)
         enable: true,
         flow: 'xtls-rprx-vision',
@@ -117,7 +120,7 @@ const result = await client.addModernClient({
 ### Update a client by email
 ```javascript
 const result = await client.updateModernClient('alice_vpn', {
-    totalGB: 100,
+    totalGB: 100 * 1024 ** 3, // Update to 100 GB (in bytes)
     expiryTime: 0,     // 0 = never expire
     enable: true,
     limitIp: 3

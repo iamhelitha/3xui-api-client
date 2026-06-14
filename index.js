@@ -8,6 +8,7 @@ const {
     CredentialSecurity,
     ErrorSecurity
 } = require('./src/security/SecurityEnhancer');
+const { convertBandwidthFields } = require('./src/utils/ByteConversion');
 
 /**
  * 3X-UI API Client Library
@@ -582,6 +583,7 @@ class ThreeXUI {
      */
     async addClientWithCredentials(inboundId, protocol, options = {}) {
         const credentials = this.generateCredentials(protocol, options);
+        const convertedOptions = convertBandwidthFields(options);
 
         const clientConfig = {
             id: inboundId,
@@ -589,10 +591,10 @@ class ThreeXUI {
                 clients: [{
                     ...credentials,
                     enable: true,
-                    expiryTime: options.expiryTime || 0,
-                    limitIp: options.limitIp || 0,
-                    totalGB: options.totalGB || 0,
-                    subId: options.subId || this.generateUUID()
+                    expiryTime: convertedOptions.expiryTime || 0,
+                    limitIp: convertedOptions.limitIp || 0,
+                    totalGB: convertedOptions.totalGB || 0,
+                    subId: convertedOptions.subId || this.generateUUID()
                 }]
             })
         };
@@ -631,17 +633,19 @@ class ThreeXUI {
                 throw new Error(`Client with ID ${clientId} not found in inbound ${inboundId}`);
             }
 
+            // Convert bandwidth fields (GB to bytes)
+            const convertedOptions = convertBandwidthFields(options);
+
             // Convert user-friendly options to API format
             const processedOptions = {
-                email: options.email || existingClients[clientIndex].email,
-                limitIp: options.limitIp !== undefined ? options.limitIp : existingClients[clientIndex].limitIp,
-                // totalGB is specified in gigabytes in 3x-ui config; do not convert to bytes
-                totalGB: options.totalGB !== undefined ? options.totalGB : existingClients[clientIndex].totalGB,
-                expiryTime: options.expiryDays ? Date.now() + (options.expiryDays * 24 * 60 * 60 * 1000) : existingClients[clientIndex].expiryTime,
-                enable: options.enable !== undefined ? options.enable : existingClients[clientIndex].enable,
-                flow: options.flow || existingClients[clientIndex].flow,
-                encryption: options.encryption || existingClients[clientIndex].encryption || 'none',
-                subId: options.subId || existingClients[clientIndex].subId
+                email: convertedOptions.email || existingClients[clientIndex].email,
+                limitIp: convertedOptions.limitIp !== undefined ? convertedOptions.limitIp : existingClients[clientIndex].limitIp,
+                totalGB: convertedOptions.totalGB !== undefined ? convertedOptions.totalGB : existingClients[clientIndex].totalGB,
+                expiryTime: convertedOptions.expiryDays ? Date.now() + (convertedOptions.expiryDays * 24 * 60 * 60 * 1000) : existingClients[clientIndex].expiryTime,
+                enable: convertedOptions.enable !== undefined ? convertedOptions.enable : existingClients[clientIndex].enable,
+                flow: convertedOptions.flow || existingClients[clientIndex].flow,
+                encryption: convertedOptions.encryption || existingClients[clientIndex].encryption || 'none',
+                subId: convertedOptions.subId || existingClients[clientIndex].subId
             };
 
             // Update the specific client while preserving others
@@ -666,8 +670,8 @@ class ThreeXUI {
                 ...result,
                 updatedOptions: processedOptions,
                 conversions: {
-                    totalGB: options.totalGB !== undefined ? `${options.totalGB}GB` : 'unchanged',
-                    expiryDays: options.expiryDays ? `${options.expiryDays} days → ${new Date(processedOptions.expiryTime).toISOString()}` : 'unchanged'
+                    totalGB: convertedOptions.totalGB !== undefined ? `${options.totalGB} GB → ${convertedOptions.totalGB} bytes` : 'unchanged',
+                    expiryDays: convertedOptions.expiryDays ? `${convertedOptions.expiryDays} days → ${new Date(processedOptions.expiryTime).toISOString()}` : 'unchanged'
                 }
             };
         } catch (error) {
@@ -808,7 +812,11 @@ class ThreeXUI {
      * @returns {Promise<Object>} Addition response
      */
     addModernClient(data) {
-        return this._request('post', '/panel/api/clients/add', data);
+        const convertedData = {
+            ...data,
+            client: data.client ? convertBandwidthFields(data.client) : undefined
+        };
+        return this._request('post', '/panel/api/clients/add', convertedData);
     }
 
     /**
@@ -818,7 +826,8 @@ class ThreeXUI {
      * @returns {Promise<Object>} Update response
      */
     updateModernClient(email, data) {
-        return this._request('post', `/panel/api/clients/update/${encodeURIComponent(email)}`, data);
+        const convertedData = convertBandwidthFields(data);
+        return this._request('post', `/panel/api/clients/update/${encodeURIComponent(email)}`, convertedData);
     }
 
     /**

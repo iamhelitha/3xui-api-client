@@ -72,6 +72,7 @@ declare module '3xui-api-client' {
     flow?: string;
     security?: string;
     limitIp?: number;
+    /** Data limit in gigabytes (auto-converted to bytes internally) */
     totalGB?: number;
     expiryTime?: number;
     enable?: boolean;
@@ -276,6 +277,7 @@ declare module '3xui-api-client' {
     method?: string;
     username?: string;
     limitIp?: number;
+    /** Data limit in gigabytes (auto-converted to bytes internally) */
     totalGB?: number;
     expiryTime?: number;
     enable?: boolean;
@@ -562,6 +564,7 @@ declare module '3xui-api-client' {
     addClient(clientConfig: ClientConfig): Promise<any>;
     deleteClient(inboundId: number, clientId: string): Promise<any>;
     updateClient(clientId: string, clientConfig: ClientConfig): Promise<any>;
+    /** @param trafficConfig.totalGB Data limit in gigabytes (auto-converted to bytes internally) */
     updateClientTraffic(email: string, trafficConfig: { totalGB?: number; expiryTime?: number }): Promise<any>;
     deleteClientByEmail(inboundId: number, email: string): Promise<any>;
     getClientTrafficsByEmail(email: string): Promise<any>;

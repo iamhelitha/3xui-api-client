@@ -118,13 +118,16 @@ console.log(`Generated ${bulkVlessCredentials.length} VLESS credentials`);
 console.log(`Generated ${bulkTrojanCredentials.length} Trojan credentials`);
 ```
 
+> [!IMPORTANT]
+> **Data Limits (`totalGB`)**: Pass data limits in **GIGABYTES**. The library automatically converts to bytes internally. For example, `totalGB: 100` sets a 100 GB limit (converted to 107374182400 bytes). This automatic conversion prevents the silent quota error that existed in earlier versions.
+
 ### Custom Options
 ```javascript
 // Customize auto-generation
 const customClient = await client.addClientWithCredentials(inboundId, 'vless', {
     email: 'custom_identifier_123',     // Custom identifier
     limitIp: 2,                         // Limit to 2 concurrent IPs
-    totalGB: 100,                       // 100GB data limit
+    totalGB: 100,                       // 100 GB data limit (auto-converted to bytes)
     expiryTime: Date.now() + 2592000000, // Expire in 30 days
     flow: 'xtls-rprx-splice'           // Different flow control
 });
@@ -197,8 +200,8 @@ const updateConfig = {
         clients: [{
             id: "existing-client-uuid",
             email: "updated_client_identifier",
-            limitIp: 2,      // Limit to 2 IPs
-            totalGB: 50,     // 50GB limit
+            expiryDays: 30,  // 30 days expiry
+            totalGB: 50 * 1024 ** 3, // 50GB limit (MUST BE IN BYTES)
             expiryTime: Date.now() + 2592000000,  // 30 days
             enable: true
         }]

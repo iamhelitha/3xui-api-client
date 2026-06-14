@@ -237,7 +237,7 @@ class ThreeXUI {
                             if (this.panelType === 'auto') {
                                 detectedPanelType = 'legacy';
                             }
-                        } catch (legacyError) {
+                        } catch {
                             // Both endpoints failed, throw the last error
                             throw lastError;
                         }
@@ -247,14 +247,10 @@ class ThreeXUI {
                 }
             } else {
                 // Try legacy endpoint first (/login) if explicitly set
-                try {
-                    response = await this.api.post('/login', params, {
-                        headers: loginHeaders
-                    });
-                    detectedPanelType = 'legacy';
-                } catch (legacyError) {
-                    throw legacyError;
-                }
+                response = await this.api.post('/login', params, {
+                    headers: loginHeaders
+                });
+                detectedPanelType = 'legacy';
             }
 
             if (response.data.success) {

@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- 🔄 **Dual Panel Support** - Automatic panel version detection (modern React v2.x+ vs legacy Vue v1.x) with seamless fallback during login. This is also configurable via the `panelVersion` constructor option (`auto`, `modern`, `legacy`).
+- Comprehensive Phase C API test coverage and documentation consolidation.
+
+### Fixed
+- 🔴 **CRITICAL**: Fixed `updateUser` endpoint session breaking. Modifying admin credentials now automatically refreshes internal credentials and re-authenticates the session.
+- Fixed `updateSetting` payload formatting by automatically merging updates with current settings before sending.
+- Fixed `updateXrayConfig` to correctly accept and validate both configuration objects and JSON strings.
+- Cleaned up obsolete testing scratch scripts.
+- Fixed minor linting errors in `index.js`.
+
 ## [3.0.1] - 2026-06-07
 
 ### Fixed

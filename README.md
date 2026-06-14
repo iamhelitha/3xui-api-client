@@ -310,7 +310,7 @@ A: No, the client automatically logs in before the first API call. Just create t
 A: Yes, use `{ token: 'your-api-token' }` instead of username/password (requires 3x-ui v3.0.2+).
 
 **Q: How do I store session cookies securely?**
-A: See the [Authentication Guide](https://github.com/iamhelitha/3xui-api-client/wiki/Authentication-Guide) for server-side session storage patterns.
+A: See the [Session Security](#session-security) section below and the [Authentication Guide](https://github.com/iamhelitha/3xui-api-client/wiki/Authentication-Guide) for server-side storage patterns.
 
 **Q: Which authentication method is more secure?**
 A: API tokens are recommended for production. See [Authentication Guide](https://github.com/iamhelitha/3xui-api-client/wiki/Authentication-Guide) for comparison.
@@ -323,6 +323,50 @@ A: The library is backward compatible. See [CHANGELOG.md](CHANGELOG.md) for brea
 
 **Q: Can I bulk operations with this client?**
 A: Yes, use the `bulk*` methods for efficient batch operations. See [Client Management](https://github.com/iamhelitha/3xui-api-client/wiki/Client-Management) for examples.
+
+## Session Security
+
+> [!IMPORTANT]
+> The 3x-ui session cookie grants **full admin access** to your panel. Treat it with the same care as a password or API secret.
+
+### Cookie storage is unencrypted by default
+
+Both built-in session stores save the cookie in plaintext:
+
+| Store | Where the cookie lives |
+|---|---|
+| `MemorySessionStore` (default) | Plain JS `Map` in process heap |
+| `DatabaseSessionStore` | `session_data TEXT` column, no encryption |
+| `RedisSessionStore` | Plain string value in Redis |
+
+**Recommendations:**
+- **Memory store** — safe for single-process, single-instance deployments. In shared/multi-tenant environments a heap dump exposes live admin cookies. Prefer Redis or DB stores with proper access controls.
+- **Database store** — restrict the DB user to only the sessions table with the minimum required privileges, and enable encryption-at-rest on the database itself.
+- **Redis store** — use Redis ACLs to restrict key-space access and enable TLS for the Redis connection.
+- For the highest security, use **API tokens** (`{ token: 'your-api-token' }`) instead of username/password — tokens can be scoped and revoked without a session cookie.
+
+### Session key is deterministic
+
+The cache key is `sha256(baseURL:username)`. It is an intentionally stable lookup key, not a secret. Anyone with read access to the session store can correlate rows to specific panels and users. Protect the **values** (cookies), not the keys.
+
+### Serverless and multi-instance deployments
+
+Each serverless cold start (e.g. Vercel, AWS Lambda) creates a fresh in-memory session, triggering a `/login` call per instance. A few things to keep in mind:
+
+1. **Use a shared external store** (`RedisSessionStore` or `DatabaseSessionStore`) so instances can reuse existing sessions instead of re-authenticating every time.
+2. **Re-login backoff** — the client applies a configurable delay (default **500 ms**) before each forced re-login on a `401` response. This prevents a burst of cold starts from simultaneously hammering the panel login endpoint and tripping rate-limiting or fail2ban rules. You can tune it:
+
+```js
+const client = new XuiApiClient({
+  baseURL: 'https://your-panel.example.com',
+  username: 'admin',
+  password: 'secret',
+  maxLoginRetries: 3,      // max 401-triggered re-login attempts (default: 3)
+  loginRetryBackoff: 1000, // ms to wait before each retry (default: 500, set 0 to disable)
+});
+```
+
+3. **Rate limit awareness** — `maxLoginRetries` is per-instance. Across many concurrent instances you can still exceed the panel's login-attempt limit. If your panel has fail2ban enabled, ensure your egress IP is whitelisted or use API token auth to avoid the login flow entirely.
 
 ## License
 
@@ -341,3 +385,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 ⚠️ **Security Notice**: Always store credentials and session cookies securely. Never expose them in client-side code or commit them to version control.
+

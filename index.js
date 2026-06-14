@@ -80,6 +80,13 @@ class ThreeXUI {
         this.loginMutex = false; // Add mutex to prevent concurrent logins
         this.loginRetryCount = 0; // Add retry counter
         this.maxLoginRetries = 3; // Maximum login attempts
+        // Delay (ms) between forced re-login attempts on 401.
+        // Helps avoid tripping fail2ban or 3x-ui login-rate limits,
+        // especially in serverless environments where many cold-start
+        // instances may race to re-authenticate simultaneously.
+        this.loginRetryBackoff = options.loginRetryBackoff !== undefined
+            ? options.loginRetryBackoff
+            : 500;
         this.panelType = options.panelType || 'auto'; // 'modern', 'legacy', or 'auto' for detection
 
         // Initialize security monitoring
@@ -410,8 +417,14 @@ class ThreeXUI {
                 if (this.token) {
                     throw new Error('API Token is invalid or expired. Please check your credentials.');
                 }
-                // Cookie might have expired, try to login again with retry limit
+                // Cookie might have expired, try to login again with retry limit.
+                // A configurable backoff delay is applied before each re-login to
+                // avoid burning through the retry budget or tripping login-rate limits
+                // (e.g. fail2ban) when many instances race to re-authenticate.
                 if (this.loginRetryCount < this.maxLoginRetries) {
+                    if (this.loginRetryBackoff > 0) {
+                        await new Promise(resolve => setTimeout(resolve, this.loginRetryBackoff));
+                    }
                     await this._ensureAuthenticated(true); // Force refresh
                     const response = await this.api.request({
                         method,

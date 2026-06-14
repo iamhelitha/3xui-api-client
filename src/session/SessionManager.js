@@ -34,6 +34,13 @@ class SessionStore {
 /**
  * Built-in memory session store (default)
  * Recommended for development and single-instance deployments
+ *
+ * Security note: session cookies are stored as plain JavaScript objects in
+ * process memory — unencrypted. The cookie grants full admin access to the
+ * 3x-ui panel and should be treated as a high-value secret. In shared or
+ * multi-tenant Node.js processes a heap dump or memory inspection can expose
+ * a live session. For production workloads consider a Redis or Database store
+ * protected by appropriate infrastructure-level access controls.
  */
 class MemorySessionStore extends SessionStore {
     constructor() {
@@ -175,6 +182,14 @@ class RedisSessionStore extends SessionStore {
 /**
  * Database session store adapter
  * Works with any SQL database through a provided database client
+ *
+ * Security note: session data (including the 3x-ui admin cookie) is
+ * persisted as `session_data TEXT` — unencrypted. Anyone with read access
+ * to the session table can extract a live admin-equivalent credential.
+ * Restrict table access with the least-privilege DB user possible, and
+ * consider enabling encryption at rest for the database. The session key
+ * column (sha256 hash) also allows correlation of rows to specific
+ * panels/users — see generateSessionKey() for details.
  */
 class DatabaseSessionStore extends SessionStore {
     constructor(database, options = {}) {
@@ -365,7 +380,15 @@ class SessionManager {
     }
 
     /**
-     * Generate session key for a server
+     * Generate a deterministic cache key for a given panel + username pair.
+     *
+     * The key is sha256(baseURL:username) — intentionally predictable so that
+     * the same panel session can be looked up across restarts. It is NOT a
+     * security secret: anyone with read access to the session store can
+     * correlate rows back to a specific panel/user. Treat the *value* stored
+     * under this key (the session cookie) as the sensitive material that must
+     * be protected at the infrastructure level (access control, encryption at
+     * rest, etc.), not the key itself.
      */
     generateSessionKey(baseURL, username) {
         const hash = crypto

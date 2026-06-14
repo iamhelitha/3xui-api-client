@@ -119,7 +119,7 @@ console.log(`Generated ${bulkTrojanCredentials.length} Trojan credentials`);
 ```
 
 > [!IMPORTANT]
-> **Data Limits (`totalGB`)**: Despite the parameter name `totalGB` (which is inherited directly from the 3x-ui internal API), **all data limits must be specified in BYTES**. For example, to set a 100 GB limit, you must pass `100 * 1024 ** 3`. Passing `100` will result in a 100-byte limit which depletes instantly!
+> **Data Limits (`totalGB`)**: Pass data limits in **GIGABYTES**. The library automatically converts to bytes internally. For example, `totalGB: 100` sets a 100 GB limit (converted to 107374182400 bytes). This automatic conversion prevents the silent quota error that existed in earlier versions.
 
 ### Custom Options
 ```javascript
@@ -127,7 +127,7 @@ console.log(`Generated ${bulkTrojanCredentials.length} Trojan credentials`);
 const customClient = await client.addClientWithCredentials(inboundId, 'vless', {
     email: 'custom_identifier_123',     // Custom identifier
     limitIp: 2,                         // Limit to 2 concurrent IPs
-    totalGB: 100 * 1024 ** 3,           // 100GB data limit (MUST BE IN BYTES)
+    totalGB: 100,                       // 100 GB data limit (auto-converted to bytes)
     expiryTime: Date.now() + 2592000000, // Expire in 30 days
     flow: 'xtls-rprx-splice'           // Different flow control
 });

@@ -29,7 +29,7 @@ async function test08_updateClient(testState) {
         const updateOptions = {
             email: `updated_auto_${Date.now()}`,
             limitIp: 2,
-            totalGB: 10, // 10GB (auto-converted to bytes)
+            totalGB: 10, // 10 GB (auto-converted to 10 * 1024^3 bytes internally)
             expiryDays: 30, // 30 days from now (auto-calculated)
             enable: true
         };
@@ -40,7 +40,7 @@ async function test08_updateClient(testState) {
         console.log(`   Old Email: ${testState.createdClient.email}`);
         console.log(`   New Email: ${updateOptions.email}`);
         console.log(`   New Limit: ${updateOptions.limitIp} IPs`);
-        console.log(`   New Total: ${updateOptions.totalGB}GB`);
+        console.log(`   New Total: ${updateOptions.totalGB} GB`);
         console.log(`   Expiry: ${updateOptions.expiryDays} days`);
 
         // AUTO-SESSION + SMART UPDATES: Everything handled automatically!
@@ -65,7 +65,7 @@ async function test08_updateClient(testState) {
                 oldEmail: testState.createdClient.email,
                 newEmail: updateOptions.email,
                 autoFeatures: [
-                    'Byte conversion (GB to bytes)',
+                    'Automatic GB to bytes conversion (totalGB: 10 GB → 10737418240 bytes)',
                     'Expiry calculation (days to timestamp)',
                     'Session management',
                     'Settings JSON generation'

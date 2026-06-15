@@ -5,18 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.1.0] - 2026-06-14
+## [3.1.0] - 2026-06-15
 
 ### Added
 - 🔄 **Dual Panel Support** - Automatic panel version detection (modern React v2.x+ vs legacy Vue v1.x) with seamless fallback during login. This is also configurable via the `panelVersion` constructor option (`auto`, `modern`, `legacy`).
 - Comprehensive Phase C API test coverage and documentation consolidation.
+- 🔢 **Automatic GB→Bytes Conversion** ([#6](https://github.com/iamhelitha/3xui-api-client/pull/6)) - `totalGB` values in `addClientWithCredentials`, `updateClientWithCredentials`, `addModernClient`, and `updateModernClient` are now automatically converted to bytes. Pass `totalGB: 100` and receive a proper 100 GB limit — no manual byte calculation needed. Includes safety warnings for suspiciously small values.
+- 🔒 **`loginRetryBackoff` option** ([#7](https://github.com/iamhelitha/3xui-api-client/pull/7)) - Configurable delay (default **500 ms**) before each forced re-login on a `401` response. Prevents bursts of concurrent serverless cold starts from tripping fail2ban or 3x-ui login-rate limits. Set `loginRetryBackoff: 0` to disable.
+- 📖 **Session Security documentation** ([#7](https://github.com/iamhelitha/3xui-api-client/pull/7)) - New README section covering plaintext cookie storage trade-offs per store type, deterministic session key design, and serverless / multi-instance hardening guidance.
 
 ### Fixed
 - 🔴 **CRITICAL**: Fixed `updateUser` endpoint session breaking. Modifying admin credentials now automatically refreshes internal credentials and re-authenticates the session.
 - Fixed `updateSetting` payload formatting by automatically merging updates with current settings before sending.
 - Fixed `updateXrayConfig` to correctly accept and validate both configuration objects and JSON strings.
+- 🐛 **Silent quota error** ([#6](https://github.com/iamhelitha/3xui-api-client/pull/6)) - Users passing `totalGB: 100` previously received a 100-byte limit instead of 100 GB. Closes [#5](https://github.com/iamhelitha/3xui-api-client/issues/5).
 - Cleaned up obsolete testing scratch scripts.
 - Fixed minor linting errors in `index.js`.
+
+### Security
+- Inline documentation added to `MemorySessionStore` and `DatabaseSessionStore` explicitly warning that session cookies (admin-equivalent credentials) are stored in plaintext and must be protected at the infrastructure level. Closes [#4](https://github.com/iamhelitha/3xui-api-client/issues/4).
 
 ## [3.0.1] - 2026-06-07
 

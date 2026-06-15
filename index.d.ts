@@ -26,6 +26,18 @@ declare module '3xui-api-client' {
      * @default 'auto'
      */
     panelVersion?: 'auto' | 'modern' | 'legacy';
+    /**
+     * Maximum number of forced re-login attempts when a 401 response is received.
+     * @default 3
+     */
+    maxLoginRetries?: number;
+    /**
+     * Delay in milliseconds to wait before each forced re-login attempt on a 401
+     * response. Helps avoid triggering fail2ban or 3x-ui login-rate limits in
+     * serverless / multi-instance environments. Set to 0 to disable.
+     * @default 500
+     */
+    loginRetryBackoff?: number;
   }
 
   export interface LoginResponse {

@@ -1,14 +1,14 @@
 {
   "name": "3xui-api-client",
-  "version": "3.1.0",
-  "description": "A Node.js client library for 3x-ui panel API with built-in credential generation, session management, and web integration support",
+  "version": "3.1.1",
+  "description": "Node.js API client for the 3x-ui panel (VLESS, VMess, Trojan, Shadowsocks, WireGuard, Reality) with automatic session management, credential generation, and full REST API coverage",
   "main": "index.js",
   "types": "index.d.ts",
   "exports": {
     ".": {
       "types": "./index.d.ts",
       "require": "./index.js",
-      "import": "./index.mjs"
+      "default": "./index.js"
     }
   },
   "scripts": {
@@ -40,14 +40,27 @@
     "trojan",
     "shadowsocks",
     "wireguard",
-    "reality"
+    "reality",
+    "3x-ui-client",
+    "3x-ui-api",
+    "xui-client",
+    "xui-api",
+    "xui",
+    "vpn-panel",
+    "vpn-api",
+    "vpn-client",
+    "rest-api-client",
+    "node",
+    "nodejs",
+    "typescript",
+    "sdk"
   ],
   "author": {
     "name": "Helitha Guruge",
     "email": "helithalochana@gmail.com",
     "url": "https://github.com/iamhelitha"
   },
-  "license": "MIT",
+  "license": "Apache-2.0",
   "type": "commonjs",
   "repository": {
     "type": "git",
@@ -72,7 +85,6 @@
   ],
   "files": [
     "index.js",
-    "index.mjs",
     "index.d.ts",
     "src/",
     "README.md",

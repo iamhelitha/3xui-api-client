@@ -278,7 +278,7 @@ client.setDevelopmentMode(enabled)
 | | |
 |---|---|
 | **Version** | 3.1.0 |
-| **License** | MIT |
+| **License** | Apache-2.0 |
 | **Node.js** | ≥ 16.0.0 |
 | **3x-ui compatibility** | All versions (token auth requires v3.0.2+) |
 | **npm** | [3xui-api-client](https://www.npmjs.com/package/3xui-api-client) |

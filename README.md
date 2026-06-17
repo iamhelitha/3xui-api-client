@@ -1,12 +1,12 @@
 # 3xui-api-client
 
-A Node.js client library for 3x-ui panel API that provides easy-to-use methods for managing your 3x-ui server.
+A Node.js / TypeScript API client for the **3x-ui panel** (Xray-core), with easy-to-use methods for managing inbounds and clients across **VLESS, VMess, Trojan, Shadowsocks, WireGuard,** and **Reality** protocols.
 
 [![npm version](https://badge.fury.io/js/3xui-api-client.svg)](https://badge.fury.io/js/3xui-api-client)
 [![npm downloads](https://img.shields.io/npm/dm/3xui-api-client.svg)](https://www.npmjs.com/package/3xui-api-client)
 [![GitHub stars](https://img.shields.io/github/stars/iamhelitha/3xui-api-client.svg)](https://github.com/iamhelitha/3xui-api-client)
 [![Node.js Version](https://img.shields.io/node/v/3xui-api-client.svg)](https://nodejs.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/iamhelitha/3xui-api-client/graphs/commit-activity)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
 
@@ -370,7 +370,7 @@ const client = new XuiApiClient({
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
 ## Support
 

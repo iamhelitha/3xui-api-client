@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.1] - 2026-06-18
+
+### Fixed
+- 🔴 **CRITICAL**: Removed the broken `index.mjs` ESM wrapper, which crashed with `Cannot find module './index.js'` in Next.js `output: 'standalone'` builds and other bundlers using static file tracing (esbuild, Rollup, Vite SSR). The wrapper's runtime `require('./index.js')` call was invisible to these tracers, so `index.js` was never included in the deployment bundle. `package.json` `exports` now route both `require` and `import` consumers directly to `index.js`, which resolves correctly everywhere since the package already declares `"type": "commonjs"`. The `serverExternalPackages` workaround is no longer needed. Closes [#8](https://github.com/iamhelitha/3xui-api-client/issues/8). Thanks to [@crimsonml](https://github.com/crimsonml) for the detailed report and root-cause analysis.
+
 ## [3.1.0] - 2026-06-15
 
 ### Added

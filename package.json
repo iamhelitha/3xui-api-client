@@ -1,6 +1,6 @@
 {
   "name": "3xui-api-client",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "A Node.js client library for 3x-ui panel API with built-in credential generation, session management, and web integration support",
   "main": "index.js",
   "types": "index.d.ts",
@@ -8,7 +8,7 @@
     ".": {
       "types": "./index.d.ts",
       "require": "./index.js",
-      "import": "./index.mjs"
+      "default": "./index.js"
     }
   },
   "scripts": {
@@ -72,7 +72,6 @@
   ],
   "files": [
     "index.js",
-    "index.mjs",
     "index.d.ts",
     "src/",
     "README.md",

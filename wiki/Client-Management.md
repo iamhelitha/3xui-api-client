@@ -355,7 +355,9 @@ console.log('Reset all clients:', resetAllResult.msg);
 // Get client IP addresses
 const ipsResult = await client.getClientIps("client_identifier_001");
 console.log('Client IPs:', ipsResult.obj);
-/* Output: Array of IP addresses the client has connected from */
+/* Output: Array of IP addresses the client has connected from, e.g. ["1.2.3.4"].
+ * The panel returns this as a JSON-encoded string; the client parses it for you
+ * so `obj` is always a real string[] (empty array when there is no IP record). */
 
 // Clear client IP history
 const clearIpsResult = await client.clearClientIps("client_identifier_001");

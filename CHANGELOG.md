@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- 🔴 **Session recovery for non-401 stale sessions** ([#10](https://github.com/iamhelitha/3xui-api-client/issues/10)) - Automatic re-login is no longer keyed strictly to HTTP `401`. Some 3x-ui forks reject a stale cookie session with `404` (the auth-gated route falls through to a generic not-found handler when not logged in) or by returning an HTML login page with `200`. The client now treats all three as a lost session and performs one bounded, backed-off forced re-login + retry — reusing the existing `maxLoginRetries` / `loginRetryBackoff` budget. Token auth is unchanged: a `401` still throws a clear "token invalid" error and a `404` surfaces unchanged as a genuine missing resource.
+- 🐛 **`getClientIps(email)` now returns a real array** ([#12](https://github.com/iamhelitha/3xui-api-client/issues/12)) - The legacy panel returns `obj` as a JSON-encoded string (e.g. `'["1.2.3.4"]'`) rather than an actual array. The client now parses it internally so `obj` is always a `string[]` (empty array when the panel has no IP record), matching every other list-returning endpoint. The TypeScript signature is now `Promise<ModernApiResponse<string[]>>`.
+
+### Changed
+- 📖 **`getCPUHistory(bucket)` documentation/types corrected** ([#11](https://github.com/iamhelitha/3xui-api-client/issues/11)) - The previously documented `{ history: [{ timestamp, usage }] }` shape was assumed and never verified. The endpoint actually returns the standard `{ success, msg, obj }` envelope where `obj` is an array of exactly 60 `{ cpu: number; t: number }` points (`cpu` is a plain percentage number, `t` is epoch **seconds**; total span is `60 * bucket` seconds). The TypeScript signature is now `Promise<ModernApiResponse<Array<{ cpu: number; t: number }>>>`. No runtime change — the method already returned the real envelope.
+
 ## [3.1.1] - 2026-06-18
 
 ### Changed

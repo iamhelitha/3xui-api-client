@@ -1,6 +1,6 @@
 {
   "name": "3xui-api-client",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "description": "Node.js API client for the 3x-ui panel (VLESS, VMess, Trojan, Shadowsocks, WireGuard, Reality) with automatic session management, credential generation, and full REST API coverage",
   "main": "index.js",
   "types": "index.d.ts",

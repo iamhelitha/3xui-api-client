@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.1.2] - 2026-06-30
 
 ### Fixed
 - 🔴 **Session recovery for non-401 stale sessions** ([#10](https://github.com/iamhelitha/3xui-api-client/issues/10)) - Automatic re-login is no longer keyed strictly to HTTP `401`. Some 3x-ui forks reject a stale cookie session with `404` (the auth-gated route falls through to a generic not-found handler when not logged in) or by returning an HTML login page with `200`. The client now treats all three as a lost session and performs one bounded, backed-off forced re-login + retry — reusing the existing `maxLoginRetries` / `loginRetryBackoff` budget. Token auth is unchanged: a `401` still throws a clear "token invalid" error and a `404` surfaces unchanged as a genuine missing resource.

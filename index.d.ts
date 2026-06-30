@@ -581,7 +581,14 @@ declare module '3xui-api-client' {
     deleteClientByEmail(inboundId: number, email: string): Promise<any>;
     getClientTrafficsByEmail(email: string): Promise<any>;
     getClientTrafficsById(id: string): Promise<any>;
-    getClientIps(email: string): Promise<any>;
+    /**
+     * Get the list of IP addresses recorded for a client.
+     *
+     * The legacy panel returns `obj` as a JSON-encoded string; this client
+     * parses it internally so `obj` is always a real `string[]` (empty when
+     * the panel has no IP record for the client).
+     */
+    getClientIps(email: string): Promise<ModernApiResponse<string[]>>;
     clearClientIps(email: string): Promise<any>;
     resetClientTraffic(inboundId: number, email: string): Promise<any>;
     resetAllTraffics(): Promise<any>;
@@ -595,9 +602,15 @@ declare module '3xui-api-client' {
     getServerStatus(): Promise<any>;
     /**
      * Get CPU usage history.
+     *
+     * Returns the standard `{ success, msg, obj }` envelope. `obj` is an array
+     * of exactly 60 points, each `{ cpu, t }` where `cpu` is the usage
+     * percentage (a plain number, no trailing `%`) and `t` is the epoch time in
+     * seconds. The total span covered is `60 * bucket` seconds.
+     *
      * @param bucket - Bucket size in seconds. Must be one of: 2, 30, 60, 120, 180, 300 (default: 60)
      */
-    getCPUHistory(bucket?: number): Promise<any>;
+    getCPUHistory(bucket?: number): Promise<ModernApiResponse<Array<{ cpu: number; t: number }>>>;
     getXrayVersion(): Promise<any>;
     getConfigJson(): Promise<any>;
     /**

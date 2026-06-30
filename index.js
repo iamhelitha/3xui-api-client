@@ -409,36 +409,108 @@ class ThreeXUI {
                 data,
                 headers: { ...this._buildRequestHeaders(method), ...extraHeaders }
             });
+
+            // Some panels answer a stale/expired session with HTTP 200 plus an
+            // HTML login page (a redirect-then-200) instead of an explicit
+            // 401/404. For cookie auth, treat that HTML body where JSON was
+            // expected as a lost session and recover transparently.
+            if (!this.token && this._looksLikeLoginPage(response.data)) {
+                return await this._retryAfterRelogin(method, path, data, extraHeaders);
+            }
+
             // Reset retry counter on successful request
             this.loginRetryCount = 0;
             return response.data;
         } catch (error) {
-            if (error.response && error.response.status === 401) {
+            if (this._isStaleSessionError(error)) {
                 if (this.token) {
-                    throw new Error('API Token is invalid or expired. Please check your credentials.');
-                }
-                // Cookie might have expired, try to login again with retry limit.
-                // A configurable backoff delay is applied before each re-login to
-                // avoid burning through the retry budget or tripping login-rate limits
-                // (e.g. fail2ban) when many instances race to re-authenticate.
-                if (this.loginRetryCount < this.maxLoginRetries) {
-                    if (this.loginRetryBackoff > 0) {
-                        await new Promise(resolve => setTimeout(resolve, this.loginRetryBackoff));
+                    // Token auth: a 401 means the token itself is invalid, so
+                    // retrying will not help. A 404 is a genuine missing
+                    // resource (the token never goes "stale"), so surface it
+                    // unchanged.
+                    if (error.response && error.response.status === 401) {
+                        throw new Error('API Token is invalid or expired. Please check your credentials.');
                     }
-                    await this._ensureAuthenticated(true); // Force refresh
-                    const response = await this.api.request({
-                        method,
-                        url: path,
-                        data,
-                        headers: { ...this._buildRequestHeaders(method), ...extraHeaders }
-                    });
-                    return response.data;
-                } else {
-                    throw new Error('Maximum login retry attempts exceeded. Check your credentials.');
+                    throw error;
                 }
+                // Cookie session may have expired. Different 3x-ui versions/forks
+                // are inconsistent about the signal (401, 404, or an HTML login
+                // page), so we recover the same way for each: one bounded,
+                // backed-off forced re-login + retry.
+                return await this._retryAfterRelogin(method, path, data, extraHeaders);
             }
             throw error;
         }
+    }
+
+    /**
+     * Decide whether an error from an authenticated request indicates a lost
+     * cookie session that warrants a forced re-login. Different 3x-ui forks
+     * reject a stale session with 401, with 404 (the auth-gated route falls
+     * through to a generic not-found handler when not logged in), or by
+     * returning an HTML login page where JSON was expected.
+     *
+     * @param {*} error - Error thrown by the axios request
+     * @returns {boolean} True if the error looks like a session failure
+     */
+    _isStaleSessionError(error) {
+        if (!error || !error.response) {
+            return false;
+        }
+        const status = error.response.status;
+        if (status === 401 || status === 404) {
+            return true;
+        }
+        return this._looksLikeLoginPage(error.response.data);
+    }
+
+    /**
+     * Heuristic for a panel returning its HTML login page in place of the
+     * expected JSON envelope. Every authenticated endpoint here returns JSON
+     * (or, for getDb, a "SQLite format 3" string), so an HTML document body is
+     * itself the anomaly that signals a redirect to the login screen.
+     *
+     * @param {*} data - Response body
+     * @returns {boolean} True if the body looks like an HTML login page
+     */
+    _looksLikeLoginPage(data) {
+        if (typeof data !== 'string') {
+            return false;
+        }
+        const trimmed = data.trim().toLowerCase();
+        return trimmed.startsWith('<!doctype html') || trimmed.startsWith('<html');
+    }
+
+    /**
+     * Force a fresh login and retry the original request once, honoring the
+     * shared retry budget and backoff. Used for cookie-auth session recovery
+     * regardless of whether the panel signalled with 401, 404, or a login-page
+     * body, so consumers never have to reimplement session recovery themselves.
+     *
+     * @param {string} method - HTTP method
+     * @param {string} path - Request path
+     * @param {Object} data - Request body
+     * @param {Object} extraHeaders - Additional headers to merge
+     * @returns {Promise<*>} The retried response data
+     */
+    async _retryAfterRelogin(method, path, data, extraHeaders) {
+        // Bound the recovery to a single retry budget to avoid login storms
+        // (e.g. tripping fail2ban) when many instances race to re-authenticate.
+        if (this.loginRetryCount >= this.maxLoginRetries) {
+            throw new Error('Maximum login retry attempts exceeded. Check your credentials.');
+        }
+        if (this.loginRetryBackoff > 0) {
+            await new Promise(resolve => setTimeout(resolve, this.loginRetryBackoff));
+        }
+        await this._ensureAuthenticated(true); // Force refresh
+        const response = await this.api.request({
+            method,
+            url: path,
+            data,
+            headers: { ...this._buildRequestHeaders(method), ...extraHeaders }
+        });
+        this.loginRetryCount = 0;
+        return response.data;
     }
 
     /**
@@ -1151,8 +1223,44 @@ class ThreeXUI {
         return this._request('get', `/panel/api/inbounds/getClientTrafficsById/${id}`);
     }
 
-    getClientIps(email) {
-        return this._request('post', `/panel/api/inbounds/clientIps/${email}`);
+    /**
+     * Get the list of IP addresses recorded for a client.
+     *
+     * The legacy panel returns `obj` as a JSON-encoded string (e.g.
+     * `'["1.2.3.4"]'`) rather than an actual array, unlike every other
+     * list-returning endpoint. We parse it internally so callers get
+     * `obj: string[]` directly. If the panel reports "No IP Record" (or any
+     * non-array/unparseable value), `obj` is normalized to an empty array.
+     *
+     * @param {string} email - Client email
+     * @returns {Promise<{success: boolean, msg: string, obj: string[]}>}
+     */
+    async getClientIps(email) {
+        const response = await this._request('post', `/panel/api/inbounds/clientIps/${email}`);
+        return { ...response, obj: this._parseClientIps(response && response.obj) };
+    }
+
+    /**
+     * Normalize the `obj` field returned by clientIps into a real array of IP
+     * strings. The panel may return a JSON-encoded array string, an already
+     * parsed array, or a placeholder message like "No IP Record".
+     *
+     * @param {*} obj - Raw `obj` value from the clientIps response
+     * @returns {string[]} Parsed list of IP addresses (empty when none)
+     */
+    _parseClientIps(obj) {
+        if (Array.isArray(obj)) {
+            return obj;
+        }
+        if (typeof obj === 'string') {
+            try {
+                const parsed = JSON.parse(obj);
+                return Array.isArray(parsed) ? parsed : [];
+            } catch {
+                return [];
+            }
+        }
+        return [];
     }
 
     clearClientIps(email) {

@@ -1181,6 +1181,14 @@ class ThreeXUI {
     }
 
     // Clients
+    /**
+     * Add a client (raw passthrough — no unit conversion).
+     * `clientConfig.settings` is sent to the panel exactly as given, so any `totalGB`
+     * inside it must already be in BYTES (the panel stores this field in bytes despite
+     * its name). For a GB input with automatic conversion, use `addClientWithCredentials`
+     * or `addModernClient` instead. See issue #5 for background.
+     * @param {ClientConfig} clientConfig
+     */
     addClient(clientConfig) {
         // Validate client configuration for security
         const validatedConfig = InputValidator.validateClientConfig(clientConfig);
@@ -1191,6 +1199,14 @@ class ThreeXUI {
         return this._request('post', `/panel/api/inbounds/${inboundId}/delClient/${clientId}`);
     }
 
+    /**
+     * Update a client (raw passthrough — no unit conversion).
+     * Same caveat as `addClient`: any `totalGB` inside `clientConfig.settings` must
+     * already be in BYTES. Use `updateClientWithCredentials`/`updateModernClient` for
+     * automatic GB->bytes conversion.
+     * @param {string} clientId
+     * @param {ClientConfig} clientConfig
+     */
     updateClient(clientId, clientConfig) {
         // Validate client configuration for security
         const validatedConfig = InputValidator.validateClientConfig(clientConfig);
@@ -1198,9 +1214,12 @@ class ThreeXUI {
     }
 
     /**
-     * Update client traffic limit and expiry by email
+     * Update client traffic limit and expiry by email (raw passthrough — no unit conversion).
      * @param {string} email - Client email
-     * @param {Object} trafficConfig - Traffic configuration (totalGB, expiryTime)
+     * @param {Object} trafficConfig - Traffic configuration
+     * @param {number} [trafficConfig.totalGB] - Data limit in BYTES, not gigabytes (the panel
+     *   field is named totalGB but stores bytes). Convert yourself: `gbValue * 1024 ** 3`.
+     * @param {number} [trafficConfig.expiryTime]
      */
     updateClientTraffic(email, trafficConfig) {
         return this._request('post', `/panel/api/inbounds/updateClientTraffic/${email}`, trafficConfig);

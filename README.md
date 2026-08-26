@@ -31,13 +31,13 @@ This library is available through **[Context7 MCP](https://context7.com/iamhelit
 
 ## Features
 
-- ✅ **Dual Panel Support** - Works with both modern (React, v2.x+) and legacy (Vue, v1.x) 3x-ui panels
+- ✅ **Dual Panel Support** - Works with both modern (React, v3.x+) and legacy (Vue, v2.x) 3x-ui panels
 - ✅ **Auto-Detection** - Automatically detects panel version and uses correct endpoints
 - ✅ **API Token Authentication** - Support for API token auth (3x-ui v3.0.2+) and cookie-based login
 - ✅ **Automatic Credential Generation** - Built-in UUID, password, and key pair generators
 - ✅ **Session Management** - Automatic login, session caching, and expiry handling
 - ✅ **Security** - Input validation, secure headers, rate limiting, and error sanitization
-- ✅ **Modern API Support** - Complete modern API (v2.x+) with advanced client management
+- ✅ **Modern API Support** - Complete modern API (v3.x+) with advanced client management
 - ✅ **Legacy API Support** - Full backward compatibility with legacy API methods
 - ✅ **TypeScript Definitions** - Complete type definitions for IDE support
 - ✅ **124 API Methods** - Comprehensive coverage of all 3x-ui panel operations
@@ -90,8 +90,8 @@ const client = new ThreeXUI('https://your-3xui-server.com', 'username', 'passwor
 ```
 
 **Supported Panel Types:**
-- ✅ **Modern Panels** - React-based, v2.x+ with `/panel/api/*` endpoints
-- ✅ **Legacy Panels** - Vue-based, v1.x with `/login` endpoint
+- ✅ **Modern Panels** - React-based, v3.x+ with `/panel/api/*` endpoints
+- ✅ **Legacy Panels** - Vue-based, v2.x with `/login` endpoint
 - ✅ **Auto-Detection** - Tries modern first, falls back to legacy if needed
 - ✅ **Session Caching** - Detected version is cached for faster subsequent logins
 
@@ -99,7 +99,7 @@ See [PANEL-VERSION-SUPPORT.md](./PANEL-VERSION-SUPPORT.md) for detailed version 
 
 ## API Methods
 
-### Client Management (Modern API - v2.x+)
+### Client Management (Modern API - v3.x+)
 
 #### Read Operations
 - `getClients()` - Get all clients

@@ -218,6 +218,7 @@ See [PANEL-VERSION-SUPPORT.md](./PANEL-VERSION-SUPPORT.md) for detailed version 
 - `getXrayConfig()` - Get Xray configuration
 - `updateXrayConfig(config)` - Update Xray configuration
 - `manageWarp(action, data)` - Manage WARP settings
+- `testOutbound(outbound, options)` - Test connectivity through an outbound configuration
 - `getOutboundsTraffic()` - Get outbound traffic statistics
 - `resetOutboundsTraffic()` - Reset outbound traffic
 - `getXrayResult()` - Get Xray execution result

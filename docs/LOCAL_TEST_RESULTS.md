@@ -162,15 +162,25 @@ v3.7.0 panel and what hasn't.
   bug — out of scope to chase further since the SDK doesn't wrap API-token management at all yet
   (not in `README.md`'s method list). A few orphaned test tokens were left on the local panel as a
   result (harmless, throwaway container).
-- **`/panel/api/xray/testOutbound`** isn't wrapped by the SDK and its exact required body shape
-  wasn't reverse-engineered (`{"outbound": {...}}` returns `"outbound parameter is required"`) —
-  left unresolved since there's no SDK method depending on it.
+- **`/panel/api/xray/testOutbound` needs `application/x-www-form-urlencoded`, not JSON.**
+  A JSON body (`{"outbound": {...}}`) always fails with `"outbound parameter is required"`
+  regardless of field name or nesting tried. The actual shape is a form field named `outbound`
+  whose value is the **JSON-stringified** outbound object: `outbound=<JSON.stringify(outboundObj)>`.
+  Confirmed working against a real outbound pulled from the panel's own live config
+  (`getXrayConfig()` → `xraySetting.outbounds`) — response:
+  `{"success":true,"obj":{"tag":"direct","success":false,"delay":0,"error":"Direct/DNS outbound cannot be tested","mode":"http"}}`.
+  That `success: false` is the panel correctly refusing to test a `freedom`/blackhole-type
+  outbound (nothing to dial through), not a request-format failure — same result for a
+  freshly built plain `freedom` outbound. Testing an actual proxy outbound (vless/vmess/
+  trojan/socks/http) would need one configured on this panel first. Still not wrapped by the
+  SDK (no method depends on it), but the route itself is now understood and working.
 
 ## Not yet tested
 
-- **`/panel/api/xray/testOutbound`** — exact payload shape unresolved (see Gotchas), not wrapped by the SDK.
 - **`apiTokens/setEnabled`/`delete`** — blocked by the panel-side bug above.
 - **`/panel/api/custom-geo/*`** — confirmed 404 on v3.7.0, can't test further without a newer panel image.
+- **`/panel/api/xray/testOutbound` against a real proxy outbound** (only a `freedom` outbound
+  was available locally, which the panel correctly refuses to test — see Gotchas above).
 
 ## Explicitly skipped (destructive — would disrupt the shared test panel)
 

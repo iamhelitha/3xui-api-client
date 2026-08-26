@@ -685,6 +685,21 @@ declare module '3xui-api-client' {
      * @param data - Additional data for the action
      */
     manageWarp(action: string, data?: Record<string, any>): Promise<any>;
+    /**
+     * Test connectivity through an outbound configuration.
+     * Sent as `application/x-www-form-urlencoded`, not JSON.
+     * `freedom`/`blackhole`-type outbounds cannot be tested (nothing to
+     * dial through) - the panel returns `success: false` with a clear
+     * `error` message for those, which is expected, not a request failure.
+     * @param outbound - Outbound config object (or its JSON string)
+     * @param options.allOutbounds - Full outbounds list, to resolve `sockopt.dialerProxy`
+     *   dependencies between outbounds
+     * @param options.mode - Test mode flag (panel-defined; observed value: 'http')
+     */
+    testOutbound(
+        outbound: object | string,
+        options?: { allOutbounds?: object[]; mode?: string }
+    ): Promise<ModernApiResponse<{ tag: string; success: boolean; delay: number; error: string; mode: string }>>;
     getOutboundsTraffic(): Promise<any>;
     resetOutboundsTraffic(): Promise<any>;
     getXrayResult(): Promise<any>;

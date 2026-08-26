@@ -1667,6 +1667,40 @@ class ThreeXUI {
     }
 
     /**
+     * Test connectivity through an outbound configuration.
+     *
+     * Sent as `application/x-www-form-urlencoded`, not JSON - a JSON body
+     * always fails with "outbound parameter is required" regardless of
+     * field name or nesting tried. The `outbound` field must be the
+     * JSON-stringified outbound object.
+     *
+     * `freedom`/`blackhole`-type outbounds cannot be tested (nothing to
+     * dial through) - the panel returns `success: false` with a clear
+     * `error` message for those, which is expected, not a request failure.
+     * @param {Object|string} outbound - Outbound config object (or its JSON string)
+     * @param {Object} [options]
+     * @param {Array<Object>} [options.allOutbounds] - Full outbounds list, to resolve
+     *   `sockopt.dialerProxy` dependencies between outbounds. Field name inferred from
+     *   the endpoint's own description ("optionally all outbounds") - not confirmed
+     *   against a config that actually needs it.
+     * @param {string} [options.mode] - Test mode flag (panel-defined; observed value: 'http')
+     * @returns {Promise<Object>} `{ tag, success, delay, error, mode }`
+     */
+    testOutbound(outbound, options = {}) {
+        const params = new URLSearchParams();
+        params.append('outbound', typeof outbound === 'string' ? outbound : JSON.stringify(outbound));
+        if (options.allOutbounds) {
+            params.append('outbounds', JSON.stringify(options.allOutbounds));
+        }
+        if (options.mode) {
+            params.append('mode', options.mode);
+        }
+        return this._request('post', '/panel/api/xray/testOutbound', params.toString(), {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        });
+    }
+
+    /**
      * Get outbound traffic statistics
      */
     getOutboundsTraffic() {

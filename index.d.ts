@@ -59,6 +59,13 @@ declare module '3xui-api-client' {
     enable?: boolean;
   }
 
+  /**
+   * Raw config for `addClient`/`updateClient`. `settings` is sent to the panel exactly
+   * as given — any `totalGB` inside it must already be in BYTES (the panel's field is
+   * named totalGB but stores bytes). This is NOT auto-converted, unlike
+   * `addClientWithCredentials`/`updateClientWithCredentials`/`ModernClient.totalGB`,
+   * which accept gigabytes. See https://github.com/iamhelitha/3xui-api-client/issues/5.
+   */
   export interface ClientConfig {
     id: number;
     settings: string;
@@ -573,10 +580,17 @@ declare module '3xui-api-client' {
     updateInbound(id: number, inboundConfig: InboundConfig): Promise<any>;
     importInbounds(inbounds: InboundConfig | InboundConfig[]): Promise<any[]>;
     getLastOnline(): Promise<any>;
+    /** Raw passthrough — no unit conversion. See {@link ClientConfig}: any `totalGB` in `clientConfig.settings` must already be in bytes. */
     addClient(clientConfig: ClientConfig): Promise<any>;
     deleteClient(inboundId: number, clientId: string): Promise<any>;
+    /** Raw passthrough — no unit conversion. See {@link ClientConfig}: any `totalGB` in `clientConfig.settings` must already be in bytes. */
     updateClient(clientId: string, clientConfig: ClientConfig): Promise<any>;
-    /** @param trafficConfig.totalGB Data limit in gigabytes (auto-converted to bytes internally) */
+    /**
+     * Raw passthrough — no unit conversion.
+     * @param trafficConfig.totalGB Data limit in BYTES, not gigabytes (the panel field is named
+     *   totalGB but stores bytes). Convert yourself: `gbValue * 1024 ** 3`. For automatic
+     *   GB->bytes conversion use `updateClientWithCredentials`/`updateModernClient` instead.
+     */
     updateClientTraffic(email: string, trafficConfig: { totalGB?: number; expiryTime?: number }): Promise<any>;
     deleteClientByEmail(inboundId: number, email: string): Promise<any>;
     getClientTrafficsByEmail(email: string): Promise<any>;

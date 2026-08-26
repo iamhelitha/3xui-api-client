@@ -63,7 +63,7 @@ const clientConfig = {
             id: "f5eb5844-dc57-412b-9ec2-82d37e0ebb9c",  // Manual UUID
             email: "client_manual_001",
             limitIp: 0,
-            totalGB: 0,
+            totalGB: 0,  // BYTES for this raw method (0 = unlimited either way); e.g. 50 GB = 50 * 1024 ** 3
             expiryTime: 0,
             enable: true
         }]
@@ -119,7 +119,9 @@ console.log(`Generated ${bulkTrojanCredentials.length} Trojan credentials`);
 ```
 
 > [!IMPORTANT]
-> **Data Limits (`totalGB`)**: Pass data limits in **GIGABYTES**. The library automatically converts to bytes internally. For example, `totalGB: 100` sets a 100 GB limit (converted to 107374182400 bytes). This automatic conversion prevents the silent quota error that existed in earlier versions.
+> **Data Limits (`totalGB`)**: This auto-conversion applies **only** to `addClientWithCredentials`, `updateClientWithCredentials`, `addModernClient`, and `updateModernClient` (see the [Modern API Guide](Modern-API.md) for the latter two). Pass data limits to these methods in **GIGABYTES** — the library converts to bytes internally, e.g. `totalGB: 100` becomes `107374182400`. This automatic conversion prevents the silent quota error that existed in earlier versions.
+>
+> ⚠️ The raw/legacy `addClient`, `updateClient`, and `updateClientTraffic` methods documented below do **not** perform this conversion — they send the `settings`/`trafficConfig` payload you build straight to the panel's REST API, and the panel stores `totalGB` in **bytes** despite the field name. If you call these methods directly, convert the value yourself: `totalGB: gbValue * 1024 ** 3`. See [issue #5](https://github.com/iamhelitha/3xui-api-client/issues/5) for background.
 
 ### Custom Options
 ```javascript
@@ -179,7 +181,7 @@ const clientConfig = {
             id: "client-uuid-here",
             email: "client_identifier_001",
             limitIp: 0,      // No IP limit
-            totalGB: 0,      // No data limit  
+            totalGB: 0,      // No data limit (BYTES for this raw method — non-zero values need `gb * 1024 ** 3`)
             expiryTime: 0,   // No expiry
             enable: true,
             tgId: "",        // Telegram ID (optional)
@@ -232,7 +234,7 @@ Update just the traffic limits and expiry without changing other settings:
 ```javascript
 // Update traffic limit and expiry by email
 const trafficConfig = {
-    totalGB: 100,  // New limit in GB
+    totalGB: 100 * 1024 ** 3,  // 100GB limit — updateClientTraffic is a raw method, MUST BE IN BYTES
     expiryTime: Date.now() + 30 * 24 * 60 * 60 * 1000 // New expiry date
 };
 
@@ -719,6 +721,8 @@ client.generateIdentifier(prefix = 'client')
 ```
 
 ### Standard Client Methods
+> ⚠️ Unlike the Enhanced methods above, these are raw passthroughs to the panel's REST API and do **not** convert `totalGB`/traffic-limit values — pass **bytes**, not GB (`gb * 1024 ** 3`). See the important note in [Auto-Credential Generation](#auto-credential-generation).
+
 ```javascript
 // Traditional client management
 await client.addClient(config)

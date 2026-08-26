@@ -684,23 +684,22 @@ class ThreeXUI {
      */
     async addClientWithCredentials(inboundId, protocol, options = {}) {
         const credentials = this.generateCredentials(protocol, options);
-        const convertedOptions = convertBandwidthFields(options);
 
-        const clientConfig = {
-            id: inboundId,
-            settings: JSON.stringify({
-                clients: [{
-                    ...credentials,
-                    enable: true,
-                    expiryTime: convertedOptions.expiryTime || 0,
-                    limitIp: convertedOptions.limitIp || 0,
-                    totalGB: convertedOptions.totalGB || 0,
-                    subId: convertedOptions.subId || this.generateUUID()
-                }]
-            })
+        // Routed through the Modern Client API (addModernClient), which
+        // does its own GB->bytes conversion - pass totalGB in GB here, not
+        // pre-converted, to avoid converting it twice. The legacy
+        // /panel/api/inbounds/addClient route this used to call is removed
+        // on v3.x panels (see CLAUDE.md).
+        const client = {
+            ...credentials,
+            enable: true,
+            expiryTime: options.expiryTime || 0,
+            limitIp: options.limitIp || 0,
+            totalGB: options.totalGB || 0,
+            subId: options.subId || this.generateUUID()
         };
 
-        const result = await this.addClient(clientConfig);
+        const result = await this.addModernClient({ inboundIds: [inboundId], client });
         return {
             ...result,
             credentials,
@@ -717,56 +716,65 @@ class ThreeXUI {
      */
     async updateClientWithCredentials(clientId, inboundId, options = {}) {
         try {
-            // First, get the current inbound to obtain all existing clients
+            // First, get the current inbound to locate the client by its
+            // VLESS/VMess UUID (id) or Trojan/Shadowsocks password.
             const inboundData = await this.getInbound(inboundId);
 
             if (!inboundData.success || !inboundData.obj) {
                 throw new Error(`Failed to get inbound ${inboundId} for client update`);
             }
 
-            // Parse existing settings to get all clients
-            const currentSettings = JSON.parse(inboundData.obj.settings);
+            // `settings` comes back as a JSON string on some panel versions
+            // and as an already-parsed object on others (v3.7.0+) - handle both.
+            const currentSettings = typeof inboundData.obj.settings === 'string'
+                ? JSON.parse(inboundData.obj.settings)
+                : inboundData.obj.settings;
             const existingClients = currentSettings.clients || [];
 
-            // Find the client to update
-            const clientIndex = existingClients.findIndex(client => client.id === clientId);
+            const clientIndex = existingClients.findIndex(
+                client => client.id === clientId || client.password === clientId
+            );
             if (clientIndex === -1) {
                 throw new Error(`Client with ID ${clientId} not found in inbound ${inboundId}`);
             }
+            const email = existingClients[clientIndex].email;
+            if (!email) {
+                throw new Error(`Client with ID ${clientId} has no email - cannot update via the Modern Client API`);
+            }
+
+            // The Modern Client API's update endpoint replaces the entire
+            // client row rather than patching it, so every field must be
+            // resent or it gets silently cleared (e.g. `flow`). Load the
+            // authoritative full record first.
+            const fullClient = await this.getClient(email);
+            if (!fullClient.success || !fullClient.obj || !fullClient.obj.client) {
+                throw new Error(`Failed to load full client record for ${email}`);
+            }
+            const current = fullClient.obj.client;
 
             // Convert bandwidth fields (GB to bytes)
             const convertedOptions = convertBandwidthFields(options);
 
-            // Convert user-friendly options to API format
+            // Convert user-friendly options to API format, merged over the
+            // full existing record so untouched fields are preserved as-is.
+            // `id` (the read-only numeric row id from getClient()) and
+            // `allowedIPs` (typed as a string on read but an array on
+            // write, for WireGuard peers) are dropped: resending either as
+            // read from GET fails the update endpoint's own validation.
             const processedOptions = {
-                email: convertedOptions.email || existingClients[clientIndex].email,
-                limitIp: convertedOptions.limitIp !== undefined ? convertedOptions.limitIp : existingClients[clientIndex].limitIp,
-                totalGB: convertedOptions.totalGB !== undefined ? convertedOptions.totalGB : existingClients[clientIndex].totalGB,
-                expiryTime: convertedOptions.expiryDays ? Date.now() + (convertedOptions.expiryDays * 24 * 60 * 60 * 1000) : existingClients[clientIndex].expiryTime,
-                enable: convertedOptions.enable !== undefined ? convertedOptions.enable : existingClients[clientIndex].enable,
-                flow: convertedOptions.flow || existingClients[clientIndex].flow,
-                encryption: convertedOptions.encryption || existingClients[clientIndex].encryption || 'none',
-                subId: convertedOptions.subId || existingClients[clientIndex].subId
+                ...current,
+                email: convertedOptions.email || current.email,
+                limitIp: convertedOptions.limitIp !== undefined ? convertedOptions.limitIp : current.limitIp,
+                totalGB: convertedOptions.totalGB !== undefined ? convertedOptions.totalGB : current.totalGB,
+                expiryTime: convertedOptions.expiryDays ? Date.now() + (convertedOptions.expiryDays * 24 * 60 * 60 * 1000) : current.expiryTime,
+                enable: convertedOptions.enable !== undefined ? convertedOptions.enable : current.enable,
+                flow: convertedOptions.flow || current.flow,
+                subId: convertedOptions.subId || current.subId
             };
+            delete processedOptions.id;
+            delete processedOptions.allowedIPs;
 
-            // Update the specific client while preserving others
-            existingClients[clientIndex] = {
-                ...existingClients[clientIndex],
-                ...processedOptions
-            };
-
-            // Prepare the complete settings with all clients
-            const updatedSettings = {
-                ...currentSettings,
-                clients: existingClients
-            };
-
-            const clientConfig = {
-                id: inboundId,
-                settings: JSON.stringify(updatedSettings)
-            };
-
-            const result = await this.updateClient(clientId, clientConfig);
+            const result = await this._request('post', `/panel/api/clients/update/${encodeURIComponent(email)}`, processedOptions);
             return {
                 ...result,
                 updatedOptions: processedOptions,

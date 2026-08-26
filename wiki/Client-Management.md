@@ -4,7 +4,7 @@
 
 This guide covers **legacy client management** (the `/panel/api/inbounds/` endpoints that work on all 3x-ui versions) with automatic credential generation, security validation, and bulk operations.
 
-> For the newer `/panel/api/clients/` endpoints introduced in 3x-ui v2.x/v3.x, see the [Modern API Guide](Modern-API.md).
+> For the newer `/panel/api/clients/` endpoints introduced in 3x-ui v3.x, see the [Modern API Guide](Modern-API.md).
 
 This guide covers client management operations with automatic credential generation, security validation, and bulk operations using the enhanced 3xui-api-client library.
 

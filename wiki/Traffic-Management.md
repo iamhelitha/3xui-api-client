@@ -223,7 +223,9 @@ async function deleteDepletedClients(inboundId) {
     }
     
     const inbound = inboundResponse.obj;
-    const settings = JSON.parse(inbound.settings);
+    // settings is a JSON string on some panel versions and an already-parsed
+    // object on others (v3.7.0+) - handle both.
+    const settings = typeof inbound.settings === 'string' ? JSON.parse(inbound.settings) : inbound.settings;
     
     console.log(`🗑️ Checking for depleted clients in inbound ${inboundId}:`);
     console.log(`   Port: ${inbound.port}`);

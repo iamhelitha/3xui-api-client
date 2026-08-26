@@ -448,7 +448,9 @@ class EnterpriseServerAdmin {
         for (const inbound of inbounds.obj) {
             if (inbound.settings) {
                 try {
-                    const settings = JSON.parse(inbound.settings);
+                    // settings is a JSON string on some panel versions and an
+                    // already-parsed object on others (v3.7.0+) - handle both.
+                    const settings = typeof inbound.settings === 'string' ? JSON.parse(inbound.settings) : inbound.settings;
                     if (settings.clients) {
                         for (const client of settings.clients) {
                             results.total++;
@@ -925,7 +927,9 @@ class EnterpriseSecuritySetup {
 
         for (const inbound of inbounds.obj) {
             if (inbound.settings) {
-                const settings = JSON.parse(inbound.settings);
+                // settings is a JSON string on some panel versions and an
+                // already-parsed object on others (v3.7.0+) - handle both.
+                const settings = typeof inbound.settings === 'string' ? JSON.parse(inbound.settings) : inbound.settings;
                 if (settings.clients) {
                     for (const client of settings.clients) {
                         results.totalCredentials++;

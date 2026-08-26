@@ -44,7 +44,7 @@ Fully supports both modern (React-based) and legacy (Vue-based) 3x-ui panels. Th
 ### 🔑 API Token Authentication
 Pass `token` or `apiToken` in options to authenticate with Bearer token headers instead of cookie login. Required for 3x-ui v3.0.2+ where the panel enforces token-based access for API operations.
 
-### 📡 48 New Modern API Routes (3x-ui v2.x/v3.x)
+### 📡 48 New Modern API Routes (3x-ui v3.x)
 Full coverage of the modern `/panel/api/clients/`, `/panel/api/nodes/`, and `/panel/api/custom-geo/` endpoints. See [Modern API Guide](Modern-API.md).
 
 ### 🔄 Flexible Constructor
@@ -87,7 +87,7 @@ await client.getSessionStats()         // Session cache statistics
 await client.clearAllSessions()        // Clear all cached sessions
 ```
 
-### Modern API — Clients (3x-ui v2.x/v3.x)
+### Modern API — Clients (3x-ui v3.x)
 ```javascript
 // Read
 await client.getClients()

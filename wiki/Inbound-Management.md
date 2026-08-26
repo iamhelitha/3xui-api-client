@@ -208,7 +208,9 @@ try {
       console.log(`  Traffic: ↑${inbound.up} ↓${inbound.down} bytes`);
       
       // Parse JSON strings for detailed configuration
-      const settings = JSON.parse(inbound.settings);
+      // settings is a JSON string on some panel versions and an already-parsed
+      // object on others (v3.7.0+) - handle both.
+      const settings = typeof inbound.settings === 'string' ? JSON.parse(inbound.settings) : inbound.settings;
       const streamSettings = JSON.parse(inbound.streamSettings);
       const sniffing = JSON.parse(inbound.sniffing);
       
@@ -303,7 +305,9 @@ response.obj.forEach(inbound => {
     });
     
     // Parse detailed client settings from the settings JSON
-    const settings = JSON.parse(inbound.settings);
+    // settings is a JSON string on some panel versions and an already-parsed
+    // object on others (v3.7.0+) - handle both.
+    const settings = typeof inbound.settings === 'string' ? JSON.parse(inbound.settings) : inbound.settings;
     settings.clients.forEach(clientConfig => {
       console.log(`  🔑 Client Config for ${clientConfig.email}:`);
       console.log(`    UUID: ${clientConfig.id}`);
@@ -331,7 +335,9 @@ try {
     console.log('Inbound details:', inbound);
     
     // Parse configuration objects
-    const settings = JSON.parse(inbound.settings);
+    // settings is a JSON string on some panel versions and an already-parsed
+    // object on others (v3.7.0+) - handle both.
+    const settings = typeof inbound.settings === 'string' ? JSON.parse(inbound.settings) : inbound.settings;
     const streamSettings = JSON.parse(inbound.streamSettings);
     
     console.log('Parsed settings:', settings);

@@ -454,7 +454,7 @@ class ThreeXUI {
                     // resource (the token never goes "stale"), so surface it
                     // unchanged.
                     if (error.response && error.response.status === 401) {
-                        throw new Error('API Token is invalid or expired. Please check your credentials.');
+                        throw new Error('API Token is invalid or expired. Please check your credentials.', { cause: error });
                     }
                     throw error;
                 }
@@ -1633,7 +1633,7 @@ class ThreeXUI {
                 if (this.sessionManager) {
                     await this.sessionManager.deleteSession(this.baseURL, newUsername);
                 }
-                throw new Error(`Credential update succeeded but re-authentication failed: ${error.message}`);
+                throw new Error(`Credential update succeeded but re-authentication failed: ${error.message}`, { cause: error });
             }
         }
 
@@ -1682,7 +1682,7 @@ class ThreeXUI {
             try {
                 config = JSON.parse(config);
             } catch (error) {
-                throw new Error(`updateXrayConfig: Invalid JSON: ${error.message}`);
+                throw new Error(`updateXrayConfig: Invalid JSON: ${error.message}`, { cause: error });
             }
         }
         // Validate it's an object

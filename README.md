@@ -280,7 +280,7 @@ For comprehensive guides, examples, and implementation patterns, visit our **[Wi
 
 ## Requirements
 
-- Node.js >= 14.0.0
+- Node.js >= 18.0.0
 - 3x-ui panel v2.0+ (or v3.0.2+ for API token authentication)
 - API access enabled on your 3x-ui server
 

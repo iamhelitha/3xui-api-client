@@ -1,6 +1,6 @@
 # 3xui-api-client Documentation
 
-Welcome to the documentation for **3xui-api-client v3.1.0** — a Node.js client library for managing 3x-ui VPN panels. Supports both **API token authentication** (3x-ui v3.0.2+) and legacy cookie-based login, with 124 API routes, built-in credential generation, session management, and enterprise security.
+Welcome to the documentation for **3xui-api-client v3.2.0** — a Node.js client library for managing 3x-ui VPN panels. Supports both **API token authentication** (3x-ui v3.0.2+) and legacy cookie-based login, with 124 API routes, built-in credential generation, session management, and enterprise security.
 
 ## Quick Start
 
@@ -277,9 +277,9 @@ client.setDevelopmentMode(enabled)
 
 | | |
 |---|---|
-| **Version** | 3.1.0 |
+| **Version** | 3.2.0 |
 | **License** | Apache-2.0 |
-| **Node.js** | ≥ 16.0.0 |
+| **Node.js** | ≥ 18.0.0 |
 | **3x-ui compatibility** | All versions (token auth requires v3.0.2+) |
 | **npm** | [3xui-api-client](https://www.npmjs.com/package/3xui-api-client) |
 | **GitHub** | [iamhelitha/3xui-api-client](https://github.com/iamhelitha/3xui-api-client) |

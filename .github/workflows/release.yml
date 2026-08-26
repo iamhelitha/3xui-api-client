@@ -3,6 +3,11 @@ name: Publish to npm
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Git tag to publish (e.g. v3.2.0) - manual fallback when the release event does not trigger this workflow automatically'
+        required: true
 
 permissions:
   contents: read
@@ -14,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
       - uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
@@ -29,6 +36,8 @@ jobs:
         node-version: [18, 20, 22]
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
@@ -42,6 +51,8 @@ jobs:
     needs: [lint, test]
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
 
       - uses: actions/setup-node@v4
         with:
@@ -54,7 +65,7 @@ jobs:
 
       - name: Verify version matches release tag
         env:
-          TAG_VERSION: ${{ github.event.release.tag_name }}
+          TAG_VERSION: ${{ github.event.release.tag_name || github.event.inputs.tag }}
         run: |
           PKG_VERSION="v$(node -p "require('./package.json').version")"
           if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then

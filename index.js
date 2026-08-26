@@ -196,6 +196,22 @@ class ThreeXUI {
         }
 
         try {
+            // On a forced re-login (e.g. stale-session recovery in
+            // _retryAfterRelogin), the axios instance still carries the
+            // previous, now-stale session cookie as a default header. Some
+            // panels' /csrf-token endpoint does not reissue a Set-Cookie when
+            // a session cookie is already attached to the request, which
+            // makes _getCsrfToken() below return null (no fresh cookie to
+            // pair with the token) and sends /login without the
+            // X-CSRF-Token it requires - failing with a confusing 403 that
+            // masks the original error. Clear the stale cookie first so the
+            // CSRF handshake starts from a clean, anonymous state.
+            if (forceRefresh) {
+                this.cookie = null;
+                this.csrfToken = null;
+                delete this.api.defaults.headers.Cookie;
+            }
+
             const params = new URLSearchParams();
             params.append('username', this.username);
             params.append('password', this.password);

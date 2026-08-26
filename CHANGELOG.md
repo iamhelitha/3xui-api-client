@@ -215,6 +215,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- 🔴 **Forced re-login could fail with a masking `403`** - When `_request()` classified a response as a stale session (`401`/`404`/HTML login page) and forced a re-login via `_retryAfterRelogin`, the axios instance still carried the *previous* session's cookie as a default header. Some panels' `/csrf-token` endpoint does not reissue a `Set-Cookie` when a cookie is already attached to the request, so `_getCsrfToken()` found nothing fresh to pair with the CSRF token and returned `null`. The retried `/login` POST then went out without `X-CSRF-Token` and the panel rejected it with `403` — masking the original error (e.g. a genuine `404`) behind an unrelated "login failed" exception. `login(forceRefresh)` now clears the stale cookie/CSRF token before the handshake, so a forced re-login always starts from a clean, anonymous state. Found via local Docker testing against `ghcr.io/mhsanaei/3x-ui:v3.7.0`.
+
 ### Planned
 - GitHub Actions CI/CD pipeline
 - Automated semantic releases

@@ -408,7 +408,15 @@ class ThreeXUI {
         return this._request('post', '/getTwoFactorEnable');
     }
 
-    async _request(method, path, data = {}, extraHeaders = {}) {
+    /**
+     * @param {string} method
+     * @param {string} path
+     * @param {*} data
+     * @param {Object} extraHeaders
+     * @param {Object} [requestOptions] - Extra axios request config to merge in verbatim
+     *   (e.g. `{ responseType: 'arraybuffer' }` for binary downloads like `getDb()`).
+     */
+    async _request(method, path, data = {}, extraHeaders = {}, requestOptions = {}) {
         // Check session validity first with mutex protection if token is not provided
         if (!this.token) {
             if (!this.loginMutex && this.sessionManager && !await this.sessionManager.hasValidSession(this.baseURL, this.username)) {
@@ -423,7 +431,8 @@ class ThreeXUI {
                 method,
                 url: path,
                 data,
-                headers: { ...this._buildRequestHeaders(method), ...extraHeaders }
+                headers: { ...this._buildRequestHeaders(method), ...extraHeaders },
+                ...requestOptions
             });
 
             // Some panels answer a stale/expired session with HTTP 200 plus an
@@ -431,7 +440,7 @@ class ThreeXUI {
             // 401/404. For cookie auth, treat that HTML body where JSON was
             // expected as a lost session and recover transparently.
             if (!this.token && this._looksLikeLoginPage(response.data)) {
-                return await this._retryAfterRelogin(method, path, data, extraHeaders);
+                return await this._retryAfterRelogin(method, path, data, extraHeaders, requestOptions);
             }
 
             // Reset retry counter on successful request
@@ -453,7 +462,7 @@ class ThreeXUI {
                 // are inconsistent about the signal (401, 404, or an HTML login
                 // page), so we recover the same way for each: one bounded,
                 // backed-off forced re-login + retry.
-                return await this._retryAfterRelogin(method, path, data, extraHeaders);
+                return await this._retryAfterRelogin(method, path, data, extraHeaders, requestOptions);
             }
             throw error;
         }
@@ -509,7 +518,7 @@ class ThreeXUI {
      * @param {Object} extraHeaders - Additional headers to merge
      * @returns {Promise<*>} The retried response data
      */
-    async _retryAfterRelogin(method, path, data, extraHeaders) {
+    async _retryAfterRelogin(method, path, data, extraHeaders, requestOptions = {}) {
         // Bound the recovery to a single retry budget to avoid login storms
         // (e.g. tripping fail2ban) when many instances race to re-authenticate.
         if (this.loginRetryCount >= this.maxLoginRetries) {
@@ -523,7 +532,8 @@ class ThreeXUI {
             method,
             url: path,
             data,
-            headers: { ...this._buildRequestHeaders(method), ...extraHeaders }
+            headers: { ...this._buildRequestHeaders(method), ...extraHeaders },
+            ...requestOptions
         });
         this.loginRetryCount = 0;
         return response.data;
@@ -1378,11 +1388,33 @@ class ThreeXUI {
 
     /**
      * Download database
-     * @returns {Promise<string>} Raw SQLite database file content as a string (starts with "SQLite format 3 ..."), not a Buffer
+     * @returns {Promise<ModernApiResponse<string>>} `obj` is the raw SQLite database file
+     *   content as a binary-safe string (starts with "SQLite format 3 ..."), not a Buffer.
+     *   Pass it to `Buffer.from(obj, 'binary')` to get the actual file bytes back losslessly.
      */
     async getDb() {
-        const response = await this._request('get', '/panel/api/server/getDb');
-        // Add response validation
+        // The panel streams the raw SQLite file directly rather than wrapping it in
+        // the standard {success, msg, obj} envelope every other endpoint uses, and the
+        // response is arbitrary binary data - axios's default text decoding (UTF-8) is
+        // lossy for that (confirmed: a real DB download came back 10 bytes short and
+        // byte-different from the raw response). Force responseType: 'arraybuffer' to
+        // get the exact bytes, then use latin1 ('binary'), which round-trips every byte
+        // value 1:1, to produce the string this method's signature promises.
+        const response = await this._request('get', '/panel/api/server/getDb', {}, {}, { responseType: 'arraybuffer' });
+        if (Buffer.isBuffer(response) || response instanceof ArrayBuffer || ArrayBuffer.isView(response)) {
+            const buf = Buffer.from(response);
+            if (buf.length === 0) {
+                throw new Error('getDb: Response missing database content');
+            }
+            return { success: true, msg: '', obj: buf.toString('binary') };
+        }
+        if (typeof response === 'string') {
+            if (!response) {
+                throw new Error('getDb: Response missing database content');
+            }
+            return { success: true, msg: '', obj: response };
+        }
+        // Defensive fallback in case some panel fork/version does wrap it.
         if (!response || typeof response !== 'object') {
             throw new Error('getDb: Invalid response format');
         }
@@ -1459,16 +1491,19 @@ class ThreeXUI {
     }
 
     /**
-     * Import database
+     * Import database (destructive - replaces the panel's entire database).
      * @param {FormData} formData - FormData containing the database file
      */
-    async importDB(formData) {
-        // Ensure authenticated before direct API call
-        if (!this.cookie) {
-            await this._ensureAuthenticated();
-        }
-        // Use direct api call to handle multipart/form-data correctly
-        return this.api.post('/panel/api/server/importDB', formData);
+    importDB(formData) {
+        // Route through _request() (not a direct api.post) so this gets the
+        // same X-CSRF-Token attachment, session recovery, and stale-session
+        // retry as every other write - without it, this always failed with
+        // a 403 on panels that require CSRF on non-GET requests. The
+        // FormData's own multipart boundary Content-Type is passed as
+        // extraHeaders so it overrides _request()'s default
+        // "Content-Type: application/json" for POST bodies.
+        const extraHeaders = typeof formData.getHeaders === 'function' ? formData.getHeaders() : {};
+        return this._request('post', '/panel/api/server/importDB', formData, extraHeaders);
     }
 
     // ===========================================

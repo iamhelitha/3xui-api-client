@@ -21,6 +21,18 @@ v3.7.0 panel and what hasn't.
   `Inbound-Management.md` (x3), and `Use-Cases.md` (x2) in both wiki copies: examples doing
   `JSON.parse(inbound.settings)` unconditionally, which throws on v3.7.0+ where `settings` comes
   back pre-parsed. All now guard with `typeof inbound.settings === 'string' ? JSON.parse(...) : inbound.settings`.
+- **`importDB()` always failed with `403`.** It bypassed `_request()` entirely and called
+  `this.api.post()` directly, so it never got the `X-CSRF-Token` header this panel requires on
+  non-GET requests. Now routes through `_request()`, passing the `FormData`'s own multipart
+  headers as `extraHeaders` so they override `_request()`'s default JSON content type.
+- **`getDb()` silently corrupted the downloaded database.** The panel streams the raw SQLite file
+  directly (not wrapped in the standard envelope), and axios's default UTF-8 text decoding is
+  lossy for binary content — confirmed a real download came back 10 bytes short and
+  byte-different from the raw response. The pre-existing validation logic (which assumed the
+  wrapped shape) then threw on every call regardless, so this method appears to have never
+  actually worked. Fixed by forcing `responseType: 'arraybuffer'` and decoding with latin1.
+  `_request()`/`_retryAfterRelogin()` gained an optional `requestOptions` parameter to support
+  this. See [`test/unit/get-db-import-db.test.js`](../test/unit/get-db-import-db.test.js) for both.
 
 ## Confirmed working (this package's methods, or the raw route where unwrapped)
 
@@ -117,7 +129,8 @@ v3.7.0 panel and what hasn't.
 | `/ws` | raw TCP WebSocket upgrade handshake — `101 Switching Protocols` confirmed |
 | legacy `/login` fallback + forced-relogin recovery | `login()` (see [session-recovery.test.js](../test/unit/session-recovery.test.js)) |
 
-**~95 of 116 documented endpoints verified against a live v3.7.0 panel.**
+**~104 of 116 documented endpoints verified against a live v3.7.0 panel** (95 above, plus the 9
+destructive routes below).
 
 ## Confirmed broken / not applicable on v3.7.0 (legacy routes removed in v3.x)
 
@@ -182,8 +195,41 @@ v3.7.0 panel and what hasn't.
 - **`/panel/api/xray/testOutbound` against a real proxy outbound** (only a `freedom` outbound
   was available locally, which the panel correctly refuses to test — see Gotchas above).
 
-## Explicitly skipped (destructive — would disrupt the shared test panel)
+## Destructive routes — tested (this is a disposable local container, not production)
 
-- `restartPanel`, `stopXrayService`, `installXray`, `updatePanel`, `importDB`,
-  `updateUser` (already flagged as session-breaking in [TESTING-SUMMARY.md](../test/TESTING-SUMMARY.md)),
-  `updateGeofile` (downloads real GeoIP/GeoSite files).
+All 7 previously-skipped destructive routes were tested directly.
+
+- **`updateGeofile()`** — works. Downloaded real GeoIP/GeoSite files, `"Geofile updated successfully"`.
+- **`stopXrayService()`** / **`restartXrayService()`** — both work. Confirmed via `getServerStatus()`:
+  `state` genuinely flips `running` → `stop` → `running`, not just an accepted-but-no-op response.
+- **`restartPanel()`** — works. Panel process restarts internally after its 3-second grace period;
+  the container itself stays up, and the HTTP endpoint responds again within ~10s.
+- **`updateUser()`** — works, including the documented auto-re-auth: changed `admin`/`admin` to
+  temporary credentials, confirmed the SDK's internal `username`/`password` updated and the
+  session kept working with zero manual re-login, then reverted back to `admin`/`admin` (confirmed
+  with a fresh client instance). No lingering credential drift.
+- **`installXray('v26.7.11')`** — works. `getServerStatus().obj.xray.version` genuinely changed
+  from `26.7.28` to `26.7.11`, then back after re-installing `v26.7.28`.
+- **`importDB()`** — 🔴 **found and fixed a real bug**: it bypassed `_request()` entirely (calling
+  `this.api.post()` directly to dodge `_request()`'s forced `Content-Type: application/json`,
+  which collides with a multipart boundary), so it never got the `X-CSRF-Token` header this panel
+  requires on non-GET requests. Every call failed with a bare `403`. Fixed by routing through
+  `_request()` with the `FormData`'s own multipart headers passed as `extraHeaders`. Verified
+  end-to-end: backed up the live DB, imported it back, confirmed all 5 test inbounds still present
+  afterward.
+- **`getDb()`** — 🔴 **found and fixed a second real bug while backing up the DB for the `importDB`
+  test above**: the panel streams the raw SQLite file directly (not wrapped in the standard
+  `{success, msg, obj}` envelope), and without `responseType: 'arraybuffer'`, axios's default
+  UTF-8 decoding silently corrupts binary content — a real 258,048-byte DB download came back as
+  258,038 bytes and not byte-identical to the raw response. The *pre-existing* validation logic
+  (which assumed the wrapped-envelope shape) then threw `getDb: Invalid response format` on every
+  call regardless, meaning this method appears to have never actually worked. Fixed: forces
+  `responseType: 'arraybuffer'` and decodes with latin1 (`'binary'`), verified byte-identical
+  against a raw `arraybuffer` request of the same endpoint.
+- **`updatePanel`** (not wrapped by the SDK - tested via raw `_request()`) — the panel accepted
+  the request (`"Panel update started"` with a `runId`) but the actual background job never
+  completed (`started panel update job with pid -1` in the container logs, no further activity).
+  Version stayed `3.7.0` afterward, no crash, no data loss. This looks like an environment
+  limitation of the Docker image (no functioning self-update mechanism inside the container),
+  not an SDK issue — `getPanelUpdateInfo()` already correctly reports `updateAvailable: false`
+  for this version regardless.

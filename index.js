@@ -234,7 +234,6 @@ class ThreeXUI {
             // Try modern endpoint first (/panel/api/login), then fall back to legacy endpoint (/login)
             // This supports both newer (React-based) and older (Vue-based) 3x-ui panels
             let response;
-            let lastError;
             let detectedPanelType = this.panelType;
 
             // Determine which endpoint to try based on panelType setting
@@ -251,7 +250,6 @@ class ThreeXUI {
                         detectedPanelType = 'modern';
                     }
                 } catch (modernError) {
-                    lastError = modernError;
                     // If modern endpoint fails and fallback is enabled, try legacy endpoint
                     if (tryLegacyFallback) {
                         try {
@@ -261,9 +259,15 @@ class ThreeXUI {
                             if (this.panelType === 'auto') {
                                 detectedPanelType = 'legacy';
                             }
-                        } catch {
-                            // Both endpoints failed, throw the last error
-                            throw lastError;
+                        } catch (legacyError) {
+                            // Both endpoints failed, throw a combined error that
+                            // preserves the actual legacy failure reason instead
+                            // of masking it with the modern endpoint's error.
+                            throw new Error(
+                                'Login failed on both modern (/panel/api/login) and legacy (/login) endpoints: ' +
+                                `modern: ${modernError.message}; legacy: ${legacyError.message}`,
+                                { cause: legacyError }
+                            );
                         }
                     } else {
                         throw modernError;

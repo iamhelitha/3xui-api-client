@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- 🐛 **`index.d.ts` documented the wrong constructor option name for panel-type detection** - The type definitions declared `panelVersion?: 'auto' | 'modern' | 'legacy'`, but the runtime constructor (`index.js`) has only ever read `options.panelType`. Passing `panelVersion` per the published types silently did nothing at runtime (panel type stayed `'auto'`), while the option that actually worked wasn't documented at all. Fixed `index.d.ts`, `README.md`, and both wiki copies to consistently document `panelType`.
+
 ## [3.2.0] - 2026-08-26
 
 ### Added
@@ -43,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [3.1.0] - 2026-06-15
 
 ### Added
-- 🔄 **Dual Panel Support** - Automatic panel version detection (modern React v2.x+ vs legacy Vue v1.x) with seamless fallback during login. This is also configurable via the `panelVersion` constructor option (`auto`, `modern`, `legacy`).
+- 🔄 **Dual Panel Support** - Automatic panel version detection (modern React v2.x+ vs legacy Vue v1.x) with seamless fallback during login. This is also configurable via the `panelType` constructor option (`auto`, `modern`, `legacy`).
 - Comprehensive Phase C API test coverage and documentation consolidation.
 - 🔢 **Automatic GB→Bytes Conversion** ([#6](https://github.com/iamhelitha/3xui-api-client/pull/6)) - `totalGB` values in `addClientWithCredentials`, `updateClientWithCredentials`, `addModernClient`, and `updateModernClient` are now automatically converted to bytes. Pass `totalGB: 100` and receive a proper 100 GB limit — no manual byte calculation needed. Includes safety warnings for suspiciously small values.
 - 🔒 **`loginRetryBackoff` option** ([#7](https://github.com/iamhelitha/3xui-api-client/pull/7)) - Configurable delay (default **500 ms**) before each forced re-login on a `401` response. Prevents bursts of concurrent serverless cold starts from tripping fail2ban or 3x-ui login-rate limits. Set `loginRetryBackoff: 0` to disable.

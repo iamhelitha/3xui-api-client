@@ -25,7 +25,7 @@ declare module '3xui-api-client' {
      * - 'legacy': Use only legacy panel endpoints (/login)
      * @default 'auto'
      */
-    panelVersion?: 'auto' | 'modern' | 'legacy';
+    panelType?: 'auto' | 'modern' | 'legacy';
     /**
      * Maximum number of forced re-login attempts when a 401 response is received.
      * @default 3

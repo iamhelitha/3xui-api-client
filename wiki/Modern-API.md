@@ -36,7 +36,7 @@ The library features automatic **Dual Panel Support** to detect which generation
 - **Modern (React-based) panels**: The client tries `/panel/api/login` first. It automatically handles the `/panel/api/csrf-token` CSRF protection and uses the modern endpoints.
 - **Legacy (Vue-based) panels**: If the modern login endpoint returns a 404, it seamlessly falls back to `/login` (pure cookie-based auth without CSRF).
 
-The detected `panelType` is cached in the session so subsequent logins and API calls are instantly routed to the correct endpoints without re-detection. You can also explicitly specify `{ panelVersion: 'modern' | 'legacy' | 'auto' }` in the constructor options.
+The detected `panelType` is cached in the session so subsequent logins and API calls are instantly routed to the correct endpoints without re-detection. You can also explicitly specify `{ panelType: 'modern' | 'legacy' | 'auto' }` in the constructor options.
 
 ---
 

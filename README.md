@@ -85,7 +85,7 @@ await client.login();
 
 // Explicit version (optional, for performance)
 const client = new ThreeXUI('https://your-3xui-server.com', 'username', 'password', {
-  panelVersion: 'modern'  // or 'legacy' or 'auto' (default)
+  panelType: 'modern'  // or 'legacy' or 'auto' (default)
 });
 ```
 

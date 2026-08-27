@@ -79,7 +79,7 @@ const client = new ThreeXUI(
     'https://your-3xui-server.com',
     'your-username',
     'your-password',
-    { panelVersion: 'auto' } // 'auto' is default. Can also be 'modern' or 'legacy'
+    { panelType: 'auto' } // 'auto' is default. Can also be 'modern' or 'legacy'
 );
 
 // No manual login() needed — auto-authenticates on first API call

@@ -39,7 +39,7 @@ const inbounds = await client.getInbounds();
 ## What's New in v3.1.0
 
 ### 🔄 Dual Panel Support
-Fully supports both modern (React-based) and legacy (Vue-based) 3x-ui panels. The client automatically detects the panel version on first login (with seamless fallback) and caches it in the session. You can also enforce a version using `{ panelVersion: 'modern' | 'legacy' }` in options.
+Fully supports both modern (React-based) and legacy (Vue-based) 3x-ui panels. The client automatically detects the panel version on first login (with seamless fallback) and caches it in the session. You can also enforce a version using `{ panelType: 'modern' | 'legacy' }` in options.
 
 ### 🔑 API Token Authentication
 Pass `token` or `apiToken` in options to authenticate with Bearer token headers instead of cookie login. Required for 3x-ui v3.0.2+ where the panel enforces token-based access for API operations.

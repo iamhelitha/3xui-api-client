@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/banner.png" alt="3xui-api-client — the complete 3x-ui API client for Node.js" width="100%" />
+</p>
+
 # 3xui-api-client
 
 A Node.js / TypeScript API client for the **3x-ui panel** (Xray-core), with easy-to-use methods for managing inbounds and clients across **VLESS, VMess, Trojan, Shadowsocks, WireGuard,** and **Reality** protocols.

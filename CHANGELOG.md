@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.1] - 2026-08-30
+
 ### Fixed
 - 🔴 **`getClientTrafficsByEmail` always failed with `404` on modern panels** - It only called the legacy `/panel/api/inbounds/getClientTraffics/:email` route, which newer 3x-ui panel versions have removed outright (confirmed against the current published Postman collection, which no longer lists it). It now tries the modern `/panel/api/clients/traffic/:email` route first and falls back to the legacy route on `404`, so both old and new panels work with no consumer code changes - just update the package. `getClientTrafficsById` has no modern equivalent route to fall back to, so it remains legacy-only and is now documented as such.
 - 🐛 **`index.d.ts` documented the wrong constructor option name for panel-type detection** - The type definitions declared `panelVersion?: 'auto' | 'modern' | 'legacy'`, but the runtime constructor (`index.js`) has only ever read `options.panelType`. Passing `panelVersion` per the published types silently did nothing at runtime (panel type stayed `'auto'`), while the option that actually worked wasn't documented at all. Fixed `index.d.ts`, `README.md`, and both wiki copies to consistently document `panelType`.

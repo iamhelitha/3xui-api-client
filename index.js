@@ -1272,10 +1272,34 @@ class ThreeXUI {
         return this._request('post', `/panel/api/inbounds/${inboundId}/delClientByEmail/${email}`);
     }
 
-    getClientTrafficsByEmail(email) {
-        return this._request('get', `/panel/api/inbounds/getClientTraffics/${email}`);
+    /**
+     * Get traffic counters for a client by email.
+     *
+     * Tries the modern `/panel/api/clients/traffic/:email` route first
+     * (3x-ui >= 2.x). Newer panel versions have removed the legacy
+     * `/panel/api/inbounds/getClientTraffics/:email` route outright, so on a
+     * 404 this falls back to that legacy route for panels old enough to
+     * still serve it.
+     */
+    async getClientTrafficsByEmail(email) {
+        try {
+            return await this._request('get', `/panel/api/clients/traffic/${encodeURIComponent(email)}`);
+        } catch (error) {
+            if (error.response && error.response.status === 404) {
+                return await this._request('get', `/panel/api/inbounds/getClientTraffics/${email}`);
+            }
+            throw error;
+        }
     }
 
+    /**
+     * Get traffic counters for a client by its numeric traffic-row id.
+     *
+     * There is no modern equivalent of this route — newer 3x-ui panel
+     * versions have removed `/panel/api/inbounds/getClientTrafficsById/:id`
+     * outright, so this only works against panels old enough to still serve
+     * it. Prefer {@link getClientTrafficsByEmail} on modern panels.
+     */
     getClientTrafficsById(id) {
         return this._request('get', `/panel/api/inbounds/getClientTrafficsById/${id}`);
     }
